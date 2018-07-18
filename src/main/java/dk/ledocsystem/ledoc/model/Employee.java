@@ -13,42 +13,37 @@ public class Employee {
 
     @EqualsAndHashCode.Include
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "employee_seq")
+    @SequenceGenerator(name = "employee_seq", sequenceName = "employee_seq")
     private Long id;
 
     @EqualsAndHashCode.Include
-    @Column
+    @Column(nullable = false, unique = true)
     private String username;
 
-    @Column
+    @Column(nullable = false, length = 56)
     private String password;
 
-    @Column(name = "password_salt")
-    private String passwordSalt;
-
-    @Column
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(name = "first_name")
+    @Column(name = "first_name", nullable = false)
     private String firstName;
 
-    @Column(name = "last_name")
+    @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    @Column
-    private String role;
-
-    @Column(name = "mobile_phone")
+    @Column(name = "mobile_phone", length = 50)
     private String mobilePhone;
 
-    @Column
+    @Column(nullable = false)
     private String title;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
-    @Column
+    @Column(nullable = false)
     private Boolean archived;
 
     @Column(name = "archive_reason")

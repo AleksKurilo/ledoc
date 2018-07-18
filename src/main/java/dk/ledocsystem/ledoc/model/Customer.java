@@ -14,15 +14,15 @@ public class Customer {
 
     @EqualsAndHashCode.Include
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    //@SequenceGenerator(name = "customer_seq", sequenceName = "customer_seq")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "customer_seq")
+    @SequenceGenerator(name = "customer_seq", sequenceName = "customer_seq")
     private Long id;
 
     @EqualsAndHashCode.Include
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
 
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 20, unique = true)
     private String cvr;
 
     @Column(name = "contact_phone", length = 50)
@@ -42,8 +42,4 @@ public class Customer {
 
     @OneToMany(mappedBy = "id", fetch = FetchType.LAZY, targetEntity = Employee.class)
     private Set<Employee> employees;
-/*
-    private Set<Supplier> suppliers;
-
-    private Set<Equipment> equipments;*/
 }
