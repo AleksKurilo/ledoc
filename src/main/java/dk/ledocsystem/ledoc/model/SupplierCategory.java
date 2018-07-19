@@ -26,7 +26,4 @@ public class SupplierCategory {
 
     @Column
     private String description;
-
-    @OneToMany(mappedBy = "id", fetch = FetchType.LAZY, targetEntity = Supplier.class)
-    private Set<Supplier> suppliers;
 }

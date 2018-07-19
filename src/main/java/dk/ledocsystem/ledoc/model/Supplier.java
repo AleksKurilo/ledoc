@@ -4,9 +4,11 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
-import java.util.Set;
 
 @Setter
 @Getter
@@ -22,7 +24,6 @@ public class Supplier {
     @SequenceGenerator(name = "supplier_seq", sequenceName = "supplier_seq")
     private Long id;
 
-    @EqualsAndHashCode.Include
     @Column(nullable = false)
     private String name;
 
@@ -37,11 +38,10 @@ public class Supplier {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private SupplierCategory category;
 
-    @OneToMany(mappedBy = "id", fetch = FetchType.LAZY, targetEntity = Equipment.class)
-    private Set<Equipment> equipments;
-
+    @ColumnDefault("false")
     @Column(nullable = false)
     private Boolean archived;
 
@@ -54,5 +54,6 @@ public class Supplier {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "customer_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Customer customer;
 }

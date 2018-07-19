@@ -1,9 +1,9 @@
 package dk.ledocsystem.ledoc.model;
 
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import javax.persistence.*;
-import java.util.Set;
 
 @Setter
 @Getter
@@ -18,7 +18,6 @@ public class Customer {
     @SequenceGenerator(name = "customer_seq", sequenceName = "customer_seq")
     private Long id;
 
-    @EqualsAndHashCode.Include
     @Column(nullable = false, unique = true)
     private String name;
 
@@ -37,9 +36,7 @@ public class Customer {
     @Column(name = "company_email")
     private String companyEmail;
 
-    @Column(name = "archived")
+    @ColumnDefault("false")
+    @Column(nullable = false)
     private Boolean archived;
-
-    @OneToMany(mappedBy = "id", fetch = FetchType.LAZY, targetEntity = Employee.class)
-    private Set<Employee> employees;
 }

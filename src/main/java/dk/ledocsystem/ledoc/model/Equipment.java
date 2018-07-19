@@ -3,6 +3,10 @@ package dk.ledocsystem.ledoc.model;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -12,6 +16,7 @@ import java.time.LocalDate;
 @Getter
 @Entity
 @Table(name = "equipment", uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "customer_id"})})
+@ToString(of = {"id", "name"})
 public class Equipment {
 
     @EqualsAndHashCode.Include
@@ -37,6 +42,7 @@ public class Equipment {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private EquipmentCategory category;
 
     @Column
@@ -46,17 +52,18 @@ public class Equipment {
     private BigDecimal price;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "supplier_id", nullable = false)
+    @JoinColumn(name = "supplier_id")
     private Supplier supplier;
 
-    @Column
+    @Column(nullable = false, length = 10)
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    @Column(name = "purchase_date")
+    @Column(name = "purchase_date", nullable = false)
     private LocalDate purchaseDate;
 
-    @Column
+    @ColumnDefault("false")
+    @Column(nullable = false)
     private Boolean archived;
 
     @Column(name = "archive_reason")
@@ -68,5 +75,6 @@ public class Equipment {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "customer_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Customer customer;
 }

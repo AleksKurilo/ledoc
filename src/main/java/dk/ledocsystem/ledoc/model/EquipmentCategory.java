@@ -21,12 +21,9 @@ public class EquipmentCategory {
     @SequenceGenerator(name = "equipment_cat_seq", sequenceName = "equipment_cat_seq")
     private Long id;
 
-    @Column(unique = true)
+    @Column(nullable = false, unique = true)
     private String name;
 
     @Column
     private String description;
-
-    @OneToMany(mappedBy = "id", fetch = FetchType.LAZY, targetEntity = Equipment.class)
-    private Set<Equipment> equipments;
 }

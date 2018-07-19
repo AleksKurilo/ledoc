@@ -1,6 +1,9 @@
 package dk.ledocsystem.ledoc.model;
 
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 
@@ -17,7 +20,6 @@ public class Employee {
     @SequenceGenerator(name = "employee_seq", sequenceName = "employee_seq")
     private Long id;
 
-    @EqualsAndHashCode.Include
     @Column(nullable = false, unique = true)
     private String username;
 
@@ -41,8 +43,10 @@ public class Employee {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "customer_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Customer customer;
 
+    @ColumnDefault("false")
     @Column(nullable = false)
     private Boolean archived;
 
