@@ -1,17 +1,20 @@
 package dk.ledocsystem.ledoc.model;
 
+import dk.ledocsystem.ledoc.dto.EmployeeDTO;
 import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
 @Setter
 @Getter
 @Entity
 @Table(name = "employees")
-@ToString(of = {"username", "firstName", "lastName"})
+@ToString(of = {"email", "firstName", "lastName"})
+@DynamicInsert
+@DynamicUpdate
 public class Employee {
 
     @EqualsAndHashCode.Include
@@ -21,13 +24,10 @@ public class Employee {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String username;
+    private String email;
 
     @Column(nullable = false, length = 56)
     private String password;
-
-    @Column(nullable = false, unique = true)
-    private String email;
 
     @Column(name = "first_name", nullable = false)
     private String firstName;
@@ -41,7 +41,7 @@ public class Employee {
     @Column(nullable = false)
     private String title;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Customer customer;
@@ -52,4 +52,24 @@ public class Employee {
 
     @Column(name = "archive_reason")
     private String archiveReason;
+
+    public void updateProperties(EmployeeDTO employeeDTO) {
+        setEmail(employeeDTO.getEmail());
+        setPassword(employeeDTO.getPassword());
+        setFirstName(employeeDTO.getFirstName());
+        setLastName(employeeDTO.getLastName());
+        setMobilePhone(employeeDTO.getMobilePhone());
+        setTitle(employeeDTO.getTitle());
+    }
+
+    public static Employee fromDTO(EmployeeDTO employeeDTO) {
+        Employee employee = new Employee();
+        employee.setEmail(employeeDTO.getEmail());
+        employee.setPassword(employeeDTO.getPassword());
+        employee.setFirstName(employeeDTO.getFirstName());
+        employee.setLastName(employeeDTO.getLastName());
+        employee.setMobilePhone(employeeDTO.getMobilePhone());
+        employee.setTitle(employeeDTO.getTitle());
+        return employee;
+    }
 }

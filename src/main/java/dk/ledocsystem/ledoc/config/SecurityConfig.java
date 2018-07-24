@@ -22,11 +22,11 @@ import java.util.Collections;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
-    private static final String USERS_BY_USERNAME_QUERY = "select username, password, NOT archived " +
-            "from employees where username = ?";
-    private static final String AUTHORITIES_BY_USERNAME_QUERY = "select username, authorities.name " +
+    private static final String USERS_BY_USERNAME_QUERY = "select email, password, NOT archived " +
+            "from employees where email = ?";
+    private static final String AUTHORITIES_BY_USERNAME_QUERY = "select email, authorities.name " +
             "from authorities inner join employees_authorities on authorities.id = employees_authorities.authority_id " +
-            "inner join employees on employees_authorities.employee_id = employees.id where username = ?";
+            "inner join employees on employees_authorities.employee_id = employees.id where email = ?";
 
     private final DataSource dataSource;
 
@@ -34,7 +34,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                    .anyRequest().authenticated()
+                    .anyRequest().permitAll()
                     .and()
                 .formLogin()
                     .permitAll()
