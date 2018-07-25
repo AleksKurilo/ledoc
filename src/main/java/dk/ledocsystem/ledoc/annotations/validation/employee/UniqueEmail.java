@@ -1,4 +1,4 @@
-package dk.ledocsystem.ledoc.annotations.validation;
+package dk.ledocsystem.ledoc.annotations.validation.employee;
 
 
 import dk.ledocsystem.ledoc.model.Employee;

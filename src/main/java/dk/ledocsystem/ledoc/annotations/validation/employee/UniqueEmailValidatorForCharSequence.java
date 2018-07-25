@@ -1,8 +1,7 @@
-package dk.ledocsystem.ledoc.annotations.validation;
+package dk.ledocsystem.ledoc.annotations.validation.employee;
 
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;

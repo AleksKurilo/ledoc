@@ -2,10 +2,26 @@ package dk.ledocsystem.ledoc.repository;
 
 import dk.ledocsystem.ledoc.model.Customer;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface CustomerRepository extends JpaRepository<Customer, Long>  {
+
+    /**
+     * @param name name
+     * @return {@link Optional} with {@link Customer customer} with provided name or empty Optional if none found.
+     */
+    Optional<Customer> findByName(String name);
+
+    /**
+     * @param cvr company's cvr code
+     * @return {@link Optional} with {@link Customer customer} with provided CVR or empty Optional if none found.
+     */
+    Optional<Customer> findByCvr(String cvr);
 
     /**
      * @return All {@link Customer} customers that are not archived
@@ -17,22 +33,31 @@ public interface CustomerRepository extends JpaRepository<Customer, Long>  {
      */
     List<Customer> findAllByArchivedIsTrue();
 
-    /**
-     * @param cvr company's cvr code
-     * @return Customer {@link Customer} with the given cvr code
-     */
-    Customer findCustomerByCvrEquals(String cvr);
-
-    /**
-     * @param name company's name
-     * @return Customer {@link Customer} with the given name
-     */
-    Customer findCustomerByNameEquals(String name);
+    @Modifying
+    @Query(value = "delete from main.customers e where e.id in ?1", nativeQuery = true)
+    void deleteByIdIn(Collection<Long> ids);
 
     /**
      * @param phone company phone
      * @return Customer {@link Customer} with the given phone
      */
-    Customer findCustomerByContactPhoneEquals(String phone);
+    Optional<Customer> findByContactPhone(String phone);
 
+    /**
+     * @param contactEmail contactEmail
+     * @return Customer {@link Customer} with the given contact email
+     */
+    Optional<Customer> findByContactEmail(String contactEmail);
+
+    /**
+     * @param invoiceEmail invoiceEmail
+     * @return Customer {@link Customer} with the given invoice email
+     */
+    Optional<Customer> findByInvoiceEmail(String invoiceEmail);
+
+    /**
+     * @param companyEmail companyEmail
+     * @return Customer {@link Customer} with the company email
+     */
+    Optional<Customer> findByCompanyEmail(String companyEmail);
 }

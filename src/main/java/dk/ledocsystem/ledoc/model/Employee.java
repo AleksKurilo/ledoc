@@ -17,6 +17,15 @@ import javax.persistence.Table;
 @DynamicUpdate
 public class Employee {
 
+    public Employee(EmployeeDTO employeeDTO) {
+        setEmail(employeeDTO.getEmail());
+        setPassword(employeeDTO.getPassword());
+        setFirstName(employeeDTO.getFirstName());
+        setLastName(employeeDTO.getLastName());
+        setMobilePhone(employeeDTO.getMobilePhone());
+        setTitle(employeeDTO.getTitle());
+    }
+
     @EqualsAndHashCode.Include
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "employee_seq")
@@ -60,16 +69,5 @@ public class Employee {
         setLastName(employeeDTO.getLastName());
         setMobilePhone(employeeDTO.getMobilePhone());
         setTitle(employeeDTO.getTitle());
-    }
-
-    public static Employee fromDTO(EmployeeDTO employeeDTO) {
-        Employee employee = new Employee();
-        employee.setEmail(employeeDTO.getEmail());
-        employee.setPassword(employeeDTO.getPassword());
-        employee.setFirstName(employeeDTO.getFirstName());
-        employee.setLastName(employeeDTO.getLastName());
-        employee.setMobilePhone(employeeDTO.getMobilePhone());
-        employee.setTitle(employeeDTO.getTitle());
-        return employee;
     }
 }

@@ -1,9 +1,9 @@
 package dk.ledocsystem.ledoc.dto;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import dk.ledocsystem.ledoc.annotations.validation.MobilePhone;
+import dk.ledocsystem.ledoc.annotations.validation.employee.MobilePhone;
 import dk.ledocsystem.ledoc.annotations.validation.OnlyAscii;
-import dk.ledocsystem.ledoc.annotations.validation.UniqueEmail;
+import dk.ledocsystem.ledoc.annotations.validation.employee.UniqueEmail;
 import lombok.Data;
 
 import javax.validation.constraints.Email;

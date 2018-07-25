@@ -1,7 +1,7 @@
 package dk.ledocsystem.ledoc.service;
 
 import dk.ledocsystem.ledoc.dto.EmployeeDTO;
-import dk.ledocsystem.ledoc.exceptions.EmployeeNotFoundException;
+import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.Employee;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
@@ -28,7 +28,7 @@ public class EmployeeService {
      */
     public Employee createEmployee(EmployeeDTO employeeDTO, Customer customer) {
         employeeDTO.setPassword(passwordEncoder.encode(employeeDTO.getPassword()));
-        Employee employee = Employee.fromDTO(employeeDTO);
+        Employee employee = new Employee(employeeDTO);
         employee.setCustomer(customer);
         return employeeRepository.save(employee);
     }
@@ -43,7 +43,7 @@ public class EmployeeService {
     @Transactional
     public Employee updateEmployee(Long employeeId, EmployeeDTO employeeDTO) {
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new EmployeeNotFoundException(employeeId));
+                .orElseThrow(() -> new NotFoundException(Employee.class, employeeId));
         employee.updateProperties(employeeDTO);
         return employeeRepository.save(employee);
     }

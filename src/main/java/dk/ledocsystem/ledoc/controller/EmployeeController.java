@@ -1,7 +1,7 @@
 package dk.ledocsystem.ledoc.controller;
 
 import dk.ledocsystem.ledoc.dto.EmployeeDTO;
-import dk.ledocsystem.ledoc.exceptions.EmployeeNotFoundException;
+import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.Employee;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
@@ -28,7 +28,7 @@ public class EmployeeController {
 
     @GetMapping("/{employeeId}")
     public Employee getEmployeeById(@PathVariable Long employeeId) {
-        return employeeRepository.findById(employeeId).orElseThrow(() -> new EmployeeNotFoundException(employeeId));
+        return employeeRepository.findById(employeeId).orElseThrow(() -> new NotFoundException(Employee.class, employeeId));
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)

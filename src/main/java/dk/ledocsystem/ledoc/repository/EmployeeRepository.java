@@ -63,30 +63,4 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
      * @return All {@link Employee} archived in given {@link dk.ledocsystem.ledoc.model.Customer} company
      */
     List<Employee> findAllByCustomer_IdAndArchivedIsTrue(Long customerId);
-
-    /**
-     * @param locationID locationID
-     * @param includeArchived includeArchived if we want get archived eployees too
-     * @return All {@link Employee} eployees of given {@link dk.ledocsystem.ledoc.model.Location} location
-     *//*
-    List<Employee> allbyLocation(Long );
-
-    *//**
-     * @param locationID locationID
-     * @return All {@link Employee} archived eployees of given {@link dk.ledocsystem.ledoc.model.Location} location
-     *//*
-    List<Employee> allbyLocationarchived(Long );
-
-    *//**
-     * @param addressId addressId
-     * @param includeArchived includeArchived if we want get archived eployees too
-     * @return All {@link Employee} employees of given {@link dk.ledocsystem.ledoc.model.Address} address
-     *//*
-    List<Employee> findAllInAddress(Long );
-
-    *//**
-     * @param addressId addressId
-     * @return All {@link Employee} archived employees of given {@link dk.ledocsystem.ledoc.model.Address} address
-     *//*
-    List<Employee> findAllArchivedInAddress(Long );*/
 }
