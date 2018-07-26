@@ -51,15 +51,15 @@ public class CustomerController {
         customerService.deleteByIds(ids);
     }
 
-    @GetMapping
-    public List<Customer> allNotArchived() {
-        return customerRepository.findAllByArchivedIsFalse();
-    }
-
-    @GetMapping
-    public List<Customer> allArchived() {
-        return customerRepository.findAllByArchivedIsTrue();
-    }
+//    @GetMapping
+//    public List<Customer> allNotArchived() {
+//        return customerRepository.findAllByArchivedIsFalse();
+//    }
+//
+//    @GetMapping
+//    public List<Customer> allArchived() {
+//        return customerRepository.findAllByArchivedIsTrue();
+//    }
 
     @GetMapping("/{customerCvr}")
     public Customer findCustomerByCvr(@PathVariable String cvr) {

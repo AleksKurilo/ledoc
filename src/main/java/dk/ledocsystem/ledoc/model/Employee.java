@@ -10,6 +10,7 @@ import javax.persistence.Table;
 
 @Setter
 @Getter
+@NoArgsConstructor
 @Entity
 @Table(name = "employees")
 @ToString(of = {"email", "firstName", "lastName"})

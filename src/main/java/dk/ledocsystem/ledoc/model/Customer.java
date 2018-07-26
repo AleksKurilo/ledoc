@@ -8,6 +8,7 @@ import javax.persistence.*;
 
 @Setter
 @Getter
+@NoArgsConstructor
 @Entity
 @Table(name = "customers")
 @ToString(of = {"name", "contactPhone", "contactEmail"})
