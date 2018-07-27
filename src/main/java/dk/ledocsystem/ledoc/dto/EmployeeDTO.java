@@ -13,9 +13,10 @@ import javax.validation.constraints.Size;
 @Data
 public class EmployeeDTO {
 
+    @Email
     @UniqueEmail
     @NotNull(message = "Username must not be null")
-    @Email
+    @OnlyAscii(message = "Email must contain only ASCII characters")
     private String email;
 
     @NotNull(message = "Password must not be null")

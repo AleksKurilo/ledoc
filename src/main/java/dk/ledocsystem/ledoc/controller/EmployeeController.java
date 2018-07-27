@@ -9,6 +9,7 @@ import dk.ledocsystem.ledoc.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
 import java.util.Collection;
@@ -32,7 +33,8 @@ public class EmployeeController {
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Employee createEmployee(@RequestBody @Valid EmployeeDTO employeeDTO, @SessionAttribute Customer customer) {
+    public Employee createEmployee(@RequestBody @Valid EmployeeDTO employeeDTO,
+                                   @SessionAttribute @ApiIgnore Customer customer) {
         return employeeService.createEmployee(employeeDTO, customer);
     }
 
