@@ -7,13 +7,13 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
 @RequiredArgsConstructor
-class UniqueEmailValidatorForCharSequence implements ConstraintValidator<UniqueEmail, CharSequence> {
+class UniqueUsernameValidator implements ConstraintValidator<UniqueUsername, CharSequence> {
 
     private final EmployeeRepository employeeRepository;
 
     @Override
     public boolean isValid(CharSequence value, ConstraintValidatorContext context) {
-        String email = value.toString();
-        return !employeeRepository.findByEmail(email).isPresent();
+        String username = value.toString();
+        return !employeeRepository.findByUsername(username).isPresent();
     }
 }

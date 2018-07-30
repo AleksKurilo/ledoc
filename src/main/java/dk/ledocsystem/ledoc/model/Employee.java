@@ -13,13 +13,13 @@ import javax.persistence.Table;
 @NoArgsConstructor
 @Entity
 @Table(name = "employees")
-@ToString(of = {"email", "firstName", "lastName"})
+@ToString(of = {"username", "firstName", "lastName"})
 @DynamicInsert
 @DynamicUpdate
 public class Employee {
 
     public Employee(EmployeeDTO employeeDTO) {
-        setEmail(employeeDTO.getEmail());
+        setUsername(employeeDTO.getUsername());
         setPassword(employeeDTO.getPassword());
         setFirstName(employeeDTO.getFirstName());
         setLastName(employeeDTO.getLastName());
@@ -34,7 +34,7 @@ public class Employee {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String email;
+    private String username;
 
     @Column(nullable = false, length = 56)
     private String password;
@@ -64,7 +64,7 @@ public class Employee {
     private String archiveReason;
 
     public void updateProperties(EmployeeDTO employeeDTO) {
-        setEmail(employeeDTO.getEmail());
+        setUsername(employeeDTO.getUsername());
         setPassword(employeeDTO.getPassword());
         setFirstName(employeeDTO.getFirstName());
         setLastName(employeeDTO.getLastName());

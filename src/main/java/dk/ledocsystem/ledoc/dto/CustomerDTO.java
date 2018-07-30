@@ -1,7 +1,7 @@
 package dk.ledocsystem.ledoc.dto;
 
 import dk.ledocsystem.ledoc.annotations.validation.OnlyAscii;
-import dk.ledocsystem.ledoc.annotations.validation.customer.MobilePhone;
+import dk.ledocsystem.ledoc.annotations.validation.MobilePhone;
 import dk.ledocsystem.ledoc.annotations.validation.customer.UniqueCVR;
 import dk.ledocsystem.ledoc.annotations.validation.customer.UniqueName;
 import lombok.Data;

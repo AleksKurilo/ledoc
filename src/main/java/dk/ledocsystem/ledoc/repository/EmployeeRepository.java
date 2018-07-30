@@ -22,10 +22,20 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     void setAdminAuthorities(@Param("employee_id") Long employeeId);
 
     /**
-     * @param email Email
-     * @return {@link Optional} with {@link Employee employee} with provided email or empty Optional if none found.
+     * @param username Username
+     * @return {@link Optional} with {@link Employee employee} with provided username or empty Optional if none found.
      */
-    Optional<Employee> findByEmail(String email);
+    Optional<Employee> findByUsername(String username);
+
+    /**
+     * Changes password of the user with given email.
+     *
+     * @param email       Email identifying the user
+     * @param newPassword New password
+     */
+    @Modifying
+    @Query(value = "update main.employees e set password = ?2 where username = ?1", nativeQuery = true)
+    void changePassword(String email, String newPassword);
 
     /**
      * Deletes employees with the given IDs.
