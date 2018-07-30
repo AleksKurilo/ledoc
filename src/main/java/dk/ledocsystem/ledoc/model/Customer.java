@@ -3,6 +3,8 @@ package dk.ledocsystem.ledoc.model;
 import dk.ledocsystem.ledoc.dto.CustomerDTO;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 
@@ -12,6 +14,8 @@ import javax.persistence.*;
 @Entity
 @Table(name = "customers")
 @ToString(of = {"name", "contactPhone", "contactEmail"})
+@DynamicInsert
+@DynamicUpdate
 public class Customer {
 
     public Customer(CustomerDTO customerDTO) {

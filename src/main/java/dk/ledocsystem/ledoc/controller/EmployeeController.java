@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import java.util.Collection;
 
@@ -32,6 +33,7 @@ public class EmployeeController {
         return employeeRepository.findById(employeeId).orElseThrow(() -> new NotFoundException(Employee.class, employeeId));
     }
 
+    @RolesAllowed("admin")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public Employee createEmployee(@RequestBody @Valid EmployeeDTO employeeDTO,
                                    @SessionAttribute @ApiIgnore Customer customer) {

@@ -1,16 +1,19 @@
 package dk.ledocsystem.ledoc.config.security;
 
+import dk.ledocsystem.ledoc.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -21,6 +24,10 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(
+        prePostEnabled = true,
+        securedEnabled = true,
+        jsr250Enabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private static final String USERS_BY_USERNAME_QUERY = "select username, password, NOT archived " +
@@ -30,6 +37,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "inner join employees on employees_authorities.employee_id = employees.id where username = ?";
 
     private final DataSource dataSource;
+    private final EmployeeRepository employeeRepository;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -54,9 +62,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public UsernamePasswordAuthenticationFilter usernamePasswordAuthenticationFilter() throws Exception {
+        AuthenticationSuccessHandler jwtSettingAuthenticationSuccessHandler =
+                new JwtSettingAuthenticationSuccessHandler();
+        AuthenticationSuccessHandler customerSettingAuthenticationSuccessHandler =
+                new CustomerSettingAuthenticationSuccessHandler(employeeRepository);
+
         UsernamePasswordAuthenticationFilter authenticationFilter =
                 new CustomUsernamePasswordAuthenticationFilter(authenticationManager());
-        authenticationFilter.setAuthenticationSuccessHandler(new JwtSettingAuthenticationSuccessHandler());
+        authenticationFilter.setAuthenticationSuccessHandler(new CompositeAuthenticationSuccessHandler(
+                Arrays.asList(jwtSettingAuthenticationSuccessHandler, customerSettingAuthenticationSuccessHandler)));
         return authenticationFilter;
     }
 
@@ -65,6 +79,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         auth
                 .jdbcAuthentication()
                     .dataSource(dataSource)
+                    .rolePrefix("ROLE_")
                     .usersByUsernameQuery(USERS_BY_USERNAME_QUERY)
                     .authoritiesByUsernameQuery(AUTHORITIES_BY_USERNAME_QUERY)
                     .passwordEncoder(passwordEncoder());
