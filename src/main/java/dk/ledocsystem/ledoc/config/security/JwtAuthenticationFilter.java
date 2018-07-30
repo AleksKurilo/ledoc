@@ -1,9 +1,12 @@
 package dk.ledocsystem.ledoc.config.security;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
@@ -12,9 +15,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 
-import static dk.ledocsystem.ledoc.config.security.JwtConstants.JWT_SECRET;
+import static dk.ledocsystem.ledoc.config.security.SecurityConstants.JWT_AUTHORITIES_CLAIM;
+import static dk.ledocsystem.ledoc.config.security.SecurityConstants.JWT_SECRET;
 
 class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
@@ -42,14 +46,16 @@ class JwtAuthenticationFilter extends BasicAuthenticationFilter {
     private UsernamePasswordAuthenticationToken getAuthentication(HttpServletRequest request) {
         String token = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (token != null) {
-            String user = Jwts.parser()
+            Claims claims = Jwts.parser()
                     .setSigningKey(JWT_SECRET.getBytes())
                     .parseClaimsJws(token.replace("Bearer ", ""))
-                    .getBody()
-                    .getSubject();
+                    .getBody();
+            String username = claims.getSubject();
 
-            if (user != null) {
-                return new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>());
+            if (username != null) {
+                List<GrantedAuthority> authorities =
+                        AuthorityUtils.commaSeparatedStringToAuthorityList(claims.get(JWT_AUTHORITIES_CLAIM, String.class));
+                return new UsernamePasswordAuthenticationToken(username, null, authorities);
             }
             return null;
         }
