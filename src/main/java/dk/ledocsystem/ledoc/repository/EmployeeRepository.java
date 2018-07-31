@@ -1,6 +1,6 @@
 package dk.ledocsystem.ledoc.repository;
 
-import dk.ledocsystem.ledoc.model.Employee;
+import dk.ledocsystem.ledoc.model.employee.Employee;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

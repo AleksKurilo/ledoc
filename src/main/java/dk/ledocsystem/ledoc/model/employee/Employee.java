@@ -1,12 +1,14 @@
-package dk.ledocsystem.ledoc.model;
+package dk.ledocsystem.ledoc.model.employee;
 
 import dk.ledocsystem.ledoc.dto.EmployeeDTO;
+import dk.ledocsystem.ledoc.model.Customer;
 import lombok.*;
 import org.hibernate.annotations.*;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.time.LocalDate;
 
 @Setter
 @Getter
@@ -23,8 +25,8 @@ public class Employee {
         setPassword(employeeDTO.getPassword());
         setFirstName(employeeDTO.getFirstName());
         setLastName(employeeDTO.getLastName());
-        setMobilePhone(employeeDTO.getMobilePhone());
-        setTitle(employeeDTO.getTitle());
+        getPersonalInfo().setPersonalMobile(employeeDTO.getMobilePhone());
+        getDetails().setTitle(employeeDTO.getTitle());
     }
 
     @EqualsAndHashCode.Include
@@ -39,17 +41,44 @@ public class Employee {
     @Column(nullable = false, length = 56)
     private String password;
 
+    @Column(name = "id_number", length = 40)
+    private String idNumber;
+
     @Column(name = "first_name", nullable = false)
     private String firstName;
 
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    @Column(name = "mobile_phone", length = 50)
-    private String mobilePhone;
+    @Column(length = 40)
+    private String initials;
 
-    @Column(nullable = false)
-    private String title;
+    @Column(name = "cell_phone", length = 40)
+    private String cellPhone;
+
+    @Column(name = "phone_number", length = 40)
+    private String phoneNumber;
+
+    @OneToOne
+    @JoinColumn(name = "responsible_id")
+    private Employee responsible;
+
+    private boolean welcomeMessage;
+
+    @ColumnDefault("false")
+    @Column(name = "create_pers_location")
+    private Boolean canCreatePersonalLocation;
+
+    @Column(name = "expire_id_card")
+    private LocalDate expireOfIdCard;
+
+    @Embedded
+    private EmployeeDetails details;
+
+    @Embedded
+    private EmployeePersonalInfo personalInfo;
+
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
@@ -68,7 +97,7 @@ public class Employee {
         setPassword(employeeDTO.getPassword());
         setFirstName(employeeDTO.getFirstName());
         setLastName(employeeDTO.getLastName());
-        setMobilePhone(employeeDTO.getMobilePhone());
-        setTitle(employeeDTO.getTitle());
+        getPersonalInfo().setPersonalMobile(employeeDTO.getMobilePhone());
+        getDetails().setTitle(employeeDTO.getTitle());
     }
 }

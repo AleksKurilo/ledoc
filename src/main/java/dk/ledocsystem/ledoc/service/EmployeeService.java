@@ -3,7 +3,7 @@ package dk.ledocsystem.ledoc.service;
 import dk.ledocsystem.ledoc.dto.EmployeeDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
-import dk.ledocsystem.ledoc.model.Employee;
+import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;

@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.model;
 
+import dk.ledocsystem.ledoc.model.employee.Employee;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,11 +31,13 @@ public class Location {
     private Employee responsible;
 
     @OneToOne(mappedBy = "location", cascade = CascadeType.ALL, orphanRemoval = true)
+    //If not null, it's a DOMAN ADDRESS (type = address)
     private Address address;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "address_location_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
+    //If not null, it's a PHYSICAL ADDRESS (type = physical)
     private Location addressLocation;
 
     @ManyToOne(fetch = FetchType.EAGER)

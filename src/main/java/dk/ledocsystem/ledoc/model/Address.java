@@ -21,7 +21,22 @@ public class Address {
     private Long id;
 
     @Column(nullable = false, length = 500)
-    private String address;
+    private String street;
+
+    @Column(name = "building_number", length = 40)
+    private String buildingNumber;
+
+    @Column(nullable = false, length = 40)
+    private String postalCode;
+
+    @Column(nullable = false, length = 40)
+    private String city;
+
+    @Column(nullable = false, length = 40)
+    private String country;
+
+    @Column(length = 40)
+    private String district;
 
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId

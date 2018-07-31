@@ -3,7 +3,7 @@ package dk.ledocsystem.ledoc.controller;
 import dk.ledocsystem.ledoc.dto.EmployeeDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
-import dk.ledocsystem.ledoc.model.Employee;
+import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
