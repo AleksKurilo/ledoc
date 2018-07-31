@@ -3,7 +3,7 @@ package dk.ledocsystem.ledoc.service.impl;
 import dk.ledocsystem.ledoc.dto.ResetPasswordDTO;
 import dk.ledocsystem.ledoc.exceptions.InvalidEmailException;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
-import dk.ledocsystem.ledoc.model.Employee;
+import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.model.ResetToken;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
 import dk.ledocsystem.ledoc.repository.ResetTokenRepository;

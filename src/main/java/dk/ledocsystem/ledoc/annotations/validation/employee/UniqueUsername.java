@@ -1,6 +1,6 @@
 package dk.ledocsystem.ledoc.annotations.validation.employee;
 
-import dk.ledocsystem.ledoc.model.Employee;
+import dk.ledocsystem.ledoc.model.employee.Employee;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
@@ -12,7 +12,7 @@ import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * The denoted target should be the unique email of {@link dk.ledocsystem.ledoc.model.Employee}.
+ * The denoted target should be the unique email of {@link dk.ledocsystem.ledoc.model.employee.Employee}.
  *
  * @see Employee#getUsername() ()
  */

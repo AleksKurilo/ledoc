@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.model;
 
+import dk.ledocsystem.ledoc.model.employee.Employee;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
