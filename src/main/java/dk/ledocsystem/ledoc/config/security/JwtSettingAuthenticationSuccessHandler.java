@@ -5,7 +5,6 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 import javax.servlet.http.HttpServletRequest;
@@ -25,10 +24,9 @@ class JwtSettingAuthenticationSuccessHandler implements AuthenticationSuccessHan
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) {
         Instant expirationTime = LocalDateTime.now().plus(JWT_TOKEN_EXPIRATION_TIME).atZone(ZoneId.systemDefault()).toInstant();
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String token = Jwts.builder()
-                .setSubject(userDetails.getUsername())
-                .claim(JWT_AUTHORITIES_CLAIM, StringUtils.join(userDetails.getAuthorities(), ','))
+                .setSubject(authentication.getName())
+                .claim(JWT_AUTHORITIES_CLAIM, StringUtils.join(authentication.getAuthorities(), ','))
                 .setExpiration(Date.from(expirationTime))
                 .signWith(SignatureAlgorithm.HS512, JWT_SECRET.getBytes())
                 .compact();

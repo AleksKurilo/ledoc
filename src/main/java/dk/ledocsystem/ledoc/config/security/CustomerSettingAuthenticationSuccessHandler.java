@@ -1,10 +1,9 @@
 package dk.ledocsystem.ledoc.config.security;
 
-import dk.ledocsystem.ledoc.model.Employee;
+import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 import javax.servlet.http.HttpServletRequest;
@@ -24,7 +23,7 @@ class CustomerSettingAuthenticationSuccessHandler implements AuthenticationSucce
                                         Authentication authentication) {
         boolean isAdmin = authentication.getAuthorities().contains(SecurityConstants.ADMIN_AUTHORITY);
         if (isAdmin) {
-            String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+            String username = authentication.getName();
             Employee employee = employeeRepository.findByUsername(username).orElseThrow(IllegalStateException::new);
             request.getSession().setAttribute("customer", employee.getCustomer());
         }
