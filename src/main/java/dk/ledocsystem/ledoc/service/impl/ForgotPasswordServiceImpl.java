@@ -1,7 +1,8 @@
 package dk.ledocsystem.ledoc.service.impl;
 
+import dk.ledocsystem.ledoc.dto.ForgotPasswordDTO;
 import dk.ledocsystem.ledoc.dto.ResetPasswordDTO;
-import dk.ledocsystem.ledoc.exceptions.InvalidEmailException;
+import dk.ledocsystem.ledoc.exceptions.InvalidCredentialsException;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.model.ResetToken;
@@ -27,8 +28,10 @@ class ForgotPasswordServiceImpl implements ForgotPasswordService {
 
     @Override
     @Transactional
-    public void forgotPassword(String email, String appUrl) {
-        Employee employee = employeeRepository.findByUsername(email).orElseThrow(() -> new InvalidEmailException(email));
+    public void forgotPassword(ForgotPasswordDTO forgotPasswordDTO) {
+        String email = forgotPasswordDTO.getEmail();
+        Employee employee = employeeRepository.findByUsername(email)
+                .orElseThrow(() -> new InvalidCredentialsException("Email " + email + " is invalid"));
         String token = UUID.randomUUID().toString();
 
         ResetToken resetToken = new ResetToken();
@@ -36,7 +39,7 @@ class ForgotPasswordServiceImpl implements ForgotPasswordService {
         resetToken.setToken(token);
         resetTokenRepository.save(resetToken);
 
-        sendResetEmail(email, appUrl, token);
+        sendResetEmail(forgotPasswordDTO.getEmail(), forgotPasswordDTO.getResetUrl(), token);
     }
 
     @Override
@@ -53,9 +56,9 @@ class ForgotPasswordServiceImpl implements ForgotPasswordService {
         employeeRepository.save(employee);
     }
 
-    private void sendResetEmail(String email, String appUrl, String token) {
+    private void sendResetEmail(String email, String resetUrl, String token) {
         String body = "To reset your password, click the link below:\n" +
-                appUrl + "/reset?token=" + token;
+                resetUrl + "/reset?token=" + token;
         simpleMailService.sendEmail(email, "Reset your password", body);
     }
 }
