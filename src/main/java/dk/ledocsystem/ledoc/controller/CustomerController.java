@@ -23,12 +23,12 @@ public class CustomerController {
 
     @GetMapping
     public List<Customer> getAllCustomers() {
-        return customerRepository.findAll();
+        return customerService.getAll();
     }
 
     @GetMapping("/{customerId}")
     public Customer getById(@PathVariable Long customerId) {
-        return customerRepository.findById(customerId).orElseThrow(() -> new NotFoundException(Customer.class, customerId));
+        return customerService.getById(customerId).orElseThrow(() -> new NotFoundException(Customer.class, customerId));
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -43,7 +43,7 @@ public class CustomerController {
 
     @DeleteMapping("/{customerId}")
     public void deleteById(@PathVariable Long customerId) {
-        customerRepository.deleteById(customerId);
+        customerService.deleteById(customerId);
     }
 
     @DeleteMapping

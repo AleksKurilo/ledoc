@@ -28,14 +28,20 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     Optional<Employee> findByUsername(String username);
 
     /**
+     * @param username Username
+     * @return {@code true} if there is user with provided name
+     */
+    boolean existsByUsername(String username);
+
+    /**
      * Changes password of the user with given email.
      *
-     * @param email       Email identifying the user
+     * @param username    Username identifying the user
      * @param newPassword New password
      */
     @Modifying
     @Query(value = "update main.employees e set password = ?2 where username = ?1", nativeQuery = true)
-    void changePassword(String email, String newPassword);
+    void changePassword(String username, String newPassword);
 
     /**
      * Deletes employees with the given IDs.

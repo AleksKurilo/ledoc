@@ -3,8 +3,8 @@ package dk.ledocsystem.ledoc.service.impl;
 import dk.ledocsystem.ledoc.dto.ChangePasswordDTO;
 import dk.ledocsystem.ledoc.exceptions.InvalidCredentialsException;
 import dk.ledocsystem.ledoc.model.employee.Employee;
-import dk.ledocsystem.ledoc.repository.EmployeeRepository;
 import dk.ledocsystem.ledoc.service.ChangePasswordService;
+import dk.ledocsystem.ledoc.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,7 +18,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 class ChangePasswordServiceImpl implements ChangePasswordService {
 
-    private final EmployeeRepository employeeRepository;
+    private final EmployeeService employeeService;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -26,15 +26,14 @@ class ChangePasswordServiceImpl implements ChangePasswordService {
     public void changePassword(ChangePasswordDTO changePasswordDTO) {
         Authentication auth = getCurrentUser().orElseThrow(IllegalStateException::new);
         String username = auth.getName();
-        Employee employee = employeeRepository.findByUsername(username).orElseThrow(IllegalStateException::new);
+        Employee employee = employeeService.getByUsername(username).orElseThrow(IllegalStateException::new);
 
         if (!passwordEncoder.matches(changePasswordDTO.getOldPassword(), employee.getPassword())) {
             throw new InvalidCredentialsException("Old password is incorrect");
         }
 
         String encodedNewPassword = passwordEncoder.encode(changePasswordDTO.getNewPassword());
-        employee.setPassword(encodedNewPassword);
-        employeeRepository.save(employee);
+        employeeService.changePassword(username, encodedNewPassword);
     }
 
     private Optional<Authentication> getCurrentUser() {

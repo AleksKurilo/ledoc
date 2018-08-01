@@ -6,5 +6,5 @@ public interface SimpleMailService {
 
     void sendEmail(SimpleMailMessage email);
 
-    void sendEmail(String to, String subject, String body);
+    void sendEmail(String from, String to, String subject, String body);
 }

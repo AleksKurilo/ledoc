@@ -47,6 +47,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .authorizeRequests()
                     .antMatchers(HttpMethod.GET, SWAGGER_RESOURCES).permitAll()
+                    .antMatchers(HttpMethod.POST, "/password/forgot", "/password/reset").permitAll()
                     .anyRequest().authenticated()
                     .and()
                 .formLogin()

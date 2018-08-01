@@ -21,8 +21,9 @@ class SimpleMailServiceImpl implements SimpleMailService {
 
     @Async
     @Override
-    public void sendEmail(String to, String subject, String body) {
+    public void sendEmail(String from, String to, String subject, String body) {
         SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setFrom(from);
         mailMessage.setTo(to);
         mailMessage.setSubject(subject);
         mailMessage.setText(body);

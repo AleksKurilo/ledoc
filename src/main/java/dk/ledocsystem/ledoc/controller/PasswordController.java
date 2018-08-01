@@ -29,7 +29,7 @@ public class PasswordController {
     }
 
     @PostMapping("/change")
-    public void resetPassword(@RequestBody @Valid ChangePasswordDTO changePasswordDTO) {
+    public void changePassword(@RequestBody @Valid ChangePasswordDTO changePasswordDTO) {
         changePasswordService.changePassword(changePasswordDTO);
     }
 }
