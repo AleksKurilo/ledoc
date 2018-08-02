@@ -20,9 +20,15 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
      * @param authorities Authority object
      */
     @Modifying
-    @Query(value = "INSERT INTO main.employees_authorities VALUES(:#{#employeeId}, :#{#authorities.code})", nativeQuery = true)
+    @Query(value = "INSERT INTO main.employee_authorities VALUES(:#{#employeeId}, :#{#authorities.code})", nativeQuery = true)
     void addAuthorities(@Param("employeeId") Long employeeId,
                         @Param("authorities") UserAuthorities authorities);
+
+    /**
+     * @param authorities {@link UserAuthorities authority}
+     * @return All employees that have given authority
+     */
+    List<Employee> findAllByAuthoritiesContains(UserAuthorities authorities);
 
     /**
      * @param username Username

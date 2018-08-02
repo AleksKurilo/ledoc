@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.model.employee;
 
+import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.EmployeeDTO;
 import dk.ledocsystem.ledoc.model.Customer;
 import lombok.*;
@@ -9,6 +10,7 @@ import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.time.LocalDate;
+import java.util.List;
 
 @Setter
 @Getter
@@ -58,6 +60,9 @@ public class Employee {
 
     @Column(name = "phone_number", length = 40)
     private String phoneNumber;
+
+    @ElementCollection
+    private List<UserAuthorities> authorities;
 
     @OneToOne
     @JoinColumn(name = "responsible_id")

@@ -10,7 +10,7 @@ public enum UserAuthorities {
     SUPER_ADMIN(2);
 
     @Getter
-    public final int code;
+    private final int code;
 
     static UserAuthorities fromCode(int code) {
         for (UserAuthorities authorities : values()) {
