@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.service.impl;
 
+import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.EmployeeDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
@@ -63,6 +64,12 @@ class EmployeeServiceImpl implements EmployeeService {
     @Override
     public void changePassword(String username, String newPassword) {
         employeeRepository.changePassword(username, newPassword);
+    }
+
+    @Transactional
+    @Override
+    public void addAuthorities(Long employeeId, UserAuthorities authorities) {
+        employeeRepository.addAuthorities(employeeId, authorities);
     }
 
     @Override

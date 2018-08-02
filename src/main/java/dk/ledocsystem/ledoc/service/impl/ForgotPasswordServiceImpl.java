@@ -61,8 +61,9 @@ class ForgotPasswordServiceImpl implements ForgotPasswordService {
     }
 
     private void sendResetEmail(String destination, String resetUrl, String token) {
-        String body = "To reset your password, click the link below:\n" +
-                resetUrl + "/reset?token=" + token;
+        String link = resetUrl + "?" + token;
+        String body = "To reset your password, click the link below:\n<a href=\"" +
+                link + "\">" + link + "</a>";
         simpleMailService.sendEmail(fromEmailAddress, destination, SUBJECT, body);
     }
 }

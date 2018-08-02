@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -20,7 +19,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import javax.sql.DataSource;
 import java.util.Arrays;
 
 @Configuration
@@ -31,15 +29,9 @@ import java.util.Arrays;
         jsr250Enabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
-    private static final String USERS_BY_USERNAME_QUERY = "select username, password, NOT archived " +
-            "from employees where username = ?";
-    private static final String AUTHORITIES_BY_USERNAME_QUERY = "select username, authorities.name " +
-            "from authorities inner join employees_authorities on authorities.id = employees_authorities.authority_id " +
-            "inner join employees on employees_authorities.employee_id = employees.id where username = ?";
     private static final String[] SWAGGER_RESOURCES = new String[] {"/swagger-ui.html", "/webjars/**",
             "/swagger-resources/**", "/v2/api-docs"};
 
-    private final DataSource dataSource;
     private final EmployeeRepository employeeRepository;
 
     @Override
@@ -77,17 +69,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         authenticationFilter.setAuthenticationSuccessHandler(new CompositeAuthenticationSuccessHandler(
                 Arrays.asList(jwtSettingAuthenticationSuccessHandler, customerSettingAuthenticationSuccessHandler)));
         return authenticationFilter;
-    }
-
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth
-                .jdbcAuthentication()
-                    .dataSource(dataSource)
-                    .rolePrefix("ROLE_")
-                    .usersByUsernameQuery(USERS_BY_USERNAME_QUERY)
-                    .authoritiesByUsernameQuery(AUTHORITIES_BY_USERNAME_QUERY)
-                    .passwordEncoder(passwordEncoder());
     }
 
     @Bean

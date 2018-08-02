@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.service;
 
+import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.EmployeeDTO;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.employee.Employee;
@@ -33,6 +34,14 @@ public interface EmployeeService extends DomainService<Employee> {
      * @param newPassword New password
      */
     void changePassword(String username, String newPassword);
+
+    /**
+     * Adds the provided {@link UserAuthorities authorities} to employee.
+     *
+     * @param employeeId  ID of the employee
+     * @param authorities Authorities
+     */
+    void addAuthorities(Long employeeId, UserAuthorities authorities);
 
     Optional<Employee> getByUsername(String username);
 

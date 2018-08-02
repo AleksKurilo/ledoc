@@ -1,10 +1,10 @@
 package dk.ledocsystem.ledoc.repository;
 
+import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
@@ -14,12 +14,15 @@ import java.util.Optional;
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
     /**
-     * Assigns the admin authorities to the {@link Employee} with the given ID.
+     * Assigns the provided authorities to {@link Employee} with the given ID.
      *
-     * @param employeeId ID of the {@link Employee}
+     * @param employeeId  Employee ID
+     * @param authorities Authority object
      */
-    @Procedure("set_admin_authorities")
-    void setAdminAuthorities(@Param("employee_id") Long employeeId);
+    @Modifying
+    @Query(value = "INSERT INTO main.employees_authorities VALUES(:#{#employeeId}, :#{#authorities.code})", nativeQuery = true)
+    void addAuthorities(@Param("employeeId") Long employeeId,
+                        @Param("authorities") UserAuthorities authorities);
 
     /**
      * @param username Username
@@ -40,7 +43,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
      * @param newPassword New password
      */
     @Modifying
-    @Query(value = "update main.employees e set password = ?2 where username = ?1", nativeQuery = true)
+    @Query(value = "update Employee e set e.password = ?2 where e.username = ?1")
     void changePassword(String username, String newPassword);
 
     /**
@@ -49,7 +52,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
      * @param ids The collection of employee IDs.
      */
     @Modifying
-    @Query(value = "delete from main.employees e where e.id in ?1", nativeQuery = true)
+    @Query(value = "delete from Employee e where e.id in ?1")
     void deleteByIdIn(Collection<Long> ids);
 
     /**
