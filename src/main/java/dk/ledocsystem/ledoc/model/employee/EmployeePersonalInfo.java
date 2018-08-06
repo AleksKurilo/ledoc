@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.model.employee;
 
+import dk.ledocsystem.ledoc.dto.EmployeePersonalInfoDTO;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,6 +15,18 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Embeddable
 public class EmployeePersonalInfo {
+
+    public EmployeePersonalInfo(EmployeePersonalInfoDTO personalInfoDTO) {
+        setAddress(personalInfoDTO.getAddress());
+        setBuildingNo(personalInfoDTO.getBuildingNo());
+        setPostalCode(personalInfoDTO.getPostalCode());
+        setCity(personalInfoDTO.getCity());
+        setPersonalPhone(personalInfoDTO.getPersonalPhone());
+        setPersonalMobile(personalInfoDTO.getPersonalMobile());
+        setDateOfBirth(personalInfoDTO.getDateOfBirth());
+        setPrivateEmail(personalInfoDTO.getPrivateEmail());
+        setDayOfEmployment(personalInfoDTO.getDayOfEmployment());
+    }
 
     @Column
     private String address;

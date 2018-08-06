@@ -25,6 +25,6 @@ public class Trade {
     @Column
     private String name;
 
-    @ManyToMany(mappedBy = "trades")
+    @ManyToMany(mappedBy = "trades", cascade = CascadeType.ALL)
     private Set<Customer> customer = new HashSet<>();
 }

@@ -6,9 +6,11 @@ import dk.ledocsystem.ledoc.annotations.validation.OnlyAscii;
 import dk.ledocsystem.ledoc.annotations.validation.employee.UniqueUsername;
 import lombok.Data;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.time.LocalDate;
 
 @Data
 public class EmployeeDTO {
@@ -36,11 +38,31 @@ public class EmployeeDTO {
     @JsonAlias("last_name")
     private String lastName;
 
-    @MobilePhone
-    @JsonAlias("mobile_phone")
-    private String mobilePhone;
+    @Size(min =  3, max = 40, message = "Id number can not be more than 40 symbols")
+    private String idNumber;
 
-    @NotNull(message = "Title must not be null")
-    @Size(min = 3, max = 50, message = "Title must be at least {min} and at most {max} characters long")
-    private String title;
+    @Size(min = 2, max = 40, message = "Initials can not be more than 40 symbols")
+    private String initials;
+
+    @MobilePhone
+    private String cellPhone;
+
+    @MobilePhone
+    //@JsonAlias("mobile_phone")
+    private String phoneNumber;
+
+    private boolean welcomeMEssage;
+
+    private boolean canCreatePersonalLocation;
+
+    private LocalDate expireOfIdCard;
+
+    @Valid
+    private EmployeeDetailsDTO employeeDetailsDTO;
+
+    @Valid
+    private EmployeePersonalInfoDTO employeePersonalInfoDTO;
+
+    @Valid
+    private EmployeeNearestRelativesDTO employeeNearestRelativesDTO;
 }

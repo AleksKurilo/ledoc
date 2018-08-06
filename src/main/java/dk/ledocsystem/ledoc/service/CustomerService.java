@@ -11,7 +11,7 @@ public interface CustomerService extends DomainService<Customer> {
      * @param customerDTO customerDTO
      * @return Newly created {@link Customer} customer
      */
-    Customer createEmployee(CustomerDTO customerDTO);
+    Customer createCustomer(CustomerDTO customerDTO);
 
     /**
      * Updates the properties of the customer with the given ID with properties of {@code customerDTO}.

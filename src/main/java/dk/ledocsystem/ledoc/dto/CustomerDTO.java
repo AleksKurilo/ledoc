@@ -1,14 +1,16 @@
 package dk.ledocsystem.ledoc.dto;
 
 import dk.ledocsystem.ledoc.annotations.validation.OnlyAscii;
-import dk.ledocsystem.ledoc.annotations.validation.MobilePhone;
+import dk.ledocsystem.ledoc.annotations.validation.customer.MobilePhone;
 import dk.ledocsystem.ledoc.annotations.validation.customer.UniqueCVR;
 import dk.ledocsystem.ledoc.annotations.validation.customer.UniqueName;
 import lombok.Data;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.Set;
 
 @Data
 public class CustomerDTO {
@@ -25,19 +27,33 @@ public class CustomerDTO {
     @Size(min = 3, max = 40, message = "CVR must be at least {min} and at most {max} characters long")
     private String cvr;
 
-    @Size(min = 3, max = 20, message = "Contact phone must be at least {min} and at most {max} characters long")
+    // id of the superadmin
+    private Long pointOfContactId;
+
+    private Set<Long> tradeIds;
+
     @MobilePhone
     private String contactPhone;
 
     @Email
-    @Size(min = 15, max = 100, message = "Contact email must be at least {min} and at most {max} characters long")
+    @Size(min = 8, max = 40)
     private String contactEmail;
 
     @Email
-    @Size(min = 15, max = 100, message = "Invoice email must be at least {min} and at most {max} characters long")
+    @Size(min = 8, max = 40)
     private String invoiceEmail;
 
     @Email
-    @Size(min = 15, max = 100, message = "Company email must be at least {min} and at most {max} characters long")
+    @Size(min = 8, max = 40)
     private String companyEmail;
+
+    @Email
+    @Size(min = 8, max = 40)
+    private String mailbox;
+
+    @Valid
+    private LocationDTO locationDTO;
+
+    @Valid
+    private EmployeeDTO employeeDTO;
 }

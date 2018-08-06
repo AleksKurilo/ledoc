@@ -33,7 +33,7 @@ public class CustomerController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public Customer createCustomer(@RequestBody @Valid CustomerDTO customerDTO) {
-        return customerService.createEmployee(customerDTO);
+        return customerService.createCustomer(customerDTO);
     }
 
     @PutMapping(value = "/{customerId}", consumes = MediaType.APPLICATION_JSON_VALUE)

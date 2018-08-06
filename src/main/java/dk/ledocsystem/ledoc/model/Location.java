@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.model;
 
+import dk.ledocsystem.ledoc.dto.LocationDTO;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -17,6 +18,10 @@ import javax.persistence.*;
 @ToString(of = {"id", "name"})
 public class Location {
 
+    public Location (LocationDTO locationDTO) {
+        setName(locationDTO.getName());
+    }
+
     @EqualsAndHashCode.Include
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "location_seq")
@@ -26,7 +31,7 @@ public class Location {
     @Column(nullable = false)
     private String name;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "responsible_id", nullable = false)
     private Employee responsible;
 
@@ -34,13 +39,13 @@ public class Location {
     //If not null, it's a DOMAN ADDRESS (type = address)
     private Address address;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "address_location_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
     //If not null, it's a PHYSICAL ADDRESS (type = physical)
     private Location addressLocation;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "customer_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Customer customer;
