@@ -36,6 +36,8 @@ class CustomerServiceImpl implements CustomerService {
 
     private final LocationRepository locationRepository;
 
+    private final PasswordEncoder passwordEncoder;
+
     @Override
     public List<Customer> getAll() {
         return customerRepository.findAll();
@@ -65,6 +67,7 @@ class CustomerServiceImpl implements CustomerService {
         address.setLocation(location);
         location.setCustomer(customer);
         Employee admin = new Employee(customerDTO.getEmployeeDTO());
+        admin.setPassword(passwordEncoder.encode(admin.getPassword()));
         location.setResponsible(admin);
 
         //-----end of location
