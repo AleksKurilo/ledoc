@@ -26,8 +26,9 @@ public class Customer {
         setCvr(customerDTO.getCvr());
         setContactPhone(customerDTO.getContactPhone());
         setContactEmail(customerDTO.getContactEmail());
-        setCompanyEmail(customerDTO.getCompanyEmail());
         setInvoiceEmail(customerDTO.getInvoiceEmail());
+        setCompanyEmail(customerDTO.getCompanyEmail());
+        setMailbox(customerDTO.getMailbox());
     }
 
     @EqualsAndHashCode.Include
@@ -42,10 +43,11 @@ public class Customer {
     @Column(nullable = false, length = 40, unique = true)
     private String cvr; //ok
 
-    @Column(name = "point_of_contact")
-    private Employee pointOfContact; //ok
+    @OneToOne
+    @JoinColumn(name = "point_of_contact")
+    private Employee pointOfContact; //ok, only superadmin
 
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "trade_to_customer",
             joinColumns = {@JoinColumn(name = "customer_id")},
             inverseJoinColumns = {@JoinColumn(name = "trade_id")})
@@ -75,7 +77,8 @@ public class Customer {
         setCvr(customerDTO.getCvr());
         setContactPhone(customerDTO.getContactPhone());
         setContactEmail(customerDTO.getContactEmail());
-        setCompanyEmail(customerDTO.getCompanyEmail());
         setInvoiceEmail(customerDTO.getInvoiceEmail());
+        setCompanyEmail(customerDTO.getCompanyEmail());
+        setMailbox(customerDTO.getMailbox());
     }
 }

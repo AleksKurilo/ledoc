@@ -3,10 +3,13 @@ package dk.ledocsystem.ledoc.model.employee;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.EmployeeDTO;
 import dk.ledocsystem.ledoc.model.Customer;
+import dk.ledocsystem.ledoc.model.Location;
 import lombok.*;
 import org.hibernate.annotations.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.persistence.*;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.time.LocalDate;
@@ -25,10 +28,16 @@ public class Employee {
     public Employee(EmployeeDTO employeeDTO) {
         setUsername(employeeDTO.getUsername());
         setPassword(employeeDTO.getPassword());
+        setIdNumber(employeeDTO.getIdNumber());
         setFirstName(employeeDTO.getFirstName());
         setLastName(employeeDTO.getLastName());
-        getPersonalInfo().setPersonalMobile(employeeDTO.getMobilePhone());
-        getDetails().setTitle(employeeDTO.getTitle());
+        setInitials(employeeDTO.getInitials());
+        setCellPhone(employeeDTO.getCellPhone());
+        setPhoneNumber(employeeDTO.getPhoneNumber());
+        setCanCreatePersonalLocation(employeeDTO.isCanCreatePersonalLocation());
+        setExpireOfIdCard(employeeDTO.getExpireOfIdCard());
+        setDetails(new EmployeeDetails(employeeDTO.getEmployeeDetailsDTO()));
+        setPersonalInfo(new EmployeePersonalInfo(employeeDTO.getEmployeePersonalInfoDTO()));
     }
 
     @EqualsAndHashCode.Include
@@ -43,6 +52,7 @@ public class Employee {
     @Column(nullable = false, length = 56)
     private String password;
 
+    //autogenerate
     @Column(name = "id_number", length = 40)
     private String idNumber;
 
@@ -70,6 +80,10 @@ public class Employee {
 
     private boolean welcomeMessage;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "place_of_employment_id")
+    private Location placeOfEmployment;
+
     @ColumnDefault("false")
     @Column(name = "create_pers_location")
     private Boolean canCreatePersonalLocation;
@@ -78,14 +92,15 @@ public class Employee {
     private LocalDate expireOfIdCard;
 
     @Embedded
-    private EmployeeDetails details;
+    private EmployeeDetails details = new EmployeeDetails();
 
     @Embedded
-    private EmployeePersonalInfo personalInfo;
+    private EmployeePersonalInfo personalInfo = new EmployeePersonalInfo();
 
+    @Embedded
+    private EmployeeNearestRelative nearestRelative = new EmployeeNearestRelative();
 
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "customer_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Customer customer;
@@ -100,9 +115,15 @@ public class Employee {
     public void updateProperties(EmployeeDTO employeeDTO) {
         setUsername(employeeDTO.getUsername());
         setPassword(employeeDTO.getPassword());
+        setIdNumber(employeeDTO.getIdNumber());
         setFirstName(employeeDTO.getFirstName());
         setLastName(employeeDTO.getLastName());
-        getPersonalInfo().setPersonalMobile(employeeDTO.getMobilePhone());
-        getDetails().setTitle(employeeDTO.getTitle());
+        setInitials(employeeDTO.getInitials());
+        setCellPhone(employeeDTO.getCellPhone());
+        setPhoneNumber(employeeDTO.getPhoneNumber());
+        setCanCreatePersonalLocation(employeeDTO.isCanCreatePersonalLocation());
+        setExpireOfIdCard(employeeDTO.getExpireOfIdCard());
+        setDetails(new EmployeeDetails(employeeDTO.getEmployeeDetailsDTO()));
+        setPersonalInfo(new EmployeePersonalInfo(employeeDTO.getEmployeePersonalInfoDTO()));
     }
 }

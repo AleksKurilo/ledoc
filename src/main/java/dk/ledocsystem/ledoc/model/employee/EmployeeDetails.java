@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.model.employee;
 
+import dk.ledocsystem.ledoc.dto.EmployeeDetailsDTO;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -8,6 +9,7 @@ import org.hibernate.annotations.ColumnDefault;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 
 @Getter
@@ -17,6 +19,12 @@ import javax.persistence.OneToOne;
 @Embeddable
 public class EmployeeDetails {
 
+    public EmployeeDetails(EmployeeDetailsDTO employeeDetailsDTO) {
+        setTitle(employeeDetailsDTO.getTitle());
+        setComment(employeeDetailsDTO.getComment());
+        setSkillAssessed(employeeDetailsDTO.isSkillAssessed());
+    }
+
     @Column(nullable = false)
     private String title;
 
@@ -24,10 +32,10 @@ public class EmployeeDetails {
     private String comment;
 
     @ColumnDefault("false")
-    @Column(name = "skill_assesed")
-    private Boolean skillAssesed;
+    @Column(name = "skill_assessed")
+    private Boolean skillAssessed;
 
     @OneToOne
-    @Column(name = "response_of_skills_id")
+    @JoinColumn(name = "response_of_skills_id")
     private Employee responsibleOfSkills;
 }
