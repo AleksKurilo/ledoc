@@ -5,6 +5,7 @@ import dk.ledocsystem.ledoc.dto.EmployeeDTO;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface EmployeeService extends DomainService<Employee> {
@@ -46,4 +47,6 @@ public interface EmployeeService extends DomainService<Employee> {
     Optional<Employee> getByUsername(String username);
 
     boolean existsByUsername(String username);
+
+    List<Employee> getAllSuperAdmins();
 }

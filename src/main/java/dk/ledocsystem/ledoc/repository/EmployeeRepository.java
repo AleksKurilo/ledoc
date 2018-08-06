@@ -88,4 +88,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
      * @return All {@link Employee} archived in given {@link dk.ledocsystem.ledoc.model.Customer} company
      */
     List<Employee> findAllByCustomer_IdAndArchivedIsTrue(Long customerId);
+
+    @Query(value = "select * from main.employees e join main.employee_authorities a on e.id=a.employee_id where a.authorities = 2", nativeQuery = true)
+    List<Employee> getAllSuperAdmins();
 }

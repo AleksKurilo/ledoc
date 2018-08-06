@@ -81,4 +81,9 @@ class EmployeeServiceImpl implements EmployeeService {
     public boolean existsByUsername(String username) {
         return employeeRepository.existsByUsername(username);
     }
+
+    @Override
+    public List<Employee> getAllSuperAdmins() {
+        return employeeRepository.getAllSuperAdmins();
+    }
 }

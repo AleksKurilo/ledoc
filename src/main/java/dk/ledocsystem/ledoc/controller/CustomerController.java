@@ -31,7 +31,7 @@ public class CustomerController {
         return customerService.getById(customerId).orElseThrow(() -> new NotFoundException(Customer.class, customerId));
     }
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/creteNewCustomer", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Customer createCustomer(@RequestBody @Valid CustomerDTO customerDTO) {
         return customerService.createCustomer(customerDTO);
     }

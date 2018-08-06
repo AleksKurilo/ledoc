@@ -13,6 +13,7 @@ import springfox.documentation.annotations.ApiIgnore;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -51,5 +52,10 @@ public class EmployeeController {
     @DeleteMapping
     public void deleteByIds(@RequestParam("ids") Collection<Long> ids) {
         employeeService.deleteByIds(ids);
+    }
+
+    @GetMapping("getAllSuperAdmins")
+    public List<Employee> getAllSuperAdmins() {
+        return employeeService.getAllSuperAdmins();
     }
 }
