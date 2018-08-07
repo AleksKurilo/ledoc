@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface EquipmentRepository extends JpaRepository<Equipment, Long> {
+public interface EquipmentRepository extends JpaRepository<Equipment, Long>, LoggingRepository<Equipment, Long> {
 
     /**
      * @return All {@link Equipment} equipments that are not archived

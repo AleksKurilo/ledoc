@@ -3,17 +3,17 @@ package dk.ledocsystem.ledoc.model.employee;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.EmployeeDTO;
 import dk.ledocsystem.ledoc.model.Customer;
+import dk.ledocsystem.ledoc.model.Visitable;
 import dk.ledocsystem.ledoc.model.Location;
 import lombok.*;
 import org.hibernate.annotations.*;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.persistence.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Set;
 
 @Setter
 @Getter
@@ -23,7 +23,7 @@ import java.util.List;
 @ToString(of = {"username", "firstName", "lastName"})
 @DynamicInsert
 @DynamicUpdate
-public class Employee {
+public class Employee implements Visitable {
 
     public Employee(EmployeeDTO employeeDTO) {
         setUsername(employeeDTO.getUsername());
@@ -72,7 +72,16 @@ public class Employee {
     private String phoneNumber;
 
     @ElementCollection
-    private List<UserAuthorities> authorities;
+    @CollectionTable(name = "employee_authorities")
+    @Column(name = "authority")
+    private Set<UserAuthorities> authorities;
+
+    @ManyToMany
+    @JoinTable(name = "employee_log",
+            joinColumns = { @JoinColumn(name = "visited_id")},
+            inverseJoinColumns = { @JoinColumn(name = "employee_id") })
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Set<Employee> visitedBy;
 
     @OneToOne
     @JoinColumn(name = "responsible_id")

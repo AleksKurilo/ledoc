@@ -7,10 +7,10 @@ import lombok.Setter;
 @Setter
 public class Dashboard {
 
-    /**
-     * Statistic block with count of equipment/employees etc.
-     */
-    private StatisticsOverview statisticsOverview;
+    private long newEmployeesCount;
 
+    private long newEquipmentCount;
+
+    private long newLocationsCount;
 
 }

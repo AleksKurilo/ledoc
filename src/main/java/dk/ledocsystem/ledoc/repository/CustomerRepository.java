@@ -34,7 +34,7 @@ public interface CustomerRepository extends JpaRepository<Customer, Long>  {
     List<Customer> findAllByArchivedIsTrue();
 
     @Modifying
-    @Query(value = "delete from Customer c where c.id in ?1")
+    @Query("delete from Customer c where c.id in ?1")
     void deleteByIdIn(Collection<Long> ids);
 
     /**

@@ -86,4 +86,11 @@ class EmployeeServiceImpl implements EmployeeService {
     public List<Employee> getAllSuperAdmins() {
         return employeeRepository.getAllSuperAdmins();
     }
+
+    @Override
+    public long countNewEmployees(Long customerId, Long employeeId) {
+        long allEmployees = employeeRepository.countByCustomerIdAndArchivedTrue(customerId);
+        long visitedEmployees = employeeRepository.countVisited(employeeId);
+        return allEmployees - visitedEmployees;
+    }
 }

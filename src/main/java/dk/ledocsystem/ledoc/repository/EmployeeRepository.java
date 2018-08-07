@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public interface EmployeeRepository extends JpaRepository<Employee, Long> {
+public interface EmployeeRepository extends JpaRepository<Employee, Long>, LoggingRepository<Employee, Long> {
 
     /**
      * Assigns the provided authorities to {@link Employee} with the given ID.
@@ -20,7 +20,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
      * @param authorities Authority object
      */
     @Modifying
-    @Query(value = "INSERT INTO main.employee_authorities VALUES(:#{#employeeId}, :#{#authorities.code})", nativeQuery = true)
+    @Query(value = "INSERT INTO main.employee_authorities VALUES(:#{#employeeId}, :#{#authorities.code}) ON CONFLICT DO NOTHING",
+            nativeQuery = true)
     void addAuthorities(@Param("employeeId") Long employeeId,
                         @Param("authorities") UserAuthorities authorities);
 
@@ -49,7 +50,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
      * @param newPassword New password
      */
     @Modifying
-    @Query(value = "update Employee e set e.password = ?2 where e.username = ?1")
+    @Query("update Employee e set e.password = ?2 where e.username = ?1")
     void changePassword(String username, String newPassword);
 
     /**
@@ -58,18 +59,24 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
      * @param ids The collection of employee IDs.
      */
     @Modifying
-    @Query(value = "delete from Employee e where e.id in ?1")
+    @Query("delete from Employee e where e.id in ?1")
     void deleteByIdIn(Collection<Long> ids);
+
+    /**
+     * Counts employees that are not archived and
+     * has {@link dk.ledocsystem.ledoc.model.Customer} with provided ID.
+     */
+    long countByCustomerIdAndArchivedTrue(Long customerId);
 
     /**
      * @return All {@link Employee} employees that are not archived
      */
-    List<Employee> findAllByArchivedIsFalse();
+    List<Employee> findAllByArchivedFalse();
 
     /**
      * @return All {@link Employee} employees that are archived
      */
-    List<Employee> findAllByArchivedIsTrue();
+    List<Employee> findAllByArchivedTrue();
 
     /**
      * @param customerId customerId

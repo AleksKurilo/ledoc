@@ -12,13 +12,14 @@ import org.hibernate.annotations.OnDeleteAction;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Set;
 
 @Setter
 @Getter
 @Entity
 @Table(name = "equipment", uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "customer_id"})})
 @ToString(of = {"id", "name"})
-public class Equipment {
+public class Equipment implements Visitable {
 
     @EqualsAndHashCode.Include
     @Id
@@ -78,4 +79,11 @@ public class Equipment {
     @JoinColumn(name = "customer_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Customer customer;
+
+    @ManyToMany
+    @JoinTable(name = "equipment_log",
+            joinColumns = { @JoinColumn(name = "equipment_id")},
+            inverseJoinColumns = { @JoinColumn(name = "employee_id") })
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Set<Employee> visitedBy;
 }

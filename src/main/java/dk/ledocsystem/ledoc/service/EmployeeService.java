@@ -48,5 +48,13 @@ public interface EmployeeService extends DomainService<Employee> {
 
     boolean existsByUsername(String username);
 
+    long countNewEmployees(Long customerId, Long employeeId);
+
+    default Long getCurrentUserId() {
+        String currentUserName = getCurrentUser().getName();
+        Employee currentUser = getByUsername(currentUserName).orElseThrow(IllegalStateException::new);
+        return currentUser.getId();
+    }
+
     List<Employee> getAllSuperAdmins();
 }
