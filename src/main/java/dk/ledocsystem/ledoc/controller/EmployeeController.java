@@ -12,6 +12,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
+import javax.websocket.server.PathParam;
 import java.util.Collection;
 import java.util.List;
 
@@ -54,8 +55,8 @@ public class EmployeeController {
         employeeService.deleteByIds(ids);
     }
 
-    @GetMapping("getAllSuperAdmins")
-    public List<Employee> getAllSuperAdmins() {
-        return employeeService.getAllSuperAdmins();
+    @GetMapping("/{roleName}")
+    public List<Employee> getAllByRole(@PathVariable String roleName) {
+        return employeeService.getAllByRole(roleName);
     }
 }
