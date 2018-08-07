@@ -78,8 +78,6 @@ public class Employee {
     @JoinColumn(name = "responsible_id")
     private Employee responsible;
 
-    private boolean welcomeMessage;
-
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "place_of_employment_id")
     private Location placeOfEmployment;

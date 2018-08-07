@@ -51,7 +51,7 @@ public class EmployeeDTO {
     //@JsonAlias("mobile_phone")
     private String phoneNumber;
 
-    private boolean welcomeMEssage;
+    private boolean welcomeMessage;
 
     private boolean canCreatePersonalLocation;
 

@@ -1,6 +1,7 @@
 package dk.ledocsystem.ledoc.service.impl;
 
 
+import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.CustomerDTO;
 import dk.ledocsystem.ledoc.dto.EmployeeDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
@@ -14,7 +15,9 @@ import dk.ledocsystem.ledoc.repository.EmployeeRepository;
 import dk.ledocsystem.ledoc.repository.LocationRepository;
 import dk.ledocsystem.ledoc.repository.TradeRepository;
 import dk.ledocsystem.ledoc.service.CustomerService;
+import dk.ledocsystem.ledoc.service.SimpleMailService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +41,11 @@ class CustomerServiceImpl implements CustomerService {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final SimpleMailService mailService;
+
+    @Value("${spring.mail.username}")
+    private String fromEmailAddress;
+
     @Override
     public List<Customer> getAll() {
         return customerRepository.findAll();
@@ -59,22 +67,21 @@ class CustomerServiceImpl implements CustomerService {
         Set<Trade> trades = resolveTrades(customerDTO.getTradeIds());
         customer.setTrades(trades);
 
-        //----end of customer
-
         Location location = new Location(customerDTO.getLocationDTO());
         Address address = new Address(customerDTO.getLocationDTO().getAddressDTO());
         location.setAddress(address);
         address.setLocation(location);
         location.setCustomer(customer);
         Employee admin = new Employee(customerDTO.getEmployeeDTO());
+        buildAndSendMessage(customerDTO.getEmployeeDTO());
         admin.setPassword(passwordEncoder.encode(admin.getPassword()));
-        location.setResponsible(admin);
 
-        //-----end of location
+        location.setResponsible(admin);
 
         admin.setCustomer(customer);
 
         locationRepository.save(location);
+        employeeRepository.addAuthorities(admin.getId(), UserAuthorities.ADMIN);
         return customer;
     }
 
@@ -106,4 +113,18 @@ class CustomerServiceImpl implements CustomerService {
         return tradeRepository.findAllByIdIn(ids);
     }
 
+    private void buildAndSendMessage(EmployeeDTO admin) {
+        mailService.sendEmail(fromEmailAddress, admin.getUsername(), WelcomeEmailHolder.TOPIC, buildBody(admin));
+    }
+
+    private String buildBody(EmployeeDTO admin) {
+        StringBuilder builder = new StringBuilder();
+        if (admin.isWelcomeMessage()) {
+            builder.append(WelcomeEmailHolder.BODY_W).append("\n\n");
+        }
+        builder.append(String.format(WelcomeEmailHolder.CREDENTIALS, admin.getUsername(), admin.getPassword()));
+        builder.append("\n\n");
+        builder.append(WelcomeEmailHolder.FOOTER);
+        return builder.toString();
+    }
 }
