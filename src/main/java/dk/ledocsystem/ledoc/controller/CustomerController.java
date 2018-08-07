@@ -9,8 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
-import javax.websocket.server.PathParam;
 import java.util.Collection;
 import java.util.List;
 
@@ -32,6 +32,7 @@ public class CustomerController {
         return customerService.getById(customerId).orElseThrow(() -> new NotFoundException(Customer.class, customerId));
     }
 
+    @RolesAllowed("SUPER_ADMIN")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public Customer createCustomer(@RequestBody @Valid CustomerDTO customerDTO) {
         return customerService.createCustomer(customerDTO);
@@ -51,16 +52,6 @@ public class CustomerController {
     public void deleteByIds(@RequestParam("ids") Collection<Long> ids) {
         customerService.deleteByIds(ids);
     }
-
-//    @GetMapping
-//    public List<Customer> allNotArchived() {
-//        return customerRepository.findAllByArchivedIsFalse();
-//    }
-//
-//    @GetMapping
-//    public List<Customer> allArchived() {
-//        return customerRepository.findAllByArchivedIsTrue();
-//    }
 
     @GetMapping("/{customerCvr}")
     public Customer findCustomerByCvr(@PathVariable String cvr) {

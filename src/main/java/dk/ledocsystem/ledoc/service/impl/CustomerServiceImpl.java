@@ -11,10 +11,10 @@ import dk.ledocsystem.ledoc.model.Location;
 import dk.ledocsystem.ledoc.model.Trade;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.repository.CustomerRepository;
-import dk.ledocsystem.ledoc.repository.EmployeeRepository;
 import dk.ledocsystem.ledoc.repository.LocationRepository;
 import dk.ledocsystem.ledoc.repository.TradeRepository;
 import dk.ledocsystem.ledoc.service.CustomerService;
+import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.SimpleMailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,7 +33,7 @@ class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
 
-    private final EmployeeRepository employeeRepository;
+    private final EmployeeService employeeService;
 
     private final TradeRepository tradeRepository;
 
@@ -81,7 +81,12 @@ class CustomerServiceImpl implements CustomerService {
         admin.setCustomer(customer);
 
         locationRepository.save(location);
-        employeeRepository.addAuthorities(admin.getId(), UserAuthorities.ADMIN);
+        employeeService.addAuthorities(admin.getId(), UserAuthorities.ADMIN);
+
+        if (customerDTO.getEmployeeDTO().isCanCreatePersonalLocation()) {
+            employeeService.addAuthorities(admin.getId(), UserAuthorities.CAN_CREATE_PERSONAL_LOCATION);
+        }
+
         return customer;
     }
 
@@ -106,7 +111,7 @@ class CustomerServiceImpl implements CustomerService {
     }
 
     private Employee resolvePointOfContact(Long pointOfContactId) {
-        return employeeRepository.getOne(pointOfContactId);
+        return employeeService.getById(pointOfContactId).orElseThrow(IllegalStateException::new);
     }
 
     private Set<Trade> resolveTrades(Set<Long> ids) {

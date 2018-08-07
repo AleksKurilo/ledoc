@@ -34,7 +34,6 @@ public class Employee implements Visitable {
         setInitials(employeeDTO.getInitials());
         setCellPhone(employeeDTO.getCellPhone());
         setPhoneNumber(employeeDTO.getPhoneNumber());
-        setCanCreatePersonalLocation(employeeDTO.isCanCreatePersonalLocation());
         setExpireOfIdCard(employeeDTO.getExpireOfIdCard());
         setDetails(new EmployeeDetails(employeeDTO.getEmployeeDetailsDTO()));
         setPersonalInfo(new EmployeePersonalInfo(employeeDTO.getEmployeePersonalInfoDTO()));
@@ -83,17 +82,13 @@ public class Employee implements Visitable {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Employee> visitedBy;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "responsible_id")
     private Employee responsible;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "place_of_employment_id")
     private Location placeOfEmployment;
-
-    @ColumnDefault("false")
-    @Column(name = "create_pers_location")
-    private Boolean canCreatePersonalLocation;
 
     @Column(name = "expire_id_card")
     private LocalDate expireOfIdCard;
@@ -128,7 +123,6 @@ public class Employee implements Visitable {
         setInitials(employeeDTO.getInitials());
         setCellPhone(employeeDTO.getCellPhone());
         setPhoneNumber(employeeDTO.getPhoneNumber());
-        setCanCreatePersonalLocation(employeeDTO.isCanCreatePersonalLocation());
         setExpireOfIdCard(employeeDTO.getExpireOfIdCard());
         setDetails(new EmployeeDetails(employeeDTO.getEmployeeDetailsDTO()));
         setPersonalInfo(new EmployeePersonalInfo(employeeDTO.getEmployeePersonalInfoDTO()));

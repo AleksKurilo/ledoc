@@ -83,8 +83,8 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public List<Employee> getAllSuperAdmins() {
-        return employeeRepository.getAllSuperAdmins();
+    public List<Employee> getAllByRole(UserAuthorities authorities) {
+        return employeeRepository.findAllByAuthoritiesContains(authorities);
     }
 
     @Override

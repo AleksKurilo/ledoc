@@ -50,11 +50,11 @@ public interface EmployeeService extends DomainService<Employee> {
 
     long countNewEmployees(Long customerId, Long employeeId);
 
+    List<Employee> getAllByRole(UserAuthorities authorities);
+
     default Long getCurrentUserId() {
         String currentUserName = getCurrentUser().getName();
         Employee currentUser = getByUsername(currentUserName).orElseThrow(IllegalStateException::new);
         return currentUser.getId();
     }
-
-    List<Employee> getAllSuperAdmins();
 }

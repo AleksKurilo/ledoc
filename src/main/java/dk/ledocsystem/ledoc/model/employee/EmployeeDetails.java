@@ -10,7 +10,7 @@ import org.hibernate.annotations.ColumnDefault;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
+import javax.persistence.ManyToOne;
 
 @Getter
 @Setter
@@ -35,7 +35,7 @@ public class EmployeeDetails {
     @Column(name = "skill_assessed")
     private Boolean skillAssessed;
 
-    @OneToOne
-    @JoinColumn(name = "response_of_skills_id")
+    @ManyToOne
+    @JoinColumn(name = "responsible_of_skills_id")
     private Employee responsibleOfSkills;
 }

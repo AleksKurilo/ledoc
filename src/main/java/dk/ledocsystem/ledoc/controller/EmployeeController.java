@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.controller;
 
+import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.EmployeeDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
@@ -54,8 +55,8 @@ public class EmployeeController {
         employeeService.deleteByIds(ids);
     }
 
-    @GetMapping("getAllSuperAdmins")
-    public List<Employee> getAllSuperAdmins() {
-        return employeeService.getAllSuperAdmins();
+    @GetMapping("/role/{roleName}")
+    public List<Employee> getAllByRole(@PathVariable String roleName) {
+        return employeeService.getAllByRole(UserAuthorities.fromString(roleName));
     }
 }

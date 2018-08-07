@@ -43,7 +43,7 @@ public class Customer {
     @Column(nullable = false, length = 40, unique = true)
     private String cvr; //ok
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "point_of_contact")
     private Employee pointOfContact; //ok, only superadmin
 

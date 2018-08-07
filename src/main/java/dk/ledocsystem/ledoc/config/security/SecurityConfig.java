@@ -40,7 +40,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                     .antMatchers(HttpMethod.GET, SWAGGER_RESOURCES).permitAll()
                     .antMatchers(HttpMethod.POST, "/password/forgot", "/password/reset").permitAll()
-                    .antMatchers(HttpMethod.POST, "/customer/creteNewCustomer").hasRole("SUPER_ADMIN")
                     .anyRequest().permitAll()
                     .and()
                 .formLogin()
