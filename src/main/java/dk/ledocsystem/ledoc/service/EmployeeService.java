@@ -56,5 +56,5 @@ public interface EmployeeService extends DomainService<Employee> {
         return currentUser.getId();
     }
 
-    List<Employee> getAllByRole(String roleName);
+    List<Employee> getAllByRole(UserAuthorities authorities);
 }

@@ -83,8 +83,8 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public List<Employee> getAllByRole(String roleName) {
-        return employeeRepository.findAllByAuthoritiesContains(UserAuthorities.valueOf(roleName));
+    public List<Employee> getAllByRole(UserAuthorities authorities) {
+        return employeeRepository.findAllByAuthoritiesContains(authorities);
     }
 
     @Override
