@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Handler that sets {@link dk.ledocsystem.ledoc.model.Customer owner} of the logged in admin
+ * Handler that sets {@link dk.ledocsystem.ledoc.model.Customer owner} of the logged in user
  * as {@link javax.servlet.http.HttpSession} attribute "customer".
  */
 @RequiredArgsConstructor
@@ -21,11 +21,8 @@ class CustomerSettingAuthenticationSuccessHandler implements AuthenticationSucce
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) {
-        boolean isAdmin = authentication.getAuthorities().contains(SecurityConstants.ADMIN_AUTHORITY);
-        if (isAdmin) {
-            String username = authentication.getName();
-            Employee employee = employeeRepository.findByUsername(username).orElseThrow(IllegalStateException::new);
-            request.getSession().setAttribute("customer", employee.getCustomer());
-        }
+        String username = authentication.getName();
+        Employee employee = employeeRepository.findByUsername(username).orElseThrow(IllegalStateException::new);
+        request.getSession().setAttribute("customer", employee.getCustomer());
     }
 }
