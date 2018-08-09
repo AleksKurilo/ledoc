@@ -98,6 +98,10 @@ class CustomerServiceImpl implements CustomerService {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new NotFoundException(Customer.class, customerId));
         customer.updateProperties(customerEditDTO);
+        Set<Long> tradeIds = customerEditDTO.getTradeIds();
+        if (tradeIds != null) {
+            customer.setTrades(resolveTrades(tradeIds));
+        }
         return customerRepository.save(customer);
     }
 

@@ -13,13 +13,11 @@ import java.util.Set;
 
 @Data
 public class CustomerEditDTO {
-    @NotNull(message = "Name must not be null")
     @UniqueName
     @OnlyAscii(message = "Name must contain only ASCII characters")
     @Size(min = 3, max = 40, message = "Company's name must be at least {min} and at most {max} characters long")
     private String name;
 
-    @NotNull(message = "CVR must not be null")
     @UniqueCVR
     @OnlyAscii(message = "Company's name must contain only ASCII characters")
     @Size(min = 3, max = 40, message = "CVR must be at least {min} and at most {max} characters long")

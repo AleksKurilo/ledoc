@@ -76,12 +76,12 @@ public class Customer {
     private Boolean archived;
 
     public void updateProperties(CustomerEditDTO customerEditDTO) {
-        setName(customerEditDTO.getName());
-        setCvr(customerEditDTO.getCvr());
-        setContactPhone(customerEditDTO.getContactPhone());
-        setContactEmail(customerEditDTO.getContactEmail());
-        setInvoiceEmail(customerEditDTO.getInvoiceEmail());
-        setCompanyEmail(customerEditDTO.getCompanyEmail());
-        setMailbox(customerEditDTO.getMailbox());
+        setName(customerEditDTO.getName() != null ? customerEditDTO.getName() : getName());
+        setCvr(customerEditDTO.getCvr() != null ? customerEditDTO.getCvr() : getCvr());
+        setContactPhone(customerEditDTO.getContactPhone() != null ? customerEditDTO.getContactPhone() : getContactPhone());
+        setContactEmail(customerEditDTO.getContactEmail() != null ? customerEditDTO.getContactEmail(): getContactEmail());
+        setInvoiceEmail(customerEditDTO.getInvoiceEmail() != null ? customerEditDTO.getInvoiceEmail() : getInvoiceEmail());
+        setCompanyEmail(customerEditDTO.getCompanyEmail() != null ? customerEditDTO.getCompanyEmail() : getCompanyEmail());
+        setMailbox(customerEditDTO.getMailbox() != null ? customerEditDTO.getMailbox() : getMailbox());
     }
 }

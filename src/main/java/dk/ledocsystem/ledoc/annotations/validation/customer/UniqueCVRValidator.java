@@ -14,6 +14,9 @@ public class UniqueCVRValidator implements ConstraintValidator<UniqueCVR, CharSe
 
     @Override
     public boolean isValid(CharSequence value, ConstraintValidatorContext context) {
+        if (value == null) {
+            return true;
+        }
         String cvr = value.toString();
         return !customerRepository.findByCvr(cvr).isPresent();
     }

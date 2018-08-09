@@ -13,6 +13,9 @@ public class UniqueNameValidator implements ConstraintValidator<UniqueName, Char
 
     @Override
     public boolean isValid(CharSequence value, ConstraintValidatorContext context) {
+        if (value == null) {
+            return true;
+        }
         String name = value.toString();
         return !customerRepository.findByName(name).isPresent();
     }
