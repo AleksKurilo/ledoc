@@ -1,6 +1,7 @@
 package dk.ledocsystem.ledoc.controller;
 
-import dk.ledocsystem.ledoc.dto.CustomerDTO;
+import dk.ledocsystem.ledoc.dto.customer.CustomerCreateDTO;
+import dk.ledocsystem.ledoc.dto.customer.CustomerEditDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.repository.CustomerRepository;
@@ -34,13 +35,13 @@ public class CustomerController {
 
     @RolesAllowed("SUPER_ADMIN")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Customer createCustomer(@RequestBody @Valid CustomerDTO customerDTO) {
-        return customerService.createCustomer(customerDTO);
+    public Customer createCustomer(@RequestBody @Valid CustomerCreateDTO customerCreateDTO) {
+        return customerService.createCustomer(customerCreateDTO);
     }
 
     @PutMapping(value = "/{customerId}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Customer updateCustomerById(@PathVariable Long customerId, @RequestBody @Valid CustomerDTO customerDTO) {
-        return customerService.updateCustomer(customerId, customerDTO);
+    public Customer updateCustomerById(@PathVariable Long customerId, @RequestBody @Valid CustomerEditDTO customerEditDTO) {
+        return customerService.updateCustomer(customerId, customerEditDTO);
     }
 
     @DeleteMapping("/{customerId}")
@@ -53,7 +54,7 @@ public class CustomerController {
         customerService.deleteByIds(ids);
     }
 
-    @GetMapping("/{customerCvr}")
+    /*@GetMapping("/{customerCvr}")
     public Customer findCustomerByCvr(@PathVariable String cvr) {
         return customerRepository.findByCvr(cvr).orElseThrow(() -> new NotFoundException(Customer.class, cvr));
     }
@@ -76,5 +77,5 @@ public class CustomerController {
     @GetMapping("/{companyEmail}")
     public Customer findByCompanyEmail(@PathVariable String companyEmail) {
         return customerRepository.findByCompanyEmail(companyEmail).orElseThrow(() -> new NotFoundException(Customer.class, companyEmail));
-    }
+    }*/
 }

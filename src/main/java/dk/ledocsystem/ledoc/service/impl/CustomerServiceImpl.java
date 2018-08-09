@@ -2,8 +2,9 @@ package dk.ledocsystem.ledoc.service.impl;
 
 
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
-import dk.ledocsystem.ledoc.dto.CustomerDTO;
+import dk.ledocsystem.ledoc.dto.customer.CustomerCreateDTO;
 import dk.ledocsystem.ledoc.dto.EmployeeDTO;
+import dk.ledocsystem.ledoc.dto.customer.CustomerEditDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Address;
 import dk.ledocsystem.ledoc.model.Customer;
@@ -58,22 +59,22 @@ class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional
-    public Customer createCustomer(CustomerDTO customerDTO) {
-        Customer customer = new Customer(customerDTO);
+    public Customer createCustomer(CustomerCreateDTO customerCreateDTO) {
+        Customer customer = new Customer(customerCreateDTO);
 
-        Employee pointOfContact = resolvePointOfContact(customerDTO.getPointOfContactId());
+        Employee pointOfContact = resolvePointOfContact(customerCreateDTO.getPointOfContactId());
         customer.setPointOfContact(pointOfContact);
 
-        Set<Trade> trades = resolveTrades(customerDTO.getTradeIds());
+        Set<Trade> trades = resolveTrades(customerCreateDTO.getTradeIds());
         customer.setTrades(trades);
 
-        Location location = new Location(customerDTO.getLocationDTO());
-        Address address = new Address(customerDTO.getLocationDTO().getAddressDTO());
+        Location location = new Location(customerCreateDTO.getLocationDTO());
+        Address address = new Address(customerCreateDTO.getLocationDTO().getAddressDTO());
         location.setAddress(address);
         address.setLocation(location);
         location.setCustomer(customer);
-        Employee admin = new Employee(customerDTO.getEmployeeDTO());
-        buildAndSendMessage(customerDTO.getEmployeeDTO());
+        Employee admin = new Employee(customerCreateDTO.getEmployeeDTO());
+        buildAndSendMessage(customerCreateDTO.getEmployeeDTO());
         admin.setPassword(passwordEncoder.encode(admin.getPassword()));
 
         location.setResponsible(admin);
@@ -83,7 +84,7 @@ class CustomerServiceImpl implements CustomerService {
         locationRepository.save(location);
         employeeService.addAuthorities(admin.getId(), UserAuthorities.ADMIN);
 
-        if (customerDTO.getEmployeeDTO().isCanCreatePersonalLocation()) {
+        if (customerCreateDTO.getEmployeeDTO().isCanCreatePersonalLocation()) {
             employeeService.addAuthorities(admin.getId(), UserAuthorities.CAN_CREATE_PERSONAL_LOCATION);
         }
 
@@ -92,10 +93,10 @@ class CustomerServiceImpl implements CustomerService {
 
     @Transactional
     @Override
-    public Customer updateCustomer(Long customerId, CustomerDTO customerDTO) {
+    public Customer updateCustomer(Long customerId, CustomerEditDTO customerEditDTO) {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new NotFoundException(Customer.class, customerId));
-        customer.updateProperties(customerDTO);
+        customer.updateProperties(customerEditDTO);
         return customerRepository.save(customer);
     }
 

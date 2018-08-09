@@ -3,6 +3,7 @@ package dk.ledocsystem.ledoc.model.employee;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.EmployeeDTO;
 import dk.ledocsystem.ledoc.model.Customer;
+import dk.ledocsystem.ledoc.model.NamedEntity;
 import dk.ledocsystem.ledoc.model.Visitable;
 import dk.ledocsystem.ledoc.model.Location;
 import lombok.*;
@@ -23,7 +24,7 @@ import java.util.Set;
 @ToString(of = {"username", "firstName", "lastName"})
 @DynamicInsert
 @DynamicUpdate
-public class Employee implements Visitable {
+public class Employee implements Visitable, NamedEntity {
 
     public Employee(EmployeeDTO employeeDTO) {
         setUsername(employeeDTO.getUsername());
@@ -126,5 +127,10 @@ public class Employee implements Visitable {
         setExpireOfIdCard(employeeDTO.getExpireOfIdCard());
         setDetails(new EmployeeDetails(employeeDTO.getEmployeeDetailsDTO()));
         setPersonalInfo(new EmployeePersonalInfo(employeeDTO.getEmployeePersonalInfoDTO()));
+    }
+
+    @Override
+    public String getName() {
+        return firstName + " " + lastName;
     }
 }

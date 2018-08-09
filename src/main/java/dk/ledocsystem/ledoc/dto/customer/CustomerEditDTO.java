@@ -1,4 +1,4 @@
-package dk.ledocsystem.ledoc.dto;
+package dk.ledocsystem.ledoc.dto.customer;
 
 import dk.ledocsystem.ledoc.annotations.validation.OnlyAscii;
 import dk.ledocsystem.ledoc.annotations.validation.customer.MobilePhone;
@@ -6,15 +6,13 @@ import dk.ledocsystem.ledoc.annotations.validation.customer.UniqueCVR;
 import dk.ledocsystem.ledoc.annotations.validation.customer.UniqueName;
 import lombok.Data;
 
-import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Set;
 
 @Data
-public class CustomerDTO {
-
+public class CustomerEditDTO {
     @NotNull(message = "Name must not be null")
     @UniqueName
     @OnlyAscii(message = "Name must contain only ASCII characters")
@@ -50,10 +48,4 @@ public class CustomerDTO {
     @Email
     @Size(min = 8, max = 40)
     private String mailbox;
-
-    @Valid
-    private LocationDTO locationDTO;
-
-    @Valid
-    private EmployeeDTO employeeDTO;
 }

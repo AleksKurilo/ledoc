@@ -5,6 +5,7 @@ import dk.ledocsystem.ledoc.dto.EmployeeDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.employee.Employee;
+import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -56,7 +57,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/role/{roleName}")
-    public List<Employee> getAllByRole(@PathVariable String roleName) {
+    public List<EmployeeNames> getAllByRole(@PathVariable String roleName) {
         return employeeService.getAllByRole(UserAuthorities.fromString(roleName));
     }
 }

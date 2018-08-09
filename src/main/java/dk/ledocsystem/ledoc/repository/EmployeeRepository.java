@@ -2,6 +2,7 @@ package dk.ledocsystem.ledoc.repository;
 
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.model.employee.Employee;
+import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -29,7 +30,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Loggi
      * @param authorities {@link UserAuthorities authority}
      * @return All employees that have given authority
      */
-    List<Employee> findAllByAuthoritiesContains(UserAuthorities authorities);
+    List<EmployeeNames> findAllByAuthoritiesContains(UserAuthorities authorities);
 
     /**
      * @param username Username

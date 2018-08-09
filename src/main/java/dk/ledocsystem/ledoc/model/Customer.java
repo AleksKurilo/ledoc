@@ -1,6 +1,8 @@
 package dk.ledocsystem.ledoc.model;
 
-import dk.ledocsystem.ledoc.dto.CustomerDTO;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import dk.ledocsystem.ledoc.dto.customer.CustomerCreateDTO;
+import dk.ledocsystem.ledoc.dto.customer.CustomerEditDTO;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
@@ -21,14 +23,14 @@ import java.util.Set;
 @DynamicUpdate
 public class Customer {
 
-    public Customer(CustomerDTO customerDTO) {
-        setName(customerDTO.getName());
-        setCvr(customerDTO.getCvr());
-        setContactPhone(customerDTO.getContactPhone());
-        setContactEmail(customerDTO.getContactEmail());
-        setInvoiceEmail(customerDTO.getInvoiceEmail());
-        setCompanyEmail(customerDTO.getCompanyEmail());
-        setMailbox(customerDTO.getMailbox());
+    public Customer(CustomerCreateDTO customerCreateDTO) {
+        setName(customerCreateDTO.getName());
+        setCvr(customerCreateDTO.getCvr());
+        setContactPhone(customerCreateDTO.getContactPhone());
+        setContactEmail(customerCreateDTO.getContactEmail());
+        setInvoiceEmail(customerCreateDTO.getInvoiceEmail());
+        setCompanyEmail(customerCreateDTO.getCompanyEmail());
+        setMailbox(customerCreateDTO.getMailbox());
     }
 
     @EqualsAndHashCode.Include
@@ -45,9 +47,10 @@ public class Customer {
 
     @ManyToOne
     @JoinColumn(name = "point_of_contact")
+    @JsonSerialize(as = NamedEntity.class)
     private Employee pointOfContact; //ok, only superadmin
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(name = "trade_to_customer",
             joinColumns = {@JoinColumn(name = "customer_id")},
             inverseJoinColumns = {@JoinColumn(name = "trade_id")})
@@ -72,13 +75,13 @@ public class Customer {
     @Column(nullable = false)
     private Boolean archived;
 
-    public void updateProperties(CustomerDTO customerDTO) {
-        setName(customerDTO.getName());
-        setCvr(customerDTO.getCvr());
-        setContactPhone(customerDTO.getContactPhone());
-        setContactEmail(customerDTO.getContactEmail());
-        setInvoiceEmail(customerDTO.getInvoiceEmail());
-        setCompanyEmail(customerDTO.getCompanyEmail());
-        setMailbox(customerDTO.getMailbox());
+    public void updateProperties(CustomerEditDTO customerEditDTO) {
+        setName(customerEditDTO.getName());
+        setCvr(customerEditDTO.getCvr());
+        setContactPhone(customerEditDTO.getContactPhone());
+        setContactEmail(customerEditDTO.getContactEmail());
+        setInvoiceEmail(customerEditDTO.getInvoiceEmail());
+        setCompanyEmail(customerEditDTO.getCompanyEmail());
+        setMailbox(customerEditDTO.getMailbox());
     }
 }

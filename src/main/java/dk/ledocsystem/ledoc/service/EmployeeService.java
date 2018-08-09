@@ -4,6 +4,7 @@ import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.EmployeeDTO;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.employee.Employee;
+import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 
 import java.util.List;
 import java.util.Optional;
@@ -56,5 +57,5 @@ public interface EmployeeService extends DomainService<Employee> {
         return currentUser.getId();
     }
 
-    List<Employee> getAllByRole(UserAuthorities authorities);
+    List<EmployeeNames> getAllByRole(UserAuthorities authorities);
 }

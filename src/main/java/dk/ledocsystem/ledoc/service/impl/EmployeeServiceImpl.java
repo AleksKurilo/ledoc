@@ -6,6 +6,7 @@ import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
+import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -83,7 +84,7 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public List<Employee> getAllByRole(UserAuthorities authorities) {
+    public List<EmployeeNames> getAllByRole(UserAuthorities authorities) {
         return employeeRepository.findAllByAuthoritiesContains(authorities);
     }
 
