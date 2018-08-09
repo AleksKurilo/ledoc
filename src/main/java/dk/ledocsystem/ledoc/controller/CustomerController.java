@@ -33,7 +33,7 @@ public class CustomerController {
         return customerService.getById(customerId).orElseThrow(() -> new NotFoundException(Customer.class, customerId));
     }
 
-    @RolesAllowed("SUPER_ADMIN")
+    @RolesAllowed("super_admin")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public Customer createCustomer(@RequestBody @Valid CustomerCreateDTO customerCreateDTO) {
         return customerService.createCustomer(customerCreateDTO);

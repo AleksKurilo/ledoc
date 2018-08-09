@@ -1,6 +1,5 @@
 package dk.ledocsystem.ledoc.model;
 
-import dk.ledocsystem.ledoc.dto.LocationDTO;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -17,10 +16,6 @@ import javax.persistence.*;
 @Table(name = "locations", uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "customer_id"})})
 @ToString(of = {"id", "name"})
 public class Location {
-
-    public Location (LocationDTO locationDTO) {
-        setName(locationDTO.getName());
-    }
 
     @EqualsAndHashCode.Include
     @Id

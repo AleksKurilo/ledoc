@@ -68,8 +68,9 @@ class CustomerServiceImpl implements CustomerService {
         Set<Trade> trades = resolveTrades(customerCreateDTO.getTradeIds());
         customer.setTrades(trades);
 
-        Location location = new Location(customerCreateDTO.getLocationDTO());
-        Address address = new Address(customerCreateDTO.getLocationDTO().getAddressDTO());
+        Location location = new Location();
+        location.setName(customer.getName());
+        Address address = new Address(customerCreateDTO.getAddressDTO());
         location.setAddress(address);
         address.setLocation(location);
         location.setCustomer(customer);
@@ -112,7 +113,8 @@ class CustomerServiceImpl implements CustomerService {
     }
 
     private Employee resolvePointOfContact(Long pointOfContactId) {
-        return employeeService.getById(pointOfContactId).orElseThrow(IllegalStateException::new);
+        return (pointOfContactId == null) ? null
+                : employeeService.getById(pointOfContactId).orElseThrow(IllegalStateException::new);
     }
 
     private Set<Trade> resolveTrades(Set<Long> ids) {
