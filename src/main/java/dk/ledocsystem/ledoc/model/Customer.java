@@ -83,5 +83,6 @@ public class Customer {
         setInvoiceEmail(customerEditDTO.getInvoiceEmail() != null ? customerEditDTO.getInvoiceEmail() : getInvoiceEmail());
         setCompanyEmail(customerEditDTO.getCompanyEmail() != null ? customerEditDTO.getCompanyEmail() : getCompanyEmail());
         setMailbox(customerEditDTO.getMailbox() != null ? customerEditDTO.getMailbox() : getMailbox());
+        setArchived(customerEditDTO.getArchived() != null ? customerEditDTO.getArchived(): getArchived());
     }
 }

@@ -7,7 +7,6 @@ import dk.ledocsystem.ledoc.annotations.validation.customer.UniqueName;
 import lombok.Data;
 
 import javax.validation.constraints.Email;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Set;
 
@@ -46,4 +45,6 @@ public class CustomerEditDTO {
     @Email
     @Size(min = 8, max = 40)
     private String mailbox;
+
+    private Boolean archived;
 }
