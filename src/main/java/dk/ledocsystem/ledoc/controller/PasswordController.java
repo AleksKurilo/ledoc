@@ -1,9 +1,7 @@
 package dk.ledocsystem.ledoc.controller;
 
-import dk.ledocsystem.ledoc.dto.ChangePasswordDTO;
 import dk.ledocsystem.ledoc.dto.ForgotPasswordDTO;
 import dk.ledocsystem.ledoc.dto.ResetPasswordDTO;
-import dk.ledocsystem.ledoc.service.ChangePasswordService;
 import dk.ledocsystem.ledoc.service.ForgotPasswordService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +14,6 @@ import javax.validation.Valid;
 public class PasswordController {
 
     private final ForgotPasswordService forgotPasswordService;
-    private final ChangePasswordService changePasswordService;
 
     @PostMapping("/forgot")
     public void forgotPassword(@RequestBody @Valid ForgotPasswordDTO forgotPasswordDTO) {
@@ -28,8 +25,4 @@ public class PasswordController {
         forgotPasswordService.resetPassword(resetPasswordDTO);
     }
 
-    @PostMapping("/change")
-    public void changePassword(@RequestBody @Valid ChangePasswordDTO changePasswordDTO) {
-        changePasswordService.changePassword(changePasswordDTO);
-    }
 }
