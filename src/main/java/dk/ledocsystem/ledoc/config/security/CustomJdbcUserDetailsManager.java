@@ -3,12 +3,10 @@ package dk.ledocsystem.ledoc.config.security;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
-import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
 import java.util.List;
 
-@Service
 class CustomJdbcUserDetailsManager extends JdbcUserDetailsManager {
     private static final String USERS_BY_USERNAME_QUERY = "select username, password, NOT archived " +
             "from employees where username = ?";
@@ -17,7 +15,7 @@ class CustomJdbcUserDetailsManager extends JdbcUserDetailsManager {
             "where username = ?";
 
     CustomJdbcUserDetailsManager(DataSource dataSource) {
-        setDataSource(dataSource);
+        super(dataSource);
         setRolePrefix("ROLE_");
         setUsersByUsernameQuery(USERS_BY_USERNAME_QUERY);
         setAuthoritiesByUsernameQuery(AUTHORITIES_BY_USERNAME_QUERY);
