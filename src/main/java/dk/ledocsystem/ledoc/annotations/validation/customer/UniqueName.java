@@ -15,7 +15,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 @Constraint(validatedBy = {UniqueNameValidator.class})
 public @interface UniqueName {
-    String message() default "The provided name is already in use";
+    String message() default "";
 
     Class<?>[] groups() default {};
 

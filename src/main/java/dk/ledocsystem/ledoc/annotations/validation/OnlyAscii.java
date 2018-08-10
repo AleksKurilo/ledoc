@@ -23,7 +23,7 @@ import javax.validation.constraints.Pattern;
 @ReportAsSingleViolation
 @Pattern(regexp = "^\\p{ASCII}*$")
 public @interface OnlyAscii {
-    String message() default "The provided value contains non-ASCII characters";
+    String message() default "";
 
     Class<?>[] groups() default {};
 

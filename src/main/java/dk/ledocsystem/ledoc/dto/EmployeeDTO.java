@@ -15,40 +15,37 @@ import java.time.LocalDate;
 @Data
 public class EmployeeDTO {
 
-    @NotNull(message = "Username must not be null")
+    @NotNull
     @Email
     @UniqueUsername
-    @OnlyAscii(message = "Username must contain only ASCII characters")
+    @OnlyAscii
     private String username;
 
-    @NotNull(message = "Password must not be null")
-    @Size(min = 3, max = 40, message = "Password must be at least {min} and at most {max} characters long")
-    @OnlyAscii(message = "Password must contain only ASCII characters")
+    @NotNull
+    @Size(min = 3, max = 40)
+    @OnlyAscii
     private String password;
 
-    @NotNull(message = "First name must not be null")
-    @Size(min = 2, max = 40, message = "First name must be at least {min} and at most {max} characters long")
-    @OnlyAscii(message = "First name must contain only ASCII characters")
-    @JsonAlias("first_name")
+    @NotNull
+    @Size(min = 2, max = 40)
+    @OnlyAscii
     private String firstName;
 
-    @NotNull(message = "Last name must not be null")
-    @Size(min = 2, max = 40, message = "Last name must be at least {min} and at most {max} characters long")
-    @OnlyAscii(message = "Last name must contain only ASCII characters")
-    @JsonAlias("last_name")
+    @NotNull
+    @Size(min = 2, max = 40)
+    @OnlyAscii
     private String lastName;
 
-    @Size(min =  3, max = 40, message = "Id number can not be more than 40 symbols")
+    @Size(min =  3, max = 40)
     private String idNumber;
 
-    @Size(min = 2, max = 40, message = "Initials can not be more than 40 symbols")
+    @Size(min = 2, max = 40)
     private String initials;
 
     @MobilePhone
     private String cellPhone;
 
     @MobilePhone
-    //@JsonAlias("mobile_phone")
     private String phoneNumber;
 
     private boolean welcomeMessage;
@@ -58,11 +55,15 @@ public class EmployeeDTO {
     private LocalDate expireOfIdCard;
 
     @Valid
+    @NotNull
+    @JsonAlias("details")
     private EmployeeDetailsDTO employeeDetailsDTO;
 
     @Valid
+    @JsonAlias("personalInfo")
     private EmployeePersonalInfoDTO employeePersonalInfoDTO;
 
     @Valid
+    @JsonAlias("nearestRelatives")
     private EmployeeNearestRelativesDTO employeeNearestRelativesDTO;
 }

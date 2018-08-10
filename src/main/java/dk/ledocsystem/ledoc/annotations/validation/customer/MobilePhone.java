@@ -22,7 +22,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @ReportAsSingleViolation
 @Pattern(regexp = "^\\+?[0-9()-]{8,20}$")
 public @interface MobilePhone {
-    String message() default "The provided value is not a valid mobile phone";
+    String message() default "";
 
     Class<?>[] groups() default {};
 

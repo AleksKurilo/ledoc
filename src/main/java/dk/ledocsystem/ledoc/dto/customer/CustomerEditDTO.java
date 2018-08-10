@@ -13,13 +13,13 @@ import java.util.Set;
 @Data
 public class CustomerEditDTO {
     @UniqueName
-    @OnlyAscii(message = "Name must contain only ASCII characters")
-    @Size(min = 3, max = 40, message = "Company's name must be at least {min} and at most {max} characters long")
+    @OnlyAscii
+    @Size(min = 3, max = 40)
     private String name;
 
     @UniqueCVR
-    @OnlyAscii(message = "Company's name must contain only ASCII characters")
-    @Size(min = 3, max = 40, message = "CVR must be at least {min} and at most {max} characters long")
+    @OnlyAscii
+    @Size(min = 3, max = 40)
     private String cvr;
 
     // id of the superadmin

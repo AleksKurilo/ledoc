@@ -11,15 +11,15 @@ import javax.validation.constraints.Size;
 public class EmployeeNearestRelativesDTO {
 
     @OnlyAscii
-    @Size(min = 2, max = 40, message = "First name(s) can not be less than 2 symbols or greater than 40")
+    @Size(min = 2, max = 40)
     private String firstName;
 
     @OnlyAscii
-    @Size(min = 2, max = 40, message = "Last name can not be less than 2 symbols or greater than 40")
+    @Size(min = 2, max = 40)
     private String lastName;
 
     @OnlyAscii
-    @Size(min = 3, max = 400, message = "Comment can not be less than 3 symbols or greater than 40")
+    @Size(min = 3, max = 400)
     private String comment;
 
     @Email

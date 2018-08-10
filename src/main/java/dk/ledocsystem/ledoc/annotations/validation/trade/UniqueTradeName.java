@@ -17,7 +17,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = { UniqueTradeNameValidator.class })
 public @interface UniqueTradeName {
 
-    String message() default "The provided trade name is already in use";
+    String message() default "";
 
     Class<?>[] groups() default {};
 

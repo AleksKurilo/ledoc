@@ -23,7 +23,7 @@ import javax.validation.constraints.Pattern;
 @ReportAsSingleViolation
 @Pattern(regexp = "^\\+?[0-9()-]{3,40}$")
 public @interface MobilePhone {
-    String message() default "The provided value is not a valid mobile phone";
+    String message() default "";
 
     Class<?>[] groups() default {};
 

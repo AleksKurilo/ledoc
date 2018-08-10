@@ -1,6 +1,6 @@
 package dk.ledocsystem.ledoc.config.security;
 
-import dk.ledocsystem.ledoc.exceptions.InvalidRoleNameException;
+import dk.ledocsystem.ledoc.exceptions.InvalidRoleException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -21,7 +21,7 @@ public enum UserAuthorities {
                 return authorities;
             }
         }
-        throw new IllegalArgumentException(Integer.toString(code) + " is illegal value for user authorities");
+        throw new InvalidRoleException("user.authorities.code.invalid", code);
     }
 
     public static UserAuthorities fromString(String roleString) {
@@ -31,6 +31,6 @@ public enum UserAuthorities {
                 return authorities;
             }
         }
-        throw new InvalidRoleNameException(roleString);
+        throw new InvalidRoleException("user.authorities.string.invalid", roleString);
     }
 }

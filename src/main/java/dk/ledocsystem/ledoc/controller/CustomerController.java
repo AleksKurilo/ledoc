@@ -7,7 +7,6 @@ import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.repository.CustomerRepository;
 import dk.ledocsystem.ledoc.service.CustomerService;
 import lombok.RequiredArgsConstructor;
-import org.pmw.tinylog.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +30,8 @@ public class CustomerController {
 
     @GetMapping("/{customerId}")
     public Customer getById(@PathVariable Long customerId) {
-        return customerService.getById(customerId).orElseThrow(() -> new NotFoundException(Customer.class, customerId));
+        return customerService.getById(customerId)
+                .orElseThrow(() -> new NotFoundException("customer.id.not.found", customerId.toString()));
     }
 
     @RolesAllowed("super_admin")
@@ -58,26 +58,31 @@ public class CustomerController {
 
     /*@GetMapping("/{customerCvr}")
     public Customer findCustomerByCvr(@PathVariable String cvr) {
-        return customerRepository.findByCvr(cvr).orElseThrow(() -> new NotFoundException(Customer.class, cvr));
+        return customerRepository.findByCvr(cvr)
+                .orElseThrow(() -> new NotFoundException("customer.cvr.not.found", cvr));
     }
 
     @GetMapping("/{customerPhone}")
     public Customer findByPhone(@PathVariable String customerPhone) {
-        return customerRepository.findByContactPhone(customerPhone).orElseThrow(() -> new NotFoundException(Customer.class, customerPhone));
+        return customerRepository.findByContactPhone(customerPhone)
+                .orElseThrow(() -> new NotFoundException("customer.contact.phone.not.found", customerPhone));
     }
 
     @GetMapping("/{contactEmail}")
     public Customer findByContactEmail(@PathVariable String contactEmail) {
-        return customerRepository.findByContactEmail(contactEmail).orElseThrow(() -> new NotFoundException(Customer.class, contactEmail));
+        return customerRepository.findByContactEmail(contactEmail)
+                .orElseThrow(() -> new NotFoundException("customer.contact.email.not.found", contactEmail));
     }
 
     @GetMapping("/{invoiceEmail}")
     public Customer findByInvoiceEmail(@PathVariable String invoiceEmail) {
-        return customerRepository.findByInvoiceEmail(invoiceEmail).orElseThrow(() -> new NotFoundException(Customer.class, invoiceEmail));
+        return customerRepository.findByInvoiceEmail(invoiceEmail)
+                .orElseThrow(() -> new NotFoundException("customer.invoice.email.not.found", invoiceEmail));
     }
 
     @GetMapping("/{companyEmail}")
     public Customer findByCompanyEmail(@PathVariable String companyEmail) {
-        return customerRepository.findByCompanyEmail(companyEmail).orElseThrow(() -> new NotFoundException(Customer.class, companyEmail));
+        return customerRepository.findByCompanyEmail(companyEmail)
+                .orElseThrow(() -> new NotFoundException("customer.company.email.not.found", companyEmail));
     }*/
 }

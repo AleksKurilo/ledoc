@@ -12,7 +12,7 @@ public class EmployeePersonalInfoDTO {
 
     private String address;
 
-    @Size(min = 1, max = 40, message = "Building number can not be more than 40 symbols")
+    @Size(min = 1, max = 40)
     private String buildingNo;
 
     private String postalCode;

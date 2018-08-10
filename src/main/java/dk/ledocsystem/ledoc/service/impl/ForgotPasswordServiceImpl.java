@@ -35,7 +35,7 @@ class ForgotPasswordServiceImpl implements ForgotPasswordService {
     public void forgotPassword(ForgotPasswordDTO forgotPasswordDTO) {
         String email = forgotPasswordDTO.getEmail();
         if (!employeeService.existsByUsername(email)) {
-            throw new InvalidCredentialsException("Email " + email + " is invalid");
+            throw new InvalidCredentialsException("username.not.found");
         }
 
         String token = UUID.randomUUID().toString();
@@ -52,7 +52,7 @@ class ForgotPasswordServiceImpl implements ForgotPasswordService {
     public void resetPassword(ResetPasswordDTO resetPasswordDTO) {
         String token = resetPasswordDTO.getToken();
         ResetToken resetToken = resetTokenRepository.findByToken(token)
-                .orElseThrow(() -> new NotFoundException(ResetToken.class, token));
+                .orElseThrow(() -> new NotFoundException("reset.token.not.found", token));
 
         String encodedPassword = passwordEncoder.encode(resetPasswordDTO.getPassword());
 

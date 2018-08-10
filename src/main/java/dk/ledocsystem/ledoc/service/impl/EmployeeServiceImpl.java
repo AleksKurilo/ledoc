@@ -46,7 +46,7 @@ class EmployeeServiceImpl implements EmployeeService {
     @Override
     public Employee updateEmployee(Long employeeId, EmployeeDTO employeeDTO) {
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new NotFoundException(Employee.class, employeeId));
+                .orElseThrow(() -> new NotFoundException("employee.id.not.found", employeeId.toString()));
         employee.updateProperties(employeeDTO);
         return employeeRepository.save(employee);
     }

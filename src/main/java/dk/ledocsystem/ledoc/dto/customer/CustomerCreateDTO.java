@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.dto.customer;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import dk.ledocsystem.ledoc.annotations.validation.OnlyAscii;
 import dk.ledocsystem.ledoc.annotations.validation.customer.MobilePhone;
 import dk.ledocsystem.ledoc.annotations.validation.customer.UniqueCVR;
@@ -17,16 +18,16 @@ import java.util.Set;
 @Data
 public class CustomerCreateDTO {
 
-    @NotNull(message = "Name must not be null")
+    @NotNull
     @UniqueName
-    @OnlyAscii(message = "Name must contain only ASCII characters")
-    @Size(min = 3, max = 40, message = "Company's name must be at least {min} and at most {max} characters long")
+    @OnlyAscii
+    @Size(min = 3, max = 40)
     private String name;
 
-    @NotNull(message = "CVR must not be null")
+    @NotNull
     @UniqueCVR
-    @OnlyAscii(message = "Company's name must contain only ASCII characters")
-    @Size(min = 3, max = 40, message = "CVR must be at least {min} and at most {max} characters long")
+    @OnlyAscii
+    @Size(min = 3, max = 40)
     private String cvr;
 
     // id of the superadmin
@@ -54,8 +55,12 @@ public class CustomerCreateDTO {
     private String mailbox;
 
     @Valid
+    @NotNull
+    @JsonAlias("address")
     private AddressDTO addressDTO;
 
     @Valid
+    @NotNull
+    @JsonAlias({"employee", "admin"})
     private EmployeeDTO employeeDTO;
 }

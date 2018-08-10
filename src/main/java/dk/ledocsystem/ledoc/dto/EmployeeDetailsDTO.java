@@ -9,8 +9,7 @@ import javax.validation.constraints.Size;
 @Data
 public class EmployeeDetailsDTO {
 
-    @NotNull(message = "Title must be not null")
-
+    @NotNull
     private String title;
 
     @OnlyAscii

@@ -96,7 +96,7 @@ class CustomerServiceImpl implements CustomerService {
     @Override
     public Customer updateCustomer(Long customerId, CustomerEditDTO customerEditDTO) {
         Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new NotFoundException(Customer.class, customerId));
+                .orElseThrow(() -> new NotFoundException("customer.id.not.found", customerId.toString()));
         customer.updateProperties(customerEditDTO);
         Set<Long> tradeIds = customerEditDTO.getTradeIds();
         if (tradeIds != null) {

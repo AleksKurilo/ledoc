@@ -31,7 +31,8 @@ public class EmployeeController {
 
     @GetMapping("/{employeeId}")
     public Employee getEmployeeById(@PathVariable Long employeeId) {
-        return employeeService.getById(employeeId).orElseThrow(() -> new NotFoundException(Employee.class, employeeId));
+        return employeeService.getById(employeeId)
+                .orElseThrow(() -> new NotFoundException("employee.id.not.found", employeeId.toString()));
     }
 
     @RolesAllowed("admin")

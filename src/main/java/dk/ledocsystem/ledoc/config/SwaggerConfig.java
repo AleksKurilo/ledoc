@@ -1,7 +1,7 @@
 package dk.ledocsystem.ledoc.config;
 
 import com.fasterxml.classmate.TypeResolver;
-import dk.ledocsystem.ledoc.exceptions.ErrorWrapper;
+import dk.ledocsystem.ledoc.exceptions.RestResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -52,7 +52,7 @@ public class SwaggerConfig {
                 .globalResponseMessage(RequestMethod.POST, postGlobalResponse())
                 .globalResponseMessage(RequestMethod.PUT, putGlobalResponse())
                 .globalResponseMessage(RequestMethod.DELETE, deleteGlobalResponse())
-                .additionalModels(typeResolver.resolve(ErrorWrapper.class));
+                .additionalModels(typeResolver.resolve(RestResponse.class));
     }
 
     @Bean
@@ -85,7 +85,7 @@ public class SwaggerConfig {
         return new ResponseMessageBuilder()
                 .code(HttpStatus.BAD_REQUEST.value())
                 .message("Bad request: validation failed")
-                .responseModel(new ModelRef("ErrorWrapper"))
+                .responseModel(new ModelRef("RestResponse"))
                 .build();
     }
 
@@ -93,7 +93,7 @@ public class SwaggerConfig {
         return new ResponseMessageBuilder()
                 .code(HttpStatus.NOT_FOUND.value())
                 .message("Entity not found")
-                .responseModel(new ModelRef("ErrorWrapper"))
+                .responseModel(new ModelRef("RestResponse"))
                 .build();
     }
 
@@ -101,7 +101,7 @@ public class SwaggerConfig {
         return new ResponseMessageBuilder()
                 .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .message(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
-                .responseModel(new ModelRef("ErrorWrapper"))
+                .responseModel(new ModelRef("RestResponse"))
                 .build();
     }
 }

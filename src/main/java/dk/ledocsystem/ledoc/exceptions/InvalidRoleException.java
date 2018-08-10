@@ -4,9 +4,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
-public class InvalidRoleNameException extends IllegalArgumentException {
+public class InvalidRoleException extends LedocException {
 
-    public InvalidRoleNameException(String roleName) {
-        super(roleName + " is unknown UserAuthorities constant");
+    public InvalidRoleException(String messageKey, Object locale) {
+        super(messageKey, locale);
     }
 }

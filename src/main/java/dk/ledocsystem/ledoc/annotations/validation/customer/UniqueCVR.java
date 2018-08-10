@@ -16,7 +16,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 @Constraint(validatedBy = {UniqueCVRValidator.class})
 public @interface UniqueCVR {
-    String message() default "The provided CVR is already in use";
+    String message() default "";
 
     Class<?>[] groups() default {};
 
