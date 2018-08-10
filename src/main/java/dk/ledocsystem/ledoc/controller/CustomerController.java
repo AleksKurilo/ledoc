@@ -7,6 +7,7 @@ import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.repository.CustomerRepository;
 import dk.ledocsystem.ledoc.service.CustomerService;
 import lombok.RequiredArgsConstructor;
+import org.pmw.tinylog.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,6 +40,7 @@ public class CustomerController {
         return customerService.createCustomer(customerCreateDTO);
     }
 
+    @RolesAllowed("super_admin")
     @PutMapping(value = "/{customerId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Customer updateCustomerById(@PathVariable Long customerId, @RequestBody @Valid CustomerEditDTO customerEditDTO) {
         return customerService.updateCustomer(customerId, customerEditDTO);
