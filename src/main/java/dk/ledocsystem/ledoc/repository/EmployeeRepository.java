@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface EmployeeRepository extends JpaRepository<Employee, Long>, LoggingRepository<Employee, Long> {
 
@@ -31,6 +32,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Loggi
      * @return All employees that have given authority
      */
     List<EmployeeNames> findAllByAuthoritiesContains(UserAuthorities authorities);
+
+    /**
+     * @param authorities {@link UserAuthorities authority}
+     * @return All employees that have given authority and not archived
+     */
+    int countAllByAuthoritiesContainsAndArchivedIsFalse(UserAuthorities authorities);
 
     /**
      * @param username Username

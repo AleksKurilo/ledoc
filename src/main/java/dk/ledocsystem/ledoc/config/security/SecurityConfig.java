@@ -42,6 +42,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final EmployeeRepository employeeRepository;
     private final MessageSource messageSource;
     private final LocaleResolver localeResolver;
+    private final JwtSettingAuthenticationSuccessHandler jwtSettingAuthenticationSuccessHandler;
+    private final DataSource dataSource;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -68,8 +70,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public UsernamePasswordAuthenticationFilter usernamePasswordAuthenticationFilter() throws Exception {
-        AuthenticationSuccessHandler jwtSettingAuthenticationSuccessHandler =
-                new JwtSettingAuthenticationSuccessHandler();
         AuthenticationSuccessHandler customerSettingAuthenticationSuccessHandler =
                 new CustomerSettingAuthenticationSuccessHandler(employeeRepository);
         AuthenticationFailureHandler customAuthenticationFailureHandler =
@@ -86,16 +86,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public AuthenticationProvider daoAuthenticationProvider(DataSource dataSource) {
+    public AuthenticationProvider daoAuthenticationProvider() {
         DaoAuthenticationProvider impl = new DaoAuthenticationProvider();
-        impl.setUserDetailsService(userDetailsService(dataSource));
+        impl.setUserDetailsService(userDetailsService());
         impl.setPasswordEncoder(passwordEncoder());
         impl.setHideUserNotFoundExceptions(false);
         return impl;
     }
 
     @Bean
-    public UserDetailsService userDetailsService(DataSource dataSource) {
+    public UserDetailsService userDetailsService() {
         return new CustomJdbcUserDetailsManager(dataSource);
     }
 

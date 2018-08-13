@@ -29,6 +29,11 @@ public interface CustomerRepository extends JpaRepository<Customer, Long>  {
     List<Customer> findAllByArchivedIsFalse();
 
     /**
+     * @return Count of {@link Customer} customers that are not archived
+     */
+    Integer countAllByArchivedFalse();
+
+    /**
      * @return All {@link Customer} customers that are archived
      */
     List<Customer> findAllByArchivedIsTrue();
