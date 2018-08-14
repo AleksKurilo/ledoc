@@ -1,7 +1,8 @@
 package dk.ledocsystem.ledoc.controller;
 
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
-import dk.ledocsystem.ledoc.dto.EmployeeDTO;
+import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
+import dk.ledocsystem.ledoc.dto.employee.EmployeeEditDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.employee.Employee;
@@ -37,14 +38,15 @@ public class EmployeeController {
 
     @RolesAllowed("admin")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Employee createEmployee(@RequestBody @Valid EmployeeDTO employeeDTO,
+    public Employee createEmployee(@RequestBody @Valid EmployeeCreateDTO employeeCreateDTO,
                                    @SessionAttribute @ApiIgnore Customer customer) {
-        return employeeService.createEmployee(employeeDTO, customer);
+        return employeeService.createEmployee(employeeCreateDTO, customer);
     }
 
     @PutMapping(value = "/{employeeId}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Employee updateEmployeeById(@PathVariable Long employeeId, @RequestBody @Valid EmployeeDTO employeeDTO) {
-        return employeeService.updateEmployee(employeeId, employeeDTO);
+    public Employee updateEmployeeById(@PathVariable Long employeeId,
+                                       @RequestBody @Valid EmployeeEditDTO employeeEditDTO) {
+        return employeeService.updateEmployee(employeeId, employeeEditDTO);
     }
 
     @DeleteMapping("/{employeeId}")

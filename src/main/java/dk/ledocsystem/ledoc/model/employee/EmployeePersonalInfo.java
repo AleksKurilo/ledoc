@@ -1,14 +1,15 @@
 package dk.ledocsystem.ledoc.model.employee;
 
-import dk.ledocsystem.ledoc.dto.EmployeePersonalInfoDTO;
+import dk.ledocsystem.ledoc.dto.employee.EmployeePersonalInfoDTO;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import java.time.LocalDate;
+
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 @Getter
 @Setter
@@ -16,16 +17,18 @@ import java.time.LocalDate;
 @Embeddable
 public class EmployeePersonalInfo {
 
-    public EmployeePersonalInfo(EmployeePersonalInfoDTO personalInfoDTO) {
-        setAddress(personalInfoDTO.getAddress());
-        setBuildingNo(personalInfoDTO.getBuildingNo());
-        setPostalCode(personalInfoDTO.getPostalCode());
-        setCity(personalInfoDTO.getCity());
-        setPersonalPhone(personalInfoDTO.getPersonalPhone());
-        setPersonalMobile(personalInfoDTO.getPersonalMobile());
-        setDateOfBirth(personalInfoDTO.getDateOfBirth());
-        setPrivateEmail(personalInfoDTO.getPrivateEmail());
-        setDayOfEmployment(personalInfoDTO.getDayOfEmployment());
+    EmployeePersonalInfo(EmployeePersonalInfoDTO personalInfo) {
+        if (personalInfo != null) {
+            setAddress(personalInfo.getAddress());
+            setBuildingNo(personalInfo.getBuildingNo());
+            setPostalCode(personalInfo.getPostalCode());
+            setCity(personalInfo.getCity());
+            setPersonalPhone(personalInfo.getPersonalPhone());
+            setPersonalMobile(personalInfo.getPersonalMobile());
+            setDateOfBirth(personalInfo.getDateOfBirth());
+            setPrivateEmail(personalInfo.getPrivateEmail());
+            setDayOfEmployment(personalInfo.getDayOfEmployment());
+        }
     }
 
     @Column
@@ -54,4 +57,18 @@ public class EmployeePersonalInfo {
 
     @Column(name = "day_of_employment")
     private LocalDate dayOfEmployment;
+
+    void updateProperties(EmployeePersonalInfoDTO personalInfo) {
+        if (personalInfo != null) {
+            setAddress(defaultIfNull(personalInfo.getAddress(), getAddress()));
+            setBuildingNo(defaultIfNull(personalInfo.getBuildingNo(), getBuildingNo()));
+            setPostalCode(defaultIfNull(personalInfo.getPostalCode(), getPostalCode()));
+            setCity(defaultIfNull(personalInfo.getCity(), getCity()));
+            setPersonalPhone(defaultIfNull(personalInfo.getPersonalPhone(), getPersonalPhone()));
+            setPersonalMobile(defaultIfNull(personalInfo.getPersonalMobile(), getPersonalMobile()));
+            setDateOfBirth(defaultIfNull(personalInfo.getDateOfBirth(), getDateOfBirth()));
+            setPrivateEmail(defaultIfNull(personalInfo.getPrivateEmail(), getPrivateEmail()));
+            setDayOfEmployment(defaultIfNull(personalInfo.getDayOfEmployment(), getDayOfEmployment()));
+        }
+    }
 }

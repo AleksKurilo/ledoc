@@ -3,7 +3,6 @@ package dk.ledocsystem.ledoc.service.impl;
 
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.customer.CustomerCreateDTO;
-import dk.ledocsystem.ledoc.dto.EmployeeDTO;
 import dk.ledocsystem.ledoc.dto.customer.CustomerEditDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Address;
@@ -16,10 +15,8 @@ import dk.ledocsystem.ledoc.repository.LocationRepository;
 import dk.ledocsystem.ledoc.repository.TradeRepository;
 import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
-import dk.ledocsystem.ledoc.service.SimpleMailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,10 +36,6 @@ class CustomerServiceImpl implements CustomerService {
     private final TradeRepository tradeRepository;
 
     private final LocationRepository locationRepository;
-
-    private final PasswordEncoder passwordEncoder;
-
-    private final SimpleMailService mailService;
 
     @Value("${spring.mail.username}")
     private String fromEmailAddress;
@@ -70,24 +63,17 @@ class CustomerServiceImpl implements CustomerService {
 
         Location location = new Location();
         location.setName(customer.getName());
+        location.setCustomer(customer);
         Address address = new Address(customerCreateDTO.getAddressDTO());
         location.setAddress(address);
         address.setLocation(location);
-        location.setCustomer(customer);
-        Employee admin = new Employee(customerCreateDTO.getEmployeeDTO());
-        buildAndSendMessage(customerCreateDTO.getEmployeeDTO());
-        admin.setPassword(passwordEncoder.encode(admin.getPassword()));
 
+        Employee admin = employeeService.createEmployee(customerCreateDTO.getEmployeeCreateDTO(), customer);
         location.setResponsible(admin);
-
-        admin.setCustomer(customer);
+        admin.setPlaceOfEmployment(location);
 
         locationRepository.save(location);
         employeeService.addAuthorities(admin.getId(), UserAuthorities.ADMIN);
-
-        if (customerCreateDTO.getEmployeeDTO().isCanCreatePersonalLocation()) {
-            employeeService.addAuthorities(admin.getId(), UserAuthorities.CAN_CREATE_PERSONAL_LOCATION);
-        }
 
         return customer;
     }
@@ -98,10 +84,17 @@ class CustomerServiceImpl implements CustomerService {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new NotFoundException("customer.id.not.found", customerId.toString()));
         customer.updateProperties(customerEditDTO);
+
         Set<Long> tradeIds = customerEditDTO.getTradeIds();
         if (tradeIds != null) {
             customer.setTrades(resolveTrades(tradeIds));
         }
+
+        Long pointOfContactId = customerEditDTO.getPointOfContactId();
+        if (pointOfContactId != null) {
+            customer.setPointOfContact(resolvePointOfContact(pointOfContactId));
+        }
+
         return customerRepository.save(customer);
     }
 
@@ -117,26 +110,11 @@ class CustomerServiceImpl implements CustomerService {
     }
 
     private Employee resolvePointOfContact(Long pointOfContactId) {
-        return (pointOfContactId == null) ? null
-                : employeeService.getById(pointOfContactId).orElseThrow(IllegalStateException::new);
+        return employeeService.getById(pointOfContactId)
+                .orElseThrow(() -> new NotFoundException("customer.point.of.contact.id.not.found", pointOfContactId.toString()));
     }
 
     private Set<Trade> resolveTrades(Set<Long> ids) {
         return tradeRepository.findAllByIdIn(ids);
-    }
-
-    private void buildAndSendMessage(EmployeeDTO admin) {
-        mailService.sendEmail(fromEmailAddress, admin.getUsername(), WelcomeEmailHolder.TOPIC, buildBody(admin));
-    }
-
-    private String buildBody(EmployeeDTO admin) {
-        StringBuilder builder = new StringBuilder();
-        if (admin.isWelcomeMessage()) {
-            builder.append(WelcomeEmailHolder.BODY_W).append("\n\n");
-        }
-        builder.append(String.format(WelcomeEmailHolder.CREDENTIALS, admin.getUsername(), admin.getPassword()));
-        builder.append("\n\n");
-        builder.append(WelcomeEmailHolder.FOOTER);
-        return builder.toString();
     }
 }

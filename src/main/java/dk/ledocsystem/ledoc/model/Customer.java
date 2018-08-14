@@ -23,7 +23,7 @@ import java.util.Set;
 @DynamicUpdate
 public class Customer {
 
-    public Customer(CustomerCreateDTO customerCreateDTO) {
+    public Customer(@NonNull CustomerCreateDTO customerCreateDTO) {
         setName(customerCreateDTO.getName());
         setCvr(customerCreateDTO.getCvr());
         setContactPhone(customerCreateDTO.getContactPhone());
@@ -75,7 +75,7 @@ public class Customer {
     @Column(nullable = false)
     private Boolean archived;
 
-    public void updateProperties(CustomerEditDTO customerEditDTO) {
+    public void updateProperties(@NonNull CustomerEditDTO customerEditDTO) {
         setName(customerEditDTO.getName() != null ? customerEditDTO.getName() : getName());
         setCvr(customerEditDTO.getCvr() != null ? customerEditDTO.getCvr() : getCvr());
         setContactPhone(customerEditDTO.getContactPhone() != null ? customerEditDTO.getContactPhone() : getContactPhone());

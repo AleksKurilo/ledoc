@@ -1,4 +1,4 @@
-package dk.ledocsystem.ledoc.dto;
+package dk.ledocsystem.ledoc.dto.employee;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import dk.ledocsystem.ledoc.annotations.validation.MobilePhone;
@@ -13,7 +13,7 @@ import javax.validation.constraints.Size;
 import java.time.LocalDate;
 
 @Data
-public class EmployeeDTO {
+public class EmployeeCreateDTO {
 
     @NotNull
     @Email
@@ -57,7 +57,7 @@ public class EmployeeDTO {
     @Valid
     @NotNull
     @JsonAlias("details")
-    private EmployeeDetailsDTO employeeDetailsDTO;
+    private EmployeeDetailsCreateDTO employeeDetailsCreateDTO;
 
     @Valid
     @JsonAlias("personalInfo")

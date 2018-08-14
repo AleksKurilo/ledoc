@@ -1,7 +1,8 @@
 package dk.ledocsystem.ledoc.model.employee;
 
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
-import dk.ledocsystem.ledoc.dto.EmployeeDTO;
+import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
+import dk.ledocsystem.ledoc.dto.employee.EmployeeEditDTO;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.NamedEntity;
 import dk.ledocsystem.ledoc.model.Visitable;
@@ -16,6 +17,8 @@ import javax.persistence.Table;
 import java.time.LocalDate;
 import java.util.Set;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 @Setter
 @Getter
 @NoArgsConstructor
@@ -26,18 +29,19 @@ import java.util.Set;
 @DynamicUpdate
 public class Employee implements Visitable, NamedEntity {
 
-    public Employee(EmployeeDTO employeeDTO) {
-        setUsername(employeeDTO.getUsername());
-        setPassword(employeeDTO.getPassword());
-        setIdNumber(employeeDTO.getIdNumber());
-        setFirstName(employeeDTO.getFirstName());
-        setLastName(employeeDTO.getLastName());
-        setInitials(employeeDTO.getInitials());
-        setCellPhone(employeeDTO.getCellPhone());
-        setPhoneNumber(employeeDTO.getPhoneNumber());
-        setExpireOfIdCard(employeeDTO.getExpireOfIdCard());
-        setDetails(new EmployeeDetails(employeeDTO.getEmployeeDetailsDTO()));
-        setPersonalInfo(new EmployeePersonalInfo(employeeDTO.getEmployeePersonalInfoDTO()));
+    public Employee(@NonNull EmployeeCreateDTO employeeCreateDTO) {
+        setUsername(employeeCreateDTO.getUsername());
+        setPassword(employeeCreateDTO.getPassword());
+        setIdNumber(employeeCreateDTO.getIdNumber());
+        setFirstName(employeeCreateDTO.getFirstName());
+        setLastName(employeeCreateDTO.getLastName());
+        setInitials(employeeCreateDTO.getInitials());
+        setCellPhone(employeeCreateDTO.getCellPhone());
+        setPhoneNumber(employeeCreateDTO.getPhoneNumber());
+        setExpireOfIdCard(employeeCreateDTO.getExpireOfIdCard());
+        setDetails(new EmployeeDetails(employeeCreateDTO.getEmployeeDetailsCreateDTO()));
+        setPersonalInfo(new EmployeePersonalInfo(employeeCreateDTO.getEmployeePersonalInfoDTO()));
+        setNearestRelative(new EmployeeNearestRelative(employeeCreateDTO.getEmployeeNearestRelativesDTO()));
     }
 
     @EqualsAndHashCode.Include
@@ -52,7 +56,6 @@ public class Employee implements Visitable, NamedEntity {
     @Column(nullable = false, length = 56)
     private String password;
 
-    //autogenerate
     @Column(name = "id_number", length = 40)
     private String idNumber;
 
@@ -73,7 +76,7 @@ public class Employee implements Visitable, NamedEntity {
 
     @ElementCollection
     @CollectionTable(name = "employee_authorities")
-    @Column(name = "authority")
+    @Column(name = "authority", nullable = false)
     private Set<UserAuthorities> authorities;
 
     @ManyToMany
@@ -83,11 +86,11 @@ public class Employee implements Visitable, NamedEntity {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Employee> visitedBy;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "responsible_id")
     private Employee responsible;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "place_of_employment_id")
     private Location placeOfEmployment;
 
@@ -115,18 +118,19 @@ public class Employee implements Visitable, NamedEntity {
     @Column(name = "archive_reason")
     private String archiveReason;
 
-    public void updateProperties(EmployeeDTO employeeDTO) {
-        setUsername(employeeDTO.getUsername());
-        setPassword(employeeDTO.getPassword());
-        setIdNumber(employeeDTO.getIdNumber());
-        setFirstName(employeeDTO.getFirstName());
-        setLastName(employeeDTO.getLastName());
-        setInitials(employeeDTO.getInitials());
-        setCellPhone(employeeDTO.getCellPhone());
-        setPhoneNumber(employeeDTO.getPhoneNumber());
-        setExpireOfIdCard(employeeDTO.getExpireOfIdCard());
-        setDetails(new EmployeeDetails(employeeDTO.getEmployeeDetailsDTO()));
-        setPersonalInfo(new EmployeePersonalInfo(employeeDTO.getEmployeePersonalInfoDTO()));
+    public void updateProperties(@NonNull EmployeeEditDTO employeeDTO) {
+        setUsername(defaultIfNull(employeeDTO.getUsername(), getUsername()));
+        setPassword(defaultIfNull(employeeDTO.getPassword(), getPassword()));
+        setIdNumber(defaultIfNull(employeeDTO.getIdNumber(), getIdNumber()));
+        setFirstName(defaultIfNull(employeeDTO.getFirstName(), getFirstName()));
+        setLastName(defaultIfNull(employeeDTO.getLastName(), getLastName()));
+        setInitials(defaultIfNull(employeeDTO.getInitials(), getInitials()));
+        setCellPhone(defaultIfNull(employeeDTO.getCellPhone(), getCellPhone()));
+        setPhoneNumber(defaultIfNull(employeeDTO.getPhoneNumber(), getPhoneNumber()));
+        setExpireOfIdCard(defaultIfNull(employeeDTO.getExpireOfIdCard(), getExpireOfIdCard()));
+        getDetails().updateProperties(employeeDTO.getEmployeeDetailsEditDTO());
+        getPersonalInfo().updateProperties(employeeDTO.getEmployeePersonalInfoDTO());
+        getNearestRelative().updateProperties(employeeDTO.getEmployeeNearestRelativesDTO());
     }
 
     @Override

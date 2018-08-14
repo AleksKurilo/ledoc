@@ -1,6 +1,5 @@
 package dk.ledocsystem.ledoc.annotations.validation.customer;
 
-import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 

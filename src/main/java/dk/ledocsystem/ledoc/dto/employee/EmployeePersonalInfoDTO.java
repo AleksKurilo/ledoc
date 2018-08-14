@@ -1,4 +1,4 @@
-package dk.ledocsystem.ledoc.dto;
+package dk.ledocsystem.ledoc.dto.employee;
 
 import dk.ledocsystem.ledoc.annotations.validation.MobilePhone;
 import lombok.Data;

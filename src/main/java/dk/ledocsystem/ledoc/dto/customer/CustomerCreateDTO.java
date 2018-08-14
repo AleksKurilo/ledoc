@@ -6,7 +6,7 @@ import dk.ledocsystem.ledoc.annotations.validation.customer.MobilePhone;
 import dk.ledocsystem.ledoc.annotations.validation.customer.UniqueCVR;
 import dk.ledocsystem.ledoc.annotations.validation.customer.UniqueName;
 import dk.ledocsystem.ledoc.dto.AddressDTO;
-import dk.ledocsystem.ledoc.dto.EmployeeDTO;
+import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import lombok.Data;
 
 import javax.validation.Valid;
@@ -62,5 +62,5 @@ public class CustomerCreateDTO {
     @Valid
     @NotNull
     @JsonAlias({"employee", "admin"})
-    private EmployeeDTO employeeDTO;
+    private EmployeeCreateDTO employeeCreateDTO;
 }

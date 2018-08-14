@@ -13,6 +13,9 @@ class UniqueUsernameValidator implements ConstraintValidator<UniqueUsername, Cha
 
     @Override
     public boolean isValid(CharSequence value, ConstraintValidatorContext context) {
+        if (value == null) {
+            return true;
+        }
         String username = value.toString();
         return !employeeRepository.findByUsername(username).isPresent();
     }

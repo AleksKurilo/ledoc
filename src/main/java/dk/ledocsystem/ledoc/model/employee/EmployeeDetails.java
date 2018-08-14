@@ -1,16 +1,13 @@
 package dk.ledocsystem.ledoc.model.employee;
 
-import dk.ledocsystem.ledoc.dto.EmployeeDetailsDTO;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import dk.ledocsystem.ledoc.dto.employee.EmployeeDetailsCreateDTO;
+import dk.ledocsystem.ledoc.dto.employee.EmployeeDetailsEditDTO;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
+
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 @Getter
 @Setter
@@ -19,10 +16,10 @@ import javax.persistence.ManyToOne;
 @Embeddable
 public class EmployeeDetails {
 
-    public EmployeeDetails(EmployeeDetailsDTO employeeDetailsDTO) {
-        setTitle(employeeDetailsDTO.getTitle());
-        setComment(employeeDetailsDTO.getComment());
-        setSkillAssessed(employeeDetailsDTO.isSkillAssessed());
+    EmployeeDetails(@NonNull EmployeeDetailsCreateDTO details) {
+        setTitle(details.getTitle());
+        setComment(details.getComment());
+        setSkillAssessed(details.isSkillAssessed());
     }
 
     @Column(nullable = false)
@@ -35,7 +32,15 @@ public class EmployeeDetails {
     @Column(name = "skill_assessed")
     private Boolean skillAssessed;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "responsible_of_skills_id")
     private Employee responsibleOfSkills;
+
+    void updateProperties(EmployeeDetailsEditDTO details) {
+        if (details != null) {
+            setTitle(defaultIfNull(details.getTitle(), getTitle()));
+            setComment(defaultIfNull(details.getComment(), getComment()));
+            setSkillAssessed(defaultIfNull(details.getSkillAssessed(), getSkillAssessed()));
+        }
+    }
 }
