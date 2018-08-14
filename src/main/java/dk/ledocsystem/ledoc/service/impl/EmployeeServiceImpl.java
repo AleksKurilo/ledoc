@@ -8,10 +8,12 @@ import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
+import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.SimpleMailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,10 +23,11 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor = @__({@Lazy}))
 class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
+    private final CustomerService customerService;
     private final PasswordEncoder passwordEncoder;
     private final SimpleMailService mailService;
 
@@ -38,7 +41,13 @@ class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public Optional<Employee> getById(Long id) {
-        return (id != null) ? employeeRepository.findById(id) : Optional.empty();
+        return employeeRepository.findById(id);
+    }
+
+    @Transactional
+    @Override
+    public Employee createEmployee(EmployeeCreateDTO employeeCreateDTO) {
+        return createEmployee(employeeCreateDTO, customerService.getCurrentCustomerReference());
     }
 
     @Transactional
@@ -121,8 +130,9 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     private Employee resolveResponsibleOfSkills(Long responsibleId) {
-        return getById(responsibleId)
-                .orElseThrow(() -> new NotFoundException("employee.responsible.of.skills.not.found", responsibleId.toString()));
+        return (responsibleId == null) ? null :
+                getById(responsibleId)
+                        .orElseThrow(() -> new NotFoundException("employee.responsible.of.skills.not.found", responsibleId.toString()));
     }
 
     private void buildAndSendMessage(EmployeeCreateDTO admin) {

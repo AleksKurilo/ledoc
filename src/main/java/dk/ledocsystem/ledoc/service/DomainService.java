@@ -1,6 +1,6 @@
 package dk.ledocsystem.ledoc.service;
 
-import org.springframework.security.core.Authentication;
+import dk.ledocsystem.ledoc.config.security.UserPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Collection;
@@ -17,7 +17,7 @@ public interface DomainService<T> {
 
     void deleteByIds(Collection<Long> ids);
 
-    default Authentication getCurrentUser() {
-        return SecurityContextHolder.getContext().getAuthentication();
+    default UserPrincipal getCurrentUser() {
+        return (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 }

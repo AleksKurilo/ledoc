@@ -22,6 +22,14 @@ public interface EmployeeService extends DomainService<Employee> {
     Employee createEmployee(EmployeeCreateDTO employeeCreateDTO, Customer customer);
 
     /**
+     * Creates new {@link Employee}, using the data from {@code employeeCreateDTO}.
+     *
+     * @param employeeCreateDTO Employee properties
+     * @return Newly created {@link Employee}
+     */
+    Employee createEmployee(EmployeeCreateDTO employeeCreateDTO);
+
+    /**
      * Updates the properties of the employee with the given ID with properties of {@code employeeCreateDTO}.
      *
      * @param employeeId      ID of the employee

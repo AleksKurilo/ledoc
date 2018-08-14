@@ -109,9 +109,16 @@ class CustomerServiceImpl implements CustomerService {
         customerRepository.deleteByIdIn(customerIds);
     }
 
+    @Override
+    public Customer getCurrentCustomerReference() {
+        Long currentCustomerId = getCurrentUser().getCustomerId();
+        return customerRepository.getOne(currentCustomerId);
+    }
+
     private Employee resolvePointOfContact(Long pointOfContactId) {
-        return employeeService.getById(pointOfContactId)
-                .orElseThrow(() -> new NotFoundException("customer.point.of.contact.id.not.found", pointOfContactId.toString()));
+        return (pointOfContactId == null) ? null :
+                employeeService.getById(pointOfContactId)
+                        .orElseThrow(() -> new NotFoundException("customer.point.of.contact.id.not.found", pointOfContactId.toString()));
     }
 
     private Set<Trade> resolveTrades(Set<Long> ids) {

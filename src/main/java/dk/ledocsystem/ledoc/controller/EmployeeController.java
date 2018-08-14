@@ -4,14 +4,12 @@ import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeEditDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
-import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import springfox.documentation.annotations.ApiIgnore;
 
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
@@ -38,9 +36,8 @@ public class EmployeeController {
 
     @RolesAllowed("admin")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Employee createEmployee(@RequestBody @Valid EmployeeCreateDTO employeeCreateDTO,
-                                   @SessionAttribute @ApiIgnore Customer customer) {
-        return employeeService.createEmployee(employeeCreateDTO, customer);
+    public Employee createEmployee(@RequestBody @Valid EmployeeCreateDTO employeeCreateDTO) {
+        return employeeService.createEmployee(employeeCreateDTO);
     }
 
     @PutMapping(value = "/{employeeId}", consumes = MediaType.APPLICATION_JSON_VALUE)

@@ -1,6 +1,5 @@
 package dk.ledocsystem.ledoc.config.security;
 
-import dk.ledocsystem.ledoc.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -18,7 +17,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -39,7 +37,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private static final String[] SWAGGER_RESOURCES = new String[] {"/swagger-ui.html", "/webjars/**",
             "/swagger-resources/**", "/v2/api-docs"};
 
-    private final EmployeeRepository employeeRepository;
     private final MessageSource messageSource;
     private final LocaleResolver localeResolver;
     private final JwtSettingAuthenticationSuccessHandler jwtSettingAuthenticationSuccessHandler;
@@ -70,16 +67,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public UsernamePasswordAuthenticationFilter usernamePasswordAuthenticationFilter() throws Exception {
-        AuthenticationSuccessHandler customerSettingAuthenticationSuccessHandler =
-                new CustomerSettingAuthenticationSuccessHandler(employeeRepository);
         AuthenticationFailureHandler customAuthenticationFailureHandler =
                 new CustomAuthenticationFailureHandler(messageSource, localeResolver);
 
         UsernamePasswordAuthenticationFilter authenticationFilter =
                 new CustomUsernamePasswordAuthenticationFilter(authenticationManager());
 
-        authenticationFilter.setAuthenticationSuccessHandler(new CompositeAuthenticationSuccessHandler(
-                Arrays.asList(jwtSettingAuthenticationSuccessHandler, customerSettingAuthenticationSuccessHandler)));
+        authenticationFilter.setAuthenticationSuccessHandler(jwtSettingAuthenticationSuccessHandler);
         authenticationFilter.setAuthenticationFailureHandler(customAuthenticationFailureHandler);
 
         return authenticationFilter;
