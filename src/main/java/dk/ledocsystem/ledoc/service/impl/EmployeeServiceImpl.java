@@ -124,9 +124,9 @@ class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public long countNewEmployees(Long customerId, Long employeeId) {
-        long allEmployees = employeeRepository.countByCustomerIdAndArchivedTrue(customerId);
+        long allEmployees = employeeRepository.countByCustomerIdAndArchivedFalse(customerId);
         long visitedEmployees = employeeRepository.countVisited(employeeId);
-        return allEmployees - visitedEmployees;
+        return allEmployees - visitedEmployees - 1;
     }
 
     private Employee resolveResponsibleOfSkills(Long responsibleId) {

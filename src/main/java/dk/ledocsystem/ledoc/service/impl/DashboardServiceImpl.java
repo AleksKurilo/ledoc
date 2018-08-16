@@ -7,6 +7,7 @@ import dk.ledocsystem.ledoc.model.dashboard.SuperAdminStatistic;
 import dk.ledocsystem.ledoc.model.dashboard.UserStat;
 import dk.ledocsystem.ledoc.repository.CustomerRepository;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
+import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.DashboardService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
@@ -14,24 +15,26 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-
 @Service
 @RequiredArgsConstructor
 class DashboardServiceImpl implements DashboardService {
 
+    private final EmployeeService employeeService;
     private final EmployeeRepository employeeRepository;
+    private final CustomerService customerService;
     private final CustomerRepository customerRepository;
     private final JwtTokenRegistry tokenRegistry;
 
     @Override
     public Dashboard createDashboard() {
         Dashboard dashboard = new Dashboard();
-        /*Long currentUserId = employeeService.getCurrentUserId();
+        Long currentUserId = employeeService.getCurrentUserId();
+        Long customerId = customerService.getCurrentCustomerReference().getId();
 
         dashboard.setNewEmployeesCount(employeeService.countNewEmployees(customerId, currentUserId));
         dashboard.setNewEquipmentCount(12);
-        dashboard.setNewLocationsCount(55);*/
+        dashboard.setNewLocationsCount(55);
+
         return dashboard;
     }
 
