@@ -1,6 +1,5 @@
 package dk.ledocsystem.ledoc.model.employee;
 
-import dk.ledocsystem.ledoc.dto.employee.EmployeeNearestRelativesDTO;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -8,23 +7,11 @@ import lombok.Setter;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-
 @Getter
 @Setter
 @NoArgsConstructor
 @Embeddable
 public class EmployeeNearestRelative {
-
-    EmployeeNearestRelative(EmployeeNearestRelativesDTO nearestRelatives) {
-        if (nearestRelatives != null) {
-            setFirstName(nearestRelatives.getFirstName());
-            setLastName(nearestRelatives.getLastName());
-            setComment(nearestRelatives.getComment());
-            setEmail(nearestRelatives.getEmail());
-            setPhoneNumber(nearestRelatives.getPhoneNumber());
-        }
-    }
 
     @Column(name = "rel_first_name", length = 40)
     private String firstName;
@@ -41,13 +28,4 @@ public class EmployeeNearestRelative {
     @Column(name = "rel_phone_number", length = 40)
     private String phoneNumber;
 
-    void updateProperties(EmployeeNearestRelativesDTO nearestRelatives) {
-        if (nearestRelatives != null) {
-            setFirstName(defaultIfNull(nearestRelatives.getFirstName(), getFirstName()));
-            setLastName(defaultIfNull(nearestRelatives.getLastName(), getLastName()));
-            setComment(defaultIfNull(nearestRelatives.getComment(), getComment()));
-            setEmail(defaultIfNull(nearestRelatives.getEmail(), getEmail()));
-            setPhoneNumber(defaultIfNull(nearestRelatives.getPhoneNumber(), getPhoneNumber()));
-        }
-    }
 }

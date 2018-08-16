@@ -11,6 +11,7 @@ import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.SimpleMailService;
+import dk.ledocsystem.ledoc.util.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -53,11 +54,12 @@ class EmployeeServiceImpl implements EmployeeService {
     @Transactional
     @Override
     public Employee createEmployee(EmployeeCreateDTO employeeCreateDTO, Customer customer) {
-        Employee employee = new Employee(employeeCreateDTO);
+        Employee employee = new Employee();
+        BeanCopyUtils.copyProperties(employeeCreateDTO, employee);
         employee.setPassword(passwordEncoder.encode(employee.getPassword()));
         employee.setCustomer(customer);
 
-        Long skillResponsibleId = employeeCreateDTO.getEmployeeDetailsCreateDTO().getSkillResponsibleId();
+        Long skillResponsibleId = employeeCreateDTO.getDetails().getSkillResponsibleId();
         employee.getDetails().setResponsibleOfSkills(resolveResponsibleOfSkills(skillResponsibleId));
 
         employee = employeeRepository.save(employee);
@@ -75,9 +77,9 @@ class EmployeeServiceImpl implements EmployeeService {
     public Employee updateEmployee(Long employeeId, EmployeeEditDTO employeeEditDTO) {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new NotFoundException("employee.id.not.found", employeeId.toString()));
-        employee.updateProperties(employeeEditDTO);
+        BeanCopyUtils.copyProperties(employeeEditDTO, employee, false);
 
-        Long skillResponsibleId = employeeEditDTO.getEmployeeDetailsEditDTO().getSkillResponsibleId();
+        Long skillResponsibleId = employeeEditDTO.getDetails().getSkillResponsibleId();
         if (skillResponsibleId != null) {
             employee.getDetails().setResponsibleOfSkills(resolveResponsibleOfSkills(skillResponsibleId));
         }

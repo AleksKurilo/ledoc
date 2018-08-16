@@ -15,6 +15,7 @@ import dk.ledocsystem.ledoc.repository.LocationRepository;
 import dk.ledocsystem.ledoc.repository.TradeRepository;
 import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
+import dk.ledocsystem.ledoc.util.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -53,7 +54,8 @@ class CustomerServiceImpl implements CustomerService {
     @Override
     @Transactional
     public Customer createCustomer(CustomerCreateDTO customerCreateDTO) {
-        Customer customer = new Customer(customerCreateDTO);
+        Customer customer = new Customer();
+        BeanCopyUtils.copyProperties(customerCreateDTO, customer);
 
         Employee pointOfContact = resolvePointOfContact(customerCreateDTO.getPointOfContactId());
         customer.setPointOfContact(pointOfContact);
@@ -64,7 +66,8 @@ class CustomerServiceImpl implements CustomerService {
         Location location = new Location();
         location.setName(customer.getName());
         location.setCustomer(customer);
-        Address address = new Address(customerCreateDTO.getAddressDTO());
+        Address address = new Address();
+        BeanCopyUtils.copyProperties(customerCreateDTO.getAddressDTO(), address);
         location.setAddress(address);
         address.setLocation(location);
 
@@ -83,7 +86,7 @@ class CustomerServiceImpl implements CustomerService {
     public Customer updateCustomer(Long customerId, CustomerEditDTO customerEditDTO) {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new NotFoundException("customer.id.not.found", customerId.toString()));
-        customer.updateProperties(customerEditDTO);
+        BeanCopyUtils.copyProperties(customerEditDTO, customer, false);
 
         Set<Long> tradeIds = customerEditDTO.getTradeIds();
         if (tradeIds != null) {
