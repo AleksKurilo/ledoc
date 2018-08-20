@@ -8,6 +8,7 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -62,4 +63,8 @@ public class Customer {
     @ColumnDefault("false")
     @Column(nullable = false)
     private Boolean archived;
+
+    @ColumnDefault("CURRENT_DATE")
+    @Column(name = "date_of_creation")
+    private LocalDate dateOfCreation;
 }
