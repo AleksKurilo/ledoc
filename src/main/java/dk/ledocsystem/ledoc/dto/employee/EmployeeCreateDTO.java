@@ -1,6 +1,5 @@
 package dk.ledocsystem.ledoc.dto.employee;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import dk.ledocsystem.ledoc.annotations.validation.MobilePhone;
 import dk.ledocsystem.ledoc.annotations.validation.OnlyAscii;
 import dk.ledocsystem.ledoc.annotations.validation.employee.UniqueUsername;
@@ -56,14 +55,11 @@ public class EmployeeCreateDTO {
 
     @Valid
     @NotNull
-    @JsonAlias("details")
-    private EmployeeDetailsCreateDTO employeeDetailsCreateDTO;
+    private EmployeeDetailsCreateDTO details;
 
     @Valid
-    @JsonAlias("personalInfo")
-    private EmployeePersonalInfoDTO employeePersonalInfoDTO;
+    private EmployeePersonalInfoDTO personalInfo;
 
     @Valid
-    @JsonAlias("nearestRelatives")
-    private EmployeeNearestRelativesDTO employeeNearestRelativesDTO;
+    private EmployeeNearestRelativesDTO nearestRelative;
 }

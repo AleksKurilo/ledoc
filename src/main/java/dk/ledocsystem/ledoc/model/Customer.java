@@ -1,8 +1,6 @@
 package dk.ledocsystem.ledoc.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import dk.ledocsystem.ledoc.dto.customer.CustomerCreateDTO;
-import dk.ledocsystem.ledoc.dto.customer.CustomerEditDTO;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
@@ -22,16 +20,6 @@ import java.util.Set;
 @DynamicInsert
 @DynamicUpdate
 public class Customer {
-
-    public Customer(@NonNull CustomerCreateDTO customerCreateDTO) {
-        setName(customerCreateDTO.getName());
-        setCvr(customerCreateDTO.getCvr());
-        setContactPhone(customerCreateDTO.getContactPhone());
-        setContactEmail(customerCreateDTO.getContactEmail());
-        setInvoiceEmail(customerCreateDTO.getInvoiceEmail());
-        setCompanyEmail(customerCreateDTO.getCompanyEmail());
-        setMailbox(customerCreateDTO.getMailbox());
-    }
 
     @EqualsAndHashCode.Include
     @Id
@@ -74,15 +62,4 @@ public class Customer {
     @ColumnDefault("false")
     @Column(nullable = false)
     private Boolean archived;
-
-    public void updateProperties(@NonNull CustomerEditDTO customerEditDTO) {
-        setName(customerEditDTO.getName() != null ? customerEditDTO.getName() : getName());
-        setCvr(customerEditDTO.getCvr() != null ? customerEditDTO.getCvr() : getCvr());
-        setContactPhone(customerEditDTO.getContactPhone() != null ? customerEditDTO.getContactPhone() : getContactPhone());
-        setContactEmail(customerEditDTO.getContactEmail() != null ? customerEditDTO.getContactEmail(): getContactEmail());
-        setInvoiceEmail(customerEditDTO.getInvoiceEmail() != null ? customerEditDTO.getInvoiceEmail() : getInvoiceEmail());
-        setCompanyEmail(customerEditDTO.getCompanyEmail() != null ? customerEditDTO.getCompanyEmail() : getCompanyEmail());
-        setMailbox(customerEditDTO.getMailbox() != null ? customerEditDTO.getMailbox() : getMailbox());
-        setArchived(customerEditDTO.getArchived() != null ? customerEditDTO.getArchived(): getArchived());
-    }
 }

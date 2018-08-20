@@ -74,7 +74,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Loggi
      * Counts employees that are not archived and
      * has {@link dk.ledocsystem.ledoc.model.Customer} with provided ID.
      */
-    long countByCustomerIdAndArchivedTrue(Long customerId);
+    long countByCustomerIdAndArchivedFalse(Long customerId);
 
     /**
      * @return All {@link Employee} employees that are not archived

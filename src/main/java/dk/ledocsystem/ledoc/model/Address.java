@@ -1,6 +1,5 @@
 package dk.ledocsystem.ledoc.model;
 
-import dk.ledocsystem.ledoc.dto.AddressDTO;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,15 +15,6 @@ import javax.persistence.*;
 @Entity
 @Table(name = "addresses")
 public class Address {
-
-    public Address(AddressDTO addressDTO) {
-        setStreet(addressDTO.getStreet());
-        setBuildingNumber(addressDTO.getBuildingNumber());
-        setPostalCode(addressDTO.getPostalCode());
-        setCity(addressDTO.getCity());
-        setCountry(addressDTO.getCountry());
-        setDistrict(addressDTO.getDistrict());
-    }
 
     @EqualsAndHashCode.Include
     @Id
