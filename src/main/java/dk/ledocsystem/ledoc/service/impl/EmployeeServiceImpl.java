@@ -14,7 +14,6 @@ import dk.ledocsystem.ledoc.service.SimpleMailService;
 import dk.ledocsystem.ledoc.util.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +23,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor(onConstructor = @__({@Lazy}))
+@RequiredArgsConstructor
 class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
@@ -117,6 +116,11 @@ class EmployeeServiceImpl implements EmployeeService {
     @Override
     public boolean existsByUsername(String username) {
         return employeeRepository.existsByUsername(username);
+    }
+
+    @Override
+    public List<Employee> findAllById(Collection<Long> ids) {
+        return employeeRepository.findAllById(ids);
     }
 
     @Override

@@ -9,12 +9,10 @@ import dk.ledocsystem.ledoc.model.dashboard.UserStat;
 import dk.ledocsystem.ledoc.repository.CustomerRepository;
 import dk.ledocsystem.ledoc.repository.CustomerStatisticRepository;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
-import dk.ledocsystem.ledoc.repository.LocationRepository;
 import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.DashboardService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -25,11 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.*;
-import java.lang.reflect.Field;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
@@ -45,7 +40,6 @@ class DashboardServiceImpl implements DashboardService {
     private final CustomerRepository customerRepository;
     private final JwtTokenRegistry tokenRegistry;
     private final CustomerStatisticRepository customerStatisticRepository;
-    private final LocationRepository locationRepository;
 
     @Override
     public Dashboard createDashboard() {

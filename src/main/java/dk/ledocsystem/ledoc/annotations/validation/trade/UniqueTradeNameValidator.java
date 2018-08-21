@@ -7,13 +7,13 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
 @RequiredArgsConstructor
-public class UniqueTradeNameValidator implements ConstraintValidator<UniqueTradeName, CharSequence> {
+class UniqueTradeNameValidator implements ConstraintValidator<UniqueTradeName, CharSequence> {
 
     private final TradeRepository tradeRepository;
 
     @Override
     public boolean isValid(CharSequence value, ConstraintValidatorContext context) {
         String tradeName = value.toString();
-        return !tradeRepository.findByName(tradeName).isPresent();
+        return !tradeRepository.existsByName(tradeName);
     }
 }

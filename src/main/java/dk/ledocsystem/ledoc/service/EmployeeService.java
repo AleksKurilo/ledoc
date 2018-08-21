@@ -7,6 +7,7 @@ import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,6 +54,8 @@ public interface EmployeeService extends DomainService<Employee> {
      * @param authorities Authorities
      */
     void addAuthorities(Long employeeId, UserAuthorities authorities);
+
+    List<Employee> findAllById(Collection<Long> ids);
 
     Optional<Employee> getByUsername(String username);
 

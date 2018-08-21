@@ -7,7 +7,7 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
 @RequiredArgsConstructor
-public class UniqueCVRValidator implements ConstraintValidator<UniqueCVR, CharSequence> {
+class UniqueCVRValidator implements ConstraintValidator<UniqueCVR, CharSequence> {
 
     private final CustomerRepository customerRepository;
 

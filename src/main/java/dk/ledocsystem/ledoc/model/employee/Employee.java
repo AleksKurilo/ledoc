@@ -11,6 +11,7 @@ import org.hibernate.annotations.*;
 import javax.persistence.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.ForeignKey;
 import javax.persistence.Table;
 import java.time.LocalDate;
 import java.util.Set;
@@ -63,8 +64,8 @@ public class Employee implements Visitable, NamedEntity {
     @ManyToMany
     @JoinTable(name = "employee_log",
             joinColumns = { @JoinColumn(name = "visited_id")},
-            inverseJoinColumns = { @JoinColumn(name = "employee_id") })
-    @OnDelete(action = OnDeleteAction.CASCADE)
+            inverseJoinColumns = { @JoinColumn(name = "employee_id",
+                    foreignKey = @ForeignKey(foreignKeyDefinition = "foreign key (employee_id) references employees on delete cascade")) })
     private Set<Employee> visitedBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -87,7 +88,11 @@ public class Employee implements Visitable, NamedEntity {
     @Embedded
     private EmployeeNearestRelative nearestRelative = new EmployeeNearestRelative();
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToMany(mappedBy = "employees")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Set<Location> locations;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Customer customer;
