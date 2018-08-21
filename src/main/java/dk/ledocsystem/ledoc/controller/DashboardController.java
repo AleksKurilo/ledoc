@@ -33,7 +33,7 @@ public class DashboardController {
         return dashboardService.createStatistic();
     }
 
-    //@RolesAllowed("super_admin")
+    @RolesAllowed("super_admin")
     @GetMapping("/importCustomers")
     public StreamingResponseBody excelCustomers(HttpServletResponse response) {
         response.setHeader("fileName", "customers.xslx");
