@@ -1,6 +1,7 @@
 package dk.ledocsystem.ledoc.repository;
 
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
+import dk.ledocsystem.ledoc.dto.projections.EmployeeDataExcel;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -75,6 +76,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Loggi
      * has {@link dk.ledocsystem.ledoc.model.Customer} with provided ID.
      */
     long countByCustomerIdAndArchivedFalse(Long customerId);
+
+    /**
+     * @param authorities List of authorities
+     * @return All {@link Employee} employees that contains given authorities
+     */
+    List<EmployeeDataExcel> findAllByAuthoritiesIn(List<UserAuthorities> authorities);
 
     /**
      * @return All {@link Employee} employees that are not archived

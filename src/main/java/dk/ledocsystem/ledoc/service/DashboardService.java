@@ -11,4 +11,6 @@ public interface DashboardService {
     SuperAdminStatistic createStatistic();
 
     StreamingResponseBody exportExcelCustomers();
+
+    StreamingResponseBody exportExcelEmployees();
 }

@@ -36,9 +36,18 @@ public class DashboardController {
     @RolesAllowed("super_admin")
     @GetMapping("/importCustomers")
     public StreamingResponseBody excelCustomers(HttpServletResponse response) {
-        response.setHeader("fileName", "customers.xslx");
+        response.setHeader("fileName", "Customers.xslx");
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.setHeader("Content-Disposition", "attachment; filename=\"customers.xslx\"");
+        response.setHeader("Content-Disposition", "attachment; filename=\"Customers.xslx\"");
         return dashboardService.exportExcelCustomers();
+    }
+
+    @RolesAllowed("super_admin")
+    @GetMapping("/importEmployees")
+    public StreamingResponseBody importEmployees(HttpServletResponse response) {
+        response.setHeader("fileName", "All_users.xslx");
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment; filename=\"All_users.xslx\"");
+        return dashboardService.exportExcelEmployees();
     }
 }
