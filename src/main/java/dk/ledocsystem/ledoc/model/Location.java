@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -10,6 +11,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -24,29 +26,35 @@ public class Location {
     @SequenceGenerator(name = "location_seq", sequenceName = "location_seq")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 40)
     private String name;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "responsible_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Employee responsible;
 
     @OneToOne(mappedBy = "location", cascade = CascadeType.ALL, orphanRemoval = true)
-    //If not null, it's a DOMAN ADDRESS (type = address)
+    @JsonManagedReference
     private Address address;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "address_location_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
-    //If not null, it's a PHYSICAL ADDRESS (type = physical)
     private Location addressLocation;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany
+    @JoinTable(name = "employee_location",
+            joinColumns = { @JoinColumn(name = "location_id")},
+            inverseJoinColumns = { @JoinColumn(name = "employee_id")})
+    private Set<Employee> employees;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Customer customer;
 
-    @Column(name = "is_cust_first")
+    @Column(name = "is_cust_first", nullable = false)
     @ColumnDefault("false")
     private Boolean isCustomerFirst;
 }

@@ -65,6 +65,6 @@ public class Customer {
     private Boolean archived;
 
     @ColumnDefault("CURRENT_DATE")
-    @Column(name = "date_of_creation")
+    @Column(name = "date_of_creation", nullable = false)
     private LocalDate dateOfCreation;
 }

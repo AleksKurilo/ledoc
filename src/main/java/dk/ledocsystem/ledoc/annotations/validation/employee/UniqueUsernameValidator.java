@@ -17,6 +17,6 @@ class UniqueUsernameValidator implements ConstraintValidator<UniqueUsername, Cha
             return true;
         }
         String username = value.toString();
-        return !employeeRepository.findByUsername(username).isPresent();
+        return !employeeRepository.existsByUsername(username);
     }
 }

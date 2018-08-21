@@ -2,32 +2,31 @@ package dk.ledocsystem.ledoc.service.impl;
 
 
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
+import dk.ledocsystem.ledoc.dto.location.LocationCreateDTO;
 import dk.ledocsystem.ledoc.dto.customer.CustomerCreateDTO;
 import dk.ledocsystem.ledoc.dto.customer.CustomerEditDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
-import dk.ledocsystem.ledoc.model.Address;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.Location;
+import dk.ledocsystem.ledoc.model.LocationType;
 import dk.ledocsystem.ledoc.model.Trade;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.repository.CustomerRepository;
-import dk.ledocsystem.ledoc.repository.LocationRepository;
 import dk.ledocsystem.ledoc.repository.TradeRepository;
 import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
+import dk.ledocsystem.ledoc.service.LocationService;
 import dk.ledocsystem.ledoc.util.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor = @__({@Lazy}))
 class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
@@ -36,7 +35,7 @@ class CustomerServiceImpl implements CustomerService {
 
     private final TradeRepository tradeRepository;
 
-    private final LocationRepository locationRepository;
+    private final LocationService locationService;
 
     @Value("${spring.mail.username}")
     private String fromEmailAddress;
@@ -63,20 +62,19 @@ class CustomerServiceImpl implements CustomerService {
         Set<Trade> trades = resolveTrades(customerCreateDTO.getTradeIds());
         customer.setTrades(trades);
 
-        Location location = new Location();
-        location.setName(customer.getName());
-        location.setCustomer(customer);
-        Address address = new Address();
-        BeanCopyUtils.copyProperties(customerCreateDTO.getAddressDTO(), address);
-        location.setAddress(address);
-        address.setLocation(location);
+        customerRepository.save(customer);
 
         Employee admin = employeeService.createEmployee(customerCreateDTO.getEmployeeCreateDTO(), customer);
-        location.setResponsible(admin);
-        admin.setPlaceOfEmployment(location);
-
-        locationRepository.save(location);
         employeeService.addAuthorities(admin.getId(), UserAuthorities.ADMIN);
+
+        LocationCreateDTO locationCreateDTO = LocationCreateDTO.builder()
+                .type(LocationType.ADDRESS)
+                .name(customer.getName())
+                .address(customerCreateDTO.getAddress())
+                .build();
+        Location location = locationService.createLocation(locationCreateDTO, customer, admin, true);
+
+        admin.setPlaceOfEmployment(location);
 
         return customer;
     }
@@ -125,6 +123,6 @@ class CustomerServiceImpl implements CustomerService {
     }
 
     private Set<Trade> resolveTrades(Set<Long> ids) {
-        return tradeRepository.findAllByIdIn(ids);
+        return new HashSet<>(tradeRepository.findAllById(ids));
     }
 }

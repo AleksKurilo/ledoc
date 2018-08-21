@@ -1,10 +1,8 @@
 package dk.ledocsystem.ledoc.model.dashboard;
 
-import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import lombok.Data;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.time.LocalDate;
 
 @Data

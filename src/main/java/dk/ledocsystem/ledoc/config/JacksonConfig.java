@@ -1,15 +1,27 @@
 package dk.ledocsystem.ledoc.config;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 @Configuration
 public class JacksonConfig {
 
     @Bean
     public Module jacksonHibernateModule() {
-        return new Hibernate5Module();
+        return new Hibernate5Module()
+                .configure(Hibernate5Module.Feature.SERIALIZE_IDENTIFIER_FOR_LAZY_NOT_LOADED_OBJECTS, true);
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return Jackson2ObjectMapperBuilder.json()
+                .modulesToInstall(jacksonHibernateModule())
+                .serializationInclusion(JsonInclude.Include.NON_EMPTY)
+                .build();
     }
 }

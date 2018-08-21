@@ -1,4 +1,4 @@
-package dk.ledocsystem.ledoc.annotations.validation.trade;
+package dk.ledocsystem.ledoc.annotations.validation.location;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
@@ -12,8 +12,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
 @Documented
-@Constraint(validatedBy = { UniqueTradeNameValidator.class })
-public @interface UniqueTradeName {
+@Constraint(validatedBy = { UniqueNameValidator.class })
+public @interface UniqueName {
 
     String message() default "";
 

@@ -1,6 +1,7 @@
-package dk.ledocsystem.ledoc.annotations.validation.customer;
+package dk.ledocsystem.ledoc.annotations.validation.location;
 
-import dk.ledocsystem.ledoc.repository.CustomerRepository;
+import dk.ledocsystem.ledoc.repository.LocationRepository;
+import dk.ledocsystem.ledoc.service.CustomerService;
 import lombok.RequiredArgsConstructor;
 
 import javax.validation.ConstraintValidator;
@@ -9,7 +10,8 @@ import javax.validation.ConstraintValidatorContext;
 @RequiredArgsConstructor
 class UniqueNameValidator implements ConstraintValidator<UniqueName, CharSequence> {
 
-    private final CustomerRepository customerRepository;
+    private final CustomerService customerService;
+    private final LocationRepository locationRepository;
 
     @Override
     public boolean isValid(CharSequence value, ConstraintValidatorContext context) {
@@ -17,6 +19,7 @@ class UniqueNameValidator implements ConstraintValidator<UniqueName, CharSequenc
             return true;
         }
         String name = value.toString();
-        return !customerRepository.findByName(name).isPresent();
+        Long customerId = customerService.getCurrentCustomerReference().getId();
+        return !locationRepository.existsByNameAndCustomerId(name, customerId);
     }
 }

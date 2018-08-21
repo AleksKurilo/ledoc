@@ -28,7 +28,7 @@ public class LedocApplication {
 
 	private static void initLogger() {
 		Configurator.defaultConfig()
-				.writer(new FileWriter("ledoc-" + timeStamp + ".log"))
+				.writer(new FileWriter("logs/ledoc-" + timeStamp + ".log"))
 				.level(Level.WARNING)
 				.activate();
 	}

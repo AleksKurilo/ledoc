@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,7 +21,7 @@ public class Address {
     @Id
     private Long id;
 
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false, length = 40)
     private String street;
 
     @Column(name = "building_number", length = 40)
@@ -38,7 +39,8 @@ public class Address {
     @Column(length = 40)
     private String district;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JsonBackReference
     @MapsId
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Location location;
