@@ -4,13 +4,13 @@ import dk.ledocsystem.ledoc.model.dashboard.Dashboard;
 import dk.ledocsystem.ledoc.model.dashboard.SuperAdminStatistic;
 import dk.ledocsystem.ledoc.service.DashboardService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.annotation.security.RolesAllowed;
-import javax.servlet.http.HttpServletResponse;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,19 +32,13 @@ public class DashboardController {
 
     @RolesAllowed("super_admin")
     @GetMapping("/importCustomers")
-    public StreamingResponseBody excelCustomers(HttpServletResponse response) {
-        response.setHeader("fileName", "Customers.xslx");
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.setHeader("Content-Disposition", "attachment; filename=\"Customers.xslx\"");
-        return dashboardService.exportExcelCustomers();
+    public ResponseEntity<StreamingResponseBody> excelCustomers() {
+        return ResponseEntity.ok().header("Content-Disposition", "attachment; filename=\"Customers.xslx\"").body(dashboardService.exportExcelCustomers());
     }
 
     @RolesAllowed("super_admin")
     @GetMapping("/importEmployees")
-    public StreamingResponseBody importEmployees(HttpServletResponse response) {
-        response.setHeader("fileName", "All_users.xslx");
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.setHeader("Content-Disposition", "attachment; filename=\"All_users.xslx\"");
-        return dashboardService.exportExcelEmployees();
+    public ResponseEntity<StreamingResponseBody> importEmployees() {
+        return ResponseEntity.ok().header("Content-Disposition", "attachment; filename=\"All_users.xslx\"").body(dashboardService.exportExcelEmployees());
     }
 }

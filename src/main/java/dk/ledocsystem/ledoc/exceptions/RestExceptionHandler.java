@@ -1,7 +1,7 @@
 package dk.ledocsystem.ledoc.exceptions;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.pmw.tinylog.Logger;
 import org.springframework.context.MessageSource;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.http.HttpStatus;
@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 
 @ControllerAdvice
 @RequiredArgsConstructor
-@Slf4j
 class RestExceptionHandler {
 
     private static final String UNEXPECTED_ERROR = "Exception.unexpected";
@@ -47,7 +46,7 @@ class RestExceptionHandler {
     }
 
     private ResponseEntity<RestResponse> handleExceptionInternal(Exception ex, RestResponse error) {
-        log.error(RestResponse.logMessageFrom(ex));
+        Logger.error(RestResponse.logMessageFrom(ex));
         HttpStatus status = resolveResponseStatus(ex);
         return ResponseEntity
                 .status(status)

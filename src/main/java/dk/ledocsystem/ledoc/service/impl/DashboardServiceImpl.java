@@ -3,6 +3,7 @@ package dk.ledocsystem.ledoc.service.impl;
 import dk.ledocsystem.ledoc.config.security.JwtTokenRegistry;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeDataExcel;
+import dk.ledocsystem.ledoc.exceptions.ExcelExportException;
 import dk.ledocsystem.ledoc.model.dashboard.CustomersStatistic;
 import dk.ledocsystem.ledoc.model.dashboard.Dashboard;
 import dk.ledocsystem.ledoc.model.dashboard.SuperAdminStatistic;
@@ -17,13 +18,13 @@ import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.pmw.tinylog.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
@@ -144,7 +145,7 @@ class DashboardServiceImpl implements DashboardService {
             workbook.write(bos);
         }
         catch (IOException e) {
-            Logger.error("Can't write the .xslx file", e.getMessage());
+            throw new ExcelExportException("dashboard.excel.error", e.getMessage());
         }
 
         return outputStream -> outputStream.write(bos.toByteArray());

@@ -2,17 +2,15 @@ package dk.ledocsystem.ledoc;
 
 import org.pmw.tinylog.Configurator;
 import org.pmw.tinylog.Level;
+import org.pmw.tinylog.writers.ConsoleWriter;
 import org.pmw.tinylog.writers.FileWriter;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 
 @SpringBootApplication
 @EnableAsync
@@ -28,7 +26,8 @@ public class LedocApplication {
 
 	private static void initLogger() {
 		Configurator.defaultConfig()
-				.writer(new FileWriter("logs/ledoc-" + timeStamp + ".log"))
+				.addWriter(new FileWriter("logs/ledoc-" + timeStamp + ".log"))
+				.addWriter(new ConsoleWriter())
 				.level(Level.WARNING)
 				.activate();
 	}
