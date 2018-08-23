@@ -15,6 +15,8 @@ import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.LocationService;
 import dk.ledocsystem.ledoc.util.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +32,13 @@ class LocationServiceImpl implements LocationService {
 
     @Override
     public List<Location> getAll() {
-        return locationRepository.findAll();
+        return getAll(Pageable.unpaged()).getContent();
+    }
+
+    @Override
+    public Page<Location> getAll(Pageable pageable) {
+        Long currentCustomerId = customerService.getCurrentCustomerReference().getId();
+        return locationRepository.findAllByCustomerId(currentCustomerId, pageable);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.model.employee;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.NamedEntity;
@@ -35,6 +36,7 @@ public class Employee implements Visitable, NamedEntity {
     @Column(nullable = false, unique = true)
     private String username;
 
+    @JsonIgnore
     @Column(nullable = false, length = 56)
     private String password;
 

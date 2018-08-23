@@ -1,6 +1,8 @@
 package dk.ledocsystem.ledoc.repository;
 
 import dk.ledocsystem.ledoc.model.Location;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -19,6 +21,12 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
      * @return {@code true} if location with given name and customer ID exists.
      */
     boolean existsByNameAndCustomerId(String name, Long customerId);
+
+    /**
+     * @param customerId customerId
+     * @return All {@link Location} locations of current {@link dk.ledocsystem.ledoc.model.Customer} company
+     */
+    Page<Location> findAllByCustomerId(Long customerId, Pageable pageable);
 
     /**
      * Deletes locations with the given IDs.

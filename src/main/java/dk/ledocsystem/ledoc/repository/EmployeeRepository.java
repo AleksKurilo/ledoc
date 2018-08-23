@@ -4,6 +4,8 @@ import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeDataExcel;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -12,7 +14,6 @@ import org.springframework.data.repository.query.Param;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 public interface EmployeeRepository extends JpaRepository<Employee, Long>, LoggingRepository<Employee, Long> {
 
@@ -95,19 +96,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Loggi
 
     /**
      * @param customerId customerId
-     * @return All {@link Employee} eployees of current {@link dk.ledocsystem.ledoc.model.Customer} company
+     * @return All non-archived {@link Employee} employees of current {@link dk.ledocsystem.ledoc.model.Customer} company
      */
-    List<Employee> findAllByCustomer_Id(Long customerId);
-
-    /**
-     * @param customerId customerId
-     * @return All {@link Employee} not archived eployees of current {@link dk.ledocsystem.ledoc.model.Customer} company
-     */
-    List<Employee> findAllByCustomer_IdAndArchivedIsFalse(Long customerId);
-
-    /**
-     * @param customerId customerId
-     * @return All {@link Employee} archived in given {@link dk.ledocsystem.ledoc.model.Customer} company
-     */
-    List<Employee> findAllByCustomer_IdAndArchivedIsTrue(Long customerId);
+    Page<Employee> findAllByCustomerIdAndArchivedFalse(Long customerId, Pageable pageable);
 }

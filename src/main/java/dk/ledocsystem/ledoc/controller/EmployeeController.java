@@ -8,6 +8,7 @@ import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,7 +25,11 @@ public class EmployeeController {
     private final EmployeeService employeeService;
 
     @GetMapping
-    public Collection<Employee> getAllEmployees() {
+    public Iterable<Employee> getAllEmployees(@RequestParam(defaultValue = "0") Integer page,
+                                              @RequestParam(defaultValue = "0") Integer size) {
+        if (page >= 0 && size > 0) {
+            return employeeService.getAll(PageRequest.of(page, size));
+        }
         return employeeService.getAll();
     }
 

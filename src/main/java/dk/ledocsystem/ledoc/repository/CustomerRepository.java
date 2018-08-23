@@ -1,6 +1,8 @@
 package dk.ledocsystem.ledoc.repository;
 
 import dk.ledocsystem.ledoc.model.Customer;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -26,7 +28,7 @@ public interface CustomerRepository extends JpaRepository<Customer, Long>  {
     /**
      * @return All {@link Customer} customers that are not archived
      */
-    List<Customer> findAllByArchivedIsFalse();
+    Page<Customer> findAllByArchivedIsFalse(Pageable pageable);
 
     /**
      * @return Count of {@link Customer} customers that are not archived

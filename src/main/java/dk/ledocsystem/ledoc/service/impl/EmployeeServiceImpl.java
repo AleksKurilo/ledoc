@@ -14,6 +14,8 @@ import dk.ledocsystem.ledoc.service.SimpleMailService;
 import dk.ledocsystem.ledoc.util.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +38,13 @@ class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public List<Employee> getAll() {
-        return employeeRepository.findAll();
+        return getAll(Pageable.unpaged()).getContent();
+    }
+
+    @Override
+    public Page<Employee> getAll(Pageable pageable) {
+        Long currentCustomerId = customerService.getCurrentCustomerReference().getId();
+        return employeeRepository.findAllByCustomerIdAndArchivedFalse(currentCustomerId, pageable);
     }
 
     @Override

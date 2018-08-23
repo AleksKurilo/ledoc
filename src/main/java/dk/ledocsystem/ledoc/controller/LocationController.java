@@ -6,6 +6,7 @@ import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Location;
 import dk.ledocsystem.ledoc.service.LocationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +21,11 @@ public class LocationController {
     private final LocationService locationService;
 
     @GetMapping
-    public Collection<Location> getAllLocations() {
+    public Iterable<Location> getAllLocations(@RequestParam(defaultValue = "0") Integer page,
+                                              @RequestParam(defaultValue = "0") Integer size) {
+        if (page >= 0 && size > 0) {
+            return locationService.getAll(PageRequest.of(page, size));
+        }
         return locationService.getAll();
     }
 
