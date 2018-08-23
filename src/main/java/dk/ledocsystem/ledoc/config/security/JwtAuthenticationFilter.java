@@ -1,13 +1,13 @@
 package dk.ledocsystem.ledoc.config.security;
 
+import com.google.common.collect.Collections2;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
@@ -17,7 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.List;
+import java.util.Collection;
 
 import static dk.ledocsystem.ledoc.config.security.SecurityConstants.CUSTOMER_CLAIM;
 import static dk.ledocsystem.ledoc.config.security.SecurityConstants.JWT_AUTHORITIES_CLAIM;
@@ -56,9 +56,10 @@ class JwtAuthenticationFilter extends BasicAuthenticationFilter {
             Principal principal = new UserPrincipal(username, customerId);
 
             if (username != null) {
-                List<GrantedAuthority> authorities =
-                        AuthorityUtils.commaSeparatedStringToAuthorityList(claims.get(JWT_AUTHORITIES_CLAIM, String.class));
-                return new UsernamePasswordAuthenticationToken(principal, null, authorities);
+                @SuppressWarnings("unchecked")
+                Collection<String> authorities = (Collection<String>) claims.get(JWT_AUTHORITIES_CLAIM);
+                return new UsernamePasswordAuthenticationToken(principal, null,
+                        Collections2.transform(authorities, SimpleGrantedAuthority::new));
             }
             return null;
         }

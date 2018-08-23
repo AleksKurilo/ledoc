@@ -1,11 +1,11 @@
 package dk.ledocsystem.ledoc.config.security;
 
+import com.google.common.collect.Collections2;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -35,7 +35,7 @@ class JwtSettingAuthenticationSuccessHandler implements AuthenticationSuccessHan
         Instant expirationTime = LocalDateTime.now().plus(JWT_TOKEN_EXPIRATION_TIME).atZone(ZoneId.systemDefault()).toInstant();
         String token = Jwts.builder()
                 .setSubject(authentication.getName())
-                .claim(JWT_AUTHORITIES_CLAIM, StringUtils.join(authentication.getAuthorities(), ','))
+                .claim(JWT_AUTHORITIES_CLAIM, Collections2.transform(authentication.getAuthorities(), Object::toString))
                 .claim(CUSTOMER_CLAIM, getCustomerId(authentication))
                 .setExpiration(Date.from(expirationTime))
                 .signWith(SignatureAlgorithm.HS512, JWT_SECRET.getBytes())
