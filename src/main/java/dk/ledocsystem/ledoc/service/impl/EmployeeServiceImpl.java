@@ -57,6 +57,7 @@ class EmployeeServiceImpl implements EmployeeService {
         BeanCopyUtils.copyProperties(employeeCreateDTO, employee);
         employee.setPassword(passwordEncoder.encode(employee.getPassword()));
         employee.setCustomer(customer);
+        employee.setResponsible(resolveResponsible(employeeCreateDTO.getResponsibleId()));
 
         Long skillResponsibleId = employeeCreateDTO.getDetails().getSkillResponsibleId();
         employee.getDetails().setResponsibleOfSkills(resolveResponsibleOfSkills(skillResponsibleId));
@@ -139,6 +140,12 @@ class EmployeeServiceImpl implements EmployeeService {
         return (responsibleId == null) ? null :
                 getById(responsibleId)
                         .orElseThrow(() -> new NotFoundException("employee.responsible.of.skills.not.found", responsibleId.toString()));
+    }
+
+    private Employee resolveResponsible(Long responsibleId) {
+        return (responsibleId == null) ? null :
+                getById(responsibleId)
+                        .orElseThrow(() -> new NotFoundException("employee.responsible.not.found", responsibleId.toString()));
     }
 
     private void buildAndSendMessage(EmployeeCreateDTO admin) {

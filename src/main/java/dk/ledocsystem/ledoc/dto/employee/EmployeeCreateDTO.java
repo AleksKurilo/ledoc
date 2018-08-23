@@ -47,6 +47,8 @@ public class EmployeeCreateDTO {
     @MobilePhone
     private String phoneNumber;
 
+    private Long responsibleId;
+
     private boolean welcomeMessage;
 
     private boolean canCreatePersonalLocation;
