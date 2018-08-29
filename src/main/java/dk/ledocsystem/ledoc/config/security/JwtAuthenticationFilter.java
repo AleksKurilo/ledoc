@@ -33,36 +33,29 @@ class JwtAuthenticationFilter extends BasicAuthenticationFilter {
     protected void doFilterInternal(HttpServletRequest req,
                                     HttpServletResponse res,
                                     FilterChain chain) throws IOException, ServletException {
-        String header = req.getHeader(HttpHeaders.AUTHORIZATION);
+        String token = req.getHeader(HttpHeaders.AUTHORIZATION);
 
-        if (header != null && header.startsWith("Bearer ")) {
-            Authentication authentication = getAuthentication(req);
+        if (token != null && token.startsWith("Bearer ")) {
+            Authentication authentication = getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
         chain.doFilter(req, res);
     }
 
-    private Authentication getAuthentication(HttpServletRequest request) {
-        String token = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (token != null) {
-            Claims claims = Jwts.parser()
-                    .setSigningKey(JWT_SECRET.getBytes())
-                    .parseClaimsJws(token.replace("Bearer ", ""))
-                    .getBody();
+    private Authentication getAuthentication(String authToken) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(JWT_SECRET.getBytes())
+                .parseClaimsJws(authToken.replace("Bearer ", ""))
+                .getBody();
 
-            String username = claims.getSubject();
-            Long customerId = claims.get(CUSTOMER_CLAIM, Long.class);
-            Principal principal = new UserPrincipal(username, customerId);
+        String username = claims.getSubject();
+        Long customerId = claims.get(CUSTOMER_CLAIM, Long.class);
+        Principal principal = new UserPrincipal(username, customerId);
 
-            if (username != null) {
-                @SuppressWarnings("unchecked")
-                Collection<String> authorities = (Collection<String>) claims.get(JWT_AUTHORITIES_CLAIM);
-                return new UsernamePasswordAuthenticationToken(principal, null,
-                        Collections2.transform(authorities, SimpleGrantedAuthority::new));
-            }
-            return null;
-        }
-        return null;
+        @SuppressWarnings("unchecked")
+        Collection<String> authorities = (Collection<String>) claims.get(JWT_AUTHORITIES_CLAIM);
+        return new UsernamePasswordAuthenticationToken(principal, null,
+                Collections2.transform(authorities, SimpleGrantedAuthority::new));
     }
 }
