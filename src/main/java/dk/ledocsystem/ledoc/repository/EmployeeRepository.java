@@ -89,16 +89,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Loggi
      */
     List<EmployeeDataExcel> findAllByAuthoritiesIn(List<UserAuthorities> authorities);
 
-    /**
-     * @return All {@link Employee} employees that are not archived
-     */
-    List<Employee> findAllByArchivedFalse();
-
-    /**
-     * @return All {@link Employee} employees that are archived
-     */
-    List<Employee> findAllByArchivedTrue();
-
     @Override
     default void customize(QuerydslBindings bindings, QEmployee root) {
         bindings.bind(String.class).first((SingleValueBinding<StringPath, String>) StringExpression::containsIgnoreCase);

@@ -1,12 +1,14 @@
 package dk.ledocsystem.ledoc.controller;
 
+import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.dto.location.LocationCreateDTO;
 import dk.ledocsystem.ledoc.dto.location.LocationEditDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Location;
 import dk.ledocsystem.ledoc.service.LocationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,12 +23,14 @@ public class LocationController {
     private final LocationService locationService;
 
     @GetMapping
-    public Iterable<Location> getAllLocations(@RequestParam(defaultValue = "0") Integer page,
-                                              @RequestParam(defaultValue = "0") Integer size) {
-        if (page >= 0 && size > 0) {
-            return locationService.getAll(PageRequest.of(page, size));
-        }
-        return locationService.getAll();
+    public Iterable<Location> getAllLocations(Pageable pageable) {
+        return locationService.getAll(pageable);
+    }
+
+    @GetMapping("/filter")
+    public Iterable<Location> getAllFilteredLocations(@QuerydslPredicate(root = Location.class) Predicate predicate,
+                                                      Pageable pageable) {
+        return locationService.getAll(predicate, pageable);
     }
 
     @GetMapping("/{locationId}")
