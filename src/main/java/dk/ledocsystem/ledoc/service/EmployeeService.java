@@ -6,6 +6,8 @@ import dk.ledocsystem.ledoc.dto.employee.EmployeeEditDTO;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Collection;
 import java.util.List;
@@ -60,6 +62,8 @@ public interface EmployeeService extends DomainService<Employee> {
     Optional<Employee> getByUsername(String username);
 
     boolean existsByUsername(String username);
+
+    Page<Employee> getNewEmployees(Long customerId, Long employeeId, Pageable pageable);
 
     long countNewEmployees(Long customerId, Long employeeId);
 

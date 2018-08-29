@@ -1,17 +1,16 @@
 package dk.ledocsystem.ledoc.repository;
 
 import dk.ledocsystem.ledoc.model.Customer;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public interface CustomerRepository extends JpaRepository<Customer, Long>  {
+public interface CustomerRepository extends JpaRepository<Customer, Long>, QuerydslPredicateExecutor<Customer> {
 
     /**
      * @param name name
@@ -24,11 +23,6 @@ public interface CustomerRepository extends JpaRepository<Customer, Long>  {
      * @return {@link Optional} with {@link Customer customer} with provided CVR or empty Optional if none found.
      */
     Optional<Customer> findByCvr(String cvr);
-
-    /**
-     * @return All {@link Customer} customers that are not archived
-     */
-    Page<Customer> findAllByArchivedIsFalse(Pageable pageable);
 
     /**
      * @return Count of {@link Customer} customers that are not archived

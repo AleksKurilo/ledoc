@@ -1,21 +1,26 @@
 package dk.ledocsystem.ledoc.repository;
 
+import com.querydsl.core.types.dsl.*;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeDataExcel;
 import dk.ledocsystem.ledoc.model.employee.Employee;
+import dk.ledocsystem.ledoc.model.employee.QEmployee;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
+import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
+import org.springframework.data.querydsl.binding.QuerydslBindings;
+import org.springframework.data.querydsl.binding.SingleValueBinding;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public interface EmployeeRepository extends JpaRepository<Employee, Long>, LoggingRepository<Employee, Long> {
+public interface EmployeeRepository extends JpaRepository<Employee, Long>, LoggingRepository<Employee, Long>,
+        QuerydslPredicateExecutor<Employee>, QuerydslBinderCustomizer<QEmployee> {
 
     /**
      * Assigns the provided authorities to {@link Employee} with the given ID.
@@ -94,9 +99,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Loggi
      */
     List<Employee> findAllByArchivedTrue();
 
-    /**
-     * @param customerId customerId
-     * @return All non-archived {@link Employee} employees of current {@link dk.ledocsystem.ledoc.model.Customer} company
-     */
-    Page<Employee> findAllByCustomerIdAndArchivedFalse(Long customerId, Pageable pageable);
+    @Override
+    default void customize(QuerydslBindings bindings, QEmployee root) {
+        bindings.bind(String.class).first((SingleValueBinding<StringPath, String>) StringExpression::containsIgnoreCase);
+    }
 }

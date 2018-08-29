@@ -1,15 +1,14 @@
 package dk.ledocsystem.ledoc.service.impl;
 
 
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.location.LocationCreateDTO;
 import dk.ledocsystem.ledoc.dto.customer.CustomerCreateDTO;
 import dk.ledocsystem.ledoc.dto.customer.CustomerEditDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
-import dk.ledocsystem.ledoc.model.Customer;
-import dk.ledocsystem.ledoc.model.Location;
-import dk.ledocsystem.ledoc.model.LocationType;
-import dk.ledocsystem.ledoc.model.Trade;
+import dk.ledocsystem.ledoc.model.*;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.repository.CustomerRepository;
 import dk.ledocsystem.ledoc.repository.TradeRepository;
@@ -17,6 +16,7 @@ import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.LocationService;
 import dk.ledocsystem.ledoc.util.BeanCopyUtils;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -30,6 +30,8 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor(onConstructor = @__({@Lazy}))
 class CustomerServiceImpl implements CustomerService {
+
+    private static final Predicate ARCHIVED_FALSE = ExpressionUtils.eqConst(QCustomer.customer.archived, false);
 
     private final CustomerRepository customerRepository;
 
@@ -48,8 +50,18 @@ class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Page<Customer> getAll(Pageable pageable) {
-        return customerRepository.findAllByArchivedIsFalse(pageable);
+    public Page<Customer> getAll(@NonNull Pageable pageable) {
+        return getAll(ARCHIVED_FALSE, pageable);
+    }
+
+    @Override
+    public List<Customer> getAll(@NonNull Predicate predicate) {
+        return getAll(predicate, Pageable.unpaged()).getContent();
+    }
+
+    @Override
+    public Page<Customer> getAll(@NonNull Predicate predicate, @NonNull Pageable pageable) {
+        return customerRepository.findAll(predicate, pageable);
     }
 
     @Override

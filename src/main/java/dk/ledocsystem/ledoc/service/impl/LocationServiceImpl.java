@@ -1,19 +1,19 @@
 package dk.ledocsystem.ledoc.service.impl;
 
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.dto.location.AddressDTO;
 import dk.ledocsystem.ledoc.dto.location.LocationCreateDTO;
 import dk.ledocsystem.ledoc.dto.location.LocationEditDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
-import dk.ledocsystem.ledoc.model.Address;
-import dk.ledocsystem.ledoc.model.Customer;
-import dk.ledocsystem.ledoc.model.Location;
-import dk.ledocsystem.ledoc.model.LocationType;
+import dk.ledocsystem.ledoc.model.*;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.repository.LocationRepository;
 import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.LocationService;
 import dk.ledocsystem.ledoc.util.BeanCopyUtils;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,10 +21,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
 class LocationServiceImpl implements LocationService {
+
+    private static final Function<Long, Predicate> CUSTOMER_EQUALS_QUERYDSL_PREDICATE =
+            (customerId) -> ExpressionUtils.eqConst(ExpressionUtils.path(Location.class, "customer.id"), customerId);
 
     private final LocationRepository locationRepository;
     private final EmployeeService employeeService;
@@ -36,9 +40,20 @@ class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public Page<Location> getAll(Pageable pageable) {
+    public Page<Location> getAll(@NonNull Pageable pageable) {
+        return getAll(null, pageable);
+    }
+
+    @Override
+    public List<Location> getAll(Predicate predicate) {
+        return getAll(predicate, Pageable.unpaged()).getContent();
+    }
+
+    @Override
+    public Page<Location> getAll(Predicate predicate, @NonNull Pageable pageable) {
         Long currentCustomerId = customerService.getCurrentCustomerReference().getId();
-        return locationRepository.findAllByCustomerId(currentCustomerId, pageable);
+        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_QUERYDSL_PREDICATE.apply(currentCustomerId));
+        return locationRepository.findAll(combinePredicate, pageable);
     }
 
     @Override
