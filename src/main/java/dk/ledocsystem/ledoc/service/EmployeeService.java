@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.service;
 
+import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeEditDTO;
@@ -63,7 +64,9 @@ public interface EmployeeService extends DomainService<Employee> {
 
     boolean existsByUsername(String username);
 
-    Page<Employee> getNewEmployees(Long customerId, Long employeeId, Pageable pageable);
+    Page<Employee> getNewEmployees(Pageable pageable);
+
+    Page<Employee> getNewEmployees(Pageable pageable, Predicate predicate);
 
     long countNewEmployees(Long customerId, Long employeeId);
 

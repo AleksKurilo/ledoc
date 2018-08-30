@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.repository;
 
+import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.dsl.*;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeDataExcel;
@@ -91,6 +92,13 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Loggi
 
     @Override
     default void customize(QuerydslBindings bindings, QEmployee root) {
+        bindings.including(QEmployee.employee.archived, QEmployee.employee.responsible.id,
+                QEmployee.employee.authorities, QEmployee.employee.username, QEmployee.employee.firstName,
+                QEmployee.employee.lastName, QEmployee.employee.cellPhone, QEmployee.employee.idNumber,
+                QEmployee.employee.initials, QEmployee.employee.phoneNumber, QEmployee.employee.details.title,
+                QEmployee.employee.nearestRelative.email, QEmployee.employee.nearestRelative.phoneNumber,
+                QEmployee.employee.personalInfo.personalMobile, QEmployee.employee.personalInfo.privateEmail,
+                ExpressionUtils.path(Employee.class, QEmployee.employee, "locations.id"));
         bindings.bind(String.class).first((SingleValueBinding<StringPath, String>) StringExpression::containsIgnoreCase);
     }
 }

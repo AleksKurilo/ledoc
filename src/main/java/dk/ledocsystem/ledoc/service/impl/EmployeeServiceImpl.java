@@ -2,6 +2,7 @@ package dk.ledocsystem.ledoc.service.impl;
 
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.Expressions;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeEditDTO;
@@ -24,6 +25,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -158,8 +160,19 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public Page<Employee> getNewEmployees(@NonNull Long customerId, @NonNull Long employeeId, @NonNull Pageable pageable) {
-        return employeeRepository.getNotVisited(customerId, employeeId, pageable);
+    public Page<Employee> getNewEmployees(@NonNull Pageable pageable) {
+        return getNewEmployees(pageable, ARCHIVED_FALSE);
+    }
+
+    @Override
+    public Page<Employee> getNewEmployees(@NonNull Pageable pageable, @NotNull Predicate predicate) {
+        Long currentUserId = getCurrentUserId();
+
+        Predicate newEmployeesPredicate = ExpressionUtils.allOf(
+                predicate,
+                ExpressionUtils.neConst(QEmployee.employee.id, currentUserId),
+                ExpressionUtils.notIn(Expressions.constant(currentUserId), QEmployee.employee.visitedBy));
+        return getAll(newEmployeesPredicate, pageable);
     }
 
     @Override

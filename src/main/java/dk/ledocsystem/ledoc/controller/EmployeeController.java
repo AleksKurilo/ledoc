@@ -7,7 +7,6 @@ import dk.ledocsystem.ledoc.dto.employee.EmployeeEditDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
-import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +25,6 @@ import java.util.List;
 public class EmployeeController {
 
     private final EmployeeService employeeService;
-    private final CustomerService customerService;
 
     @GetMapping
     public Iterable<Employee> getAllEmployees(Pageable pageable) {
@@ -39,12 +37,15 @@ public class EmployeeController {
         return employeeService.getAll(predicate, pageable);
     }
 
-    @GetMapping("/filter/new")
+    @GetMapping("/new")
     public Iterable<Employee> getNewEmployeesForCurrentUser(Pageable pageable) {
-        Long currentUserId = employeeService.getCurrentUserId();
-        Long currentCustomerId = customerService.getCurrentCustomerReference().getId();
+        return employeeService.getNewEmployees(pageable);
+    }
 
-        return employeeService.getNewEmployees(currentCustomerId, currentUserId, pageable);
+    @GetMapping("/new/filter")
+    public Iterable<Employee> getNewEmployeesForCurrentUser(@QuerydslPredicate(root = Employee.class) Predicate predicate,
+                                                            Pageable pageable) {
+        return employeeService.getNewEmployees(pageable, predicate);
     }
 
     @GetMapping("/{employeeId}")
