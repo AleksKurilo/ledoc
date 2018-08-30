@@ -1,12 +1,14 @@
 package dk.ledocsystem.ledoc.controller;
 
+import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.dto.customer.CustomerCreateDTO;
 import dk.ledocsystem.ledoc.dto.customer.CustomerEditDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.service.CustomerService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,18 +18,20 @@ import java.util.Collection;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/customer")
+@RequestMapping(value = "/customers")
 public class CustomerController {
 
     private final CustomerService customerService;
 
     @GetMapping
-    public Iterable<Customer> getAllCustomers(@RequestParam(defaultValue = "0") Integer page,
-                                              @RequestParam(defaultValue = "0") Integer size) {
-        if (page >= 0 && size > 0) {
-            return customerService.getAll(PageRequest.of(page, size));
-        }
-        return customerService.getAll();
+    public Iterable<Customer> getAllCustomers(Pageable pageable) {
+        return customerService.getAll(pageable);
+    }
+
+    @GetMapping("/filter")
+    public Iterable<Customer> getAllFilteredEmployees(@QuerydslPredicate(root = Customer.class) Predicate predicate,
+                                                      Pageable pageable) {
+        return customerService.getAll(predicate, pageable);
     }
 
     @GetMapping("/{customerId}")

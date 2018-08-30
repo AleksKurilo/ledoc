@@ -65,13 +65,13 @@ class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Optional<Customer> getById(Long id) {
+    public Optional<Customer> getById(@NonNull Long id) {
         return customerRepository.findById(id);
     }
 
     @Override
     @Transactional
-    public Customer createCustomer(CustomerCreateDTO customerCreateDTO) {
+    public Customer createCustomer(@NonNull CustomerCreateDTO customerCreateDTO) {
         Customer customer = new Customer();
         BeanCopyUtils.copyProperties(customerCreateDTO, customer);
 
@@ -100,7 +100,7 @@ class CustomerServiceImpl implements CustomerService {
 
     @Transactional
     @Override
-    public Customer updateCustomer(Long customerId, CustomerEditDTO customerEditDTO) {
+    public Customer updateCustomer(@NonNull Long customerId, @NonNull CustomerEditDTO customerEditDTO) {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new NotFoundException("customer.id.not.found", customerId.toString()));
         BeanCopyUtils.copyProperties(customerEditDTO, customer, false);
@@ -119,13 +119,13 @@ class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public void deleteById(Long id) {
+    public void deleteById(@NonNull Long id) {
         customerRepository.deleteById(id);
     }
 
     @Transactional
     @Override
-    public void deleteByIds(Collection<Long> customerIds) {
+    public void deleteByIds(@NonNull Collection<Long> customerIds) {
         customerRepository.deleteByIdIn(customerIds);
     }
 
