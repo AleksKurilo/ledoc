@@ -1,5 +1,8 @@
 package dk.ledocsystem.ledoc.service.impl;
 
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.Expressions;
 import dk.ledocsystem.ledoc.config.security.JwtTokenService;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
@@ -7,27 +10,37 @@ import dk.ledocsystem.ledoc.dto.employee.EmployeeEditDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.employee.Employee;
+import dk.ledocsystem.ledoc.model.employee.QEmployee;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.SimpleMailService;
 import dk.ledocsystem.ledoc.util.BeanCopyUtils;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
 class EmployeeServiceImpl implements EmployeeService {
+
+    private static final Function<Long, Predicate> CUSTOMER_EQUALS_TO =
+            (customerId) -> ExpressionUtils.eqConst(QEmployee.employee.customer.id, customerId);
+    private static final Predicate ARCHIVED_FALSE = ExpressionUtils.eqConst(QEmployee.employee.archived, false);
 
     private final EmployeeRepository employeeRepository;
     private final CustomerService customerService;
@@ -40,23 +53,40 @@ class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public List<Employee> getAll() {
-        return employeeRepository.findAll();
+        return getAll(Pageable.unpaged()).getContent();
     }
 
     @Override
-    public Optional<Employee> getById(Long id) {
+    public Page<Employee> getAll(@NonNull Pageable pageable) {
+        return getAll(ARCHIVED_FALSE, pageable);
+    }
+
+    @Override
+    public List<Employee> getAll(@NonNull Predicate predicate) {
+        return getAll(predicate, Pageable.unpaged()).getContent();
+    }
+
+    @Override
+    public Page<Employee> getAll(@NonNull Predicate predicate, @NonNull Pageable pageable) {
+        Long currentCustomerId = customerService.getCurrentCustomerReference().getId();
+        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(currentCustomerId));
+        return employeeRepository.findAll(combinePredicate, pageable);
+    }
+
+    @Override
+    public Optional<Employee> getById(@NonNull Long id) {
         return employeeRepository.findById(id);
     }
 
     @Transactional
     @Override
-    public Employee createEmployee(EmployeeCreateDTO employeeCreateDTO) {
+    public Employee createEmployee(@NonNull EmployeeCreateDTO employeeCreateDTO) {
         return createEmployee(employeeCreateDTO, customerService.getCurrentCustomerReference());
     }
 
     @Transactional
     @Override
-    public Employee createEmployee(EmployeeCreateDTO employeeCreateDTO, Customer customer) {
+    public Employee createEmployee(@NonNull EmployeeCreateDTO employeeCreateDTO, @NonNull Customer customer) {
         Employee employee = new Employee();
         BeanCopyUtils.copyProperties(employeeCreateDTO, employee);
         employee.setPassword(passwordEncoder.encode(employee.getPassword()));
@@ -78,7 +108,7 @@ class EmployeeServiceImpl implements EmployeeService {
 
     @Transactional
     @Override
-    public Employee updateEmployee(Long employeeId, EmployeeEditDTO employeeEditDTO) {
+    public Employee updateEmployee(@NonNull Long employeeId, @NonNull EmployeeEditDTO employeeEditDTO) {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new NotFoundException("employee.id.not.found", employeeId.toString()));
         BeanCopyUtils.copyProperties(employeeEditDTO, employee, false);
@@ -93,26 +123,26 @@ class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void deleteById(Long id) {
+    public void deleteById(@NonNull Long id) {
         tokenService.invalidateByUserId(id);
         employeeRepository.deleteById(id);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
-    public void deleteByIds(Collection<Long> employeeIds) {
+    public void deleteByIds(@NonNull Collection<Long> employeeIds) {
         tokenService.invalidateByUserIds(employeeIds);
         employeeRepository.deleteByIdIn(employeeIds);
     }
 
     @Override
-    public void changePassword(String username, String newPassword) {
+    public void changePassword(@NonNull String username, @NonNull String newPassword) {
         employeeRepository.changePassword(username, newPassword);
     }
 
     @Transactional
     @Override
-    public void addAuthorities(Long employeeId, UserAuthorities authorities) {
+    public void addAuthorities(@NonNull Long employeeId, @NonNull UserAuthorities authorities) {
         employeeRepository.addAuthorities(employeeId, authorities);
     }
 
@@ -123,27 +153,43 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public Optional<Employee> getByUsername(String username) {
+    public Optional<Employee> getByUsername(@NonNull String username) {
         return employeeRepository.findByUsername(username);
     }
 
     @Override
-    public boolean existsByUsername(String username) {
+    public boolean existsByUsername(@NonNull String username) {
         return employeeRepository.existsByUsername(username);
     }
 
     @Override
-    public List<Employee> findAllById(Collection<Long> ids) {
+    public List<Employee> findAllById(@NonNull Collection<Long> ids) {
         return employeeRepository.findAllById(ids);
     }
 
     @Override
-    public List<EmployeeNames> getAllByRole(UserAuthorities authorities) {
+    public List<EmployeeNames> getAllByRole(@NonNull UserAuthorities authorities) {
         return employeeRepository.findAllByAuthoritiesContains(authorities);
     }
 
     @Override
-    public long countNewEmployees(Long customerId, Long employeeId) {
+    public Page<Employee> getNewEmployees(@NonNull Pageable pageable) {
+        return getNewEmployees(pageable, ARCHIVED_FALSE);
+    }
+
+    @Override
+    public Page<Employee> getNewEmployees(@NonNull Pageable pageable, @NotNull Predicate predicate) {
+        Long currentUserId = getCurrentUserId();
+
+        Predicate newEmployeesPredicate = ExpressionUtils.allOf(
+                predicate,
+                ExpressionUtils.neConst(QEmployee.employee.id, currentUserId),
+                ExpressionUtils.notIn(Expressions.constant(currentUserId), QEmployee.employee.visitedBy));
+        return getAll(newEmployeesPredicate, pageable);
+    }
+
+    @Override
+    public long countNewEmployees(@NonNull Long customerId, @NonNull Long employeeId) {
         long allEmployees = employeeRepository.countByCustomerIdAndArchivedFalse(customerId);
         long visitedEmployees = employeeRepository.countVisited(employeeId);
         return allEmployees - visitedEmployees - 1;

@@ -1,20 +1,27 @@
 package dk.ledocsystem.ledoc.repository;
 
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.dsl.*;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeDataExcel;
 import dk.ledocsystem.ledoc.model.employee.Employee;
+import dk.ledocsystem.ledoc.model.employee.QEmployee;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
+import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
+import org.springframework.data.querydsl.binding.QuerydslBindings;
+import org.springframework.data.querydsl.binding.SingleValueBinding;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
-public interface EmployeeRepository extends JpaRepository<Employee, Long>, LoggingRepository<Employee, Long> {
+public interface EmployeeRepository extends JpaRepository<Employee, Long>, LoggingRepository<Employee, Long>,
+        QuerydslPredicateExecutor<Employee>, QuerydslBinderCustomizer<QEmployee> {
 
     /**
      * Assigns the provided authorities to {@link Employee} with the given ID.
@@ -83,31 +90,15 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Loggi
      */
     List<EmployeeDataExcel> findAllByAuthoritiesIn(List<UserAuthorities> authorities);
 
-    /**
-     * @return All {@link Employee} employees that are not archived
-     */
-    List<Employee> findAllByArchivedFalse();
-
-    /**
-     * @return All {@link Employee} employees that are archived
-     */
-    List<Employee> findAllByArchivedTrue();
-
-    /**
-     * @param customerId customerId
-     * @return All {@link Employee} eployees of current {@link dk.ledocsystem.ledoc.model.Customer} company
-     */
-    List<Employee> findAllByCustomer_Id(Long customerId);
-
-    /**
-     * @param customerId customerId
-     * @return All {@link Employee} not archived eployees of current {@link dk.ledocsystem.ledoc.model.Customer} company
-     */
-    List<Employee> findAllByCustomer_IdAndArchivedIsFalse(Long customerId);
-
-    /**
-     * @param customerId customerId
-     * @return All {@link Employee} archived in given {@link dk.ledocsystem.ledoc.model.Customer} company
-     */
-    List<Employee> findAllByCustomer_IdAndArchivedIsTrue(Long customerId);
+    @Override
+    default void customize(QuerydslBindings bindings, QEmployee root) {
+        bindings.including(QEmployee.employee.archived, QEmployee.employee.responsible.id,
+                QEmployee.employee.authorities, QEmployee.employee.username, QEmployee.employee.firstName,
+                QEmployee.employee.lastName, QEmployee.employee.cellPhone, QEmployee.employee.idNumber,
+                QEmployee.employee.initials, QEmployee.employee.phoneNumber, QEmployee.employee.details.title,
+                QEmployee.employee.nearestRelative.email, QEmployee.employee.nearestRelative.phoneNumber,
+                QEmployee.employee.personalInfo.personalMobile, QEmployee.employee.personalInfo.privateEmail,
+                ExpressionUtils.path(Employee.class, QEmployee.employee, "locations.id"));
+        bindings.bind(String.class).first((SingleValueBinding<StringPath, String>) StringExpression::containsIgnoreCase);
+    }
 }

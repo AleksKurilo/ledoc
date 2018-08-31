@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
+import java.text.DateFormat;
+
 @Configuration
 public class JacksonConfig {
 
@@ -21,6 +23,7 @@ public class JacksonConfig {
     public ObjectMapper objectMapper() {
         return Jackson2ObjectMapperBuilder.json()
                 .modulesToInstall(jacksonHibernateModule())
+                .dateFormat(DateFormat.getDateInstance())
                 .serializationInclusion(JsonInclude.Include.NON_EMPTY)
                 .build();
     }

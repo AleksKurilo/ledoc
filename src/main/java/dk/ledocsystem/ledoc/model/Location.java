@@ -57,5 +57,12 @@ public class Location {
     @Column(name = "is_cust_first", nullable = false)
     @ColumnDefault("false")
     private Boolean isCustomerFirst;
+
+    @ColumnDefault("false")
+    @Column(nullable = false)
+    private Boolean archived;
+
+    @Column(name = "archive_reason")
+    private String archiveReason;
 }
 

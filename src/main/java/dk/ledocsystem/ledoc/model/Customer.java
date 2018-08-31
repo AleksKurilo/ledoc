@@ -1,6 +1,5 @@
 package dk.ledocsystem.ledoc.model;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
@@ -36,7 +35,7 @@ public class Customer {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "point_of_contact")
-    @JsonSerialize(as = NamedEntity.class)
+    //@JsonSerialize(as = NamedEntity.class)
     private Employee pointOfContact; //ok, only superadmin
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)

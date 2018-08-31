@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.controller;
 
+import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeEditDTO;
@@ -8,6 +9,8 @@ import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,8 +27,25 @@ public class EmployeeController {
     private final EmployeeService employeeService;
 
     @GetMapping
-    public Collection<Employee> getAllEmployees() {
-        return employeeService.getAll();
+    public Iterable<Employee> getAllEmployees(Pageable pageable) {
+        return employeeService.getAll(pageable);
+    }
+
+    @GetMapping("/filter")
+    public Iterable<Employee> getAllFilteredEmployees(@QuerydslPredicate(root = Employee.class) Predicate predicate,
+                                                      Pageable pageable) {
+        return employeeService.getAll(predicate, pageable);
+    }
+
+    @GetMapping("/new")
+    public Iterable<Employee> getNewEmployeesForCurrentUser(Pageable pageable) {
+        return employeeService.getNewEmployees(pageable);
+    }
+
+    @GetMapping("/new/filter")
+    public Iterable<Employee> getNewEmployeesForCurrentUser(@QuerydslPredicate(root = Employee.class) Predicate predicate,
+                                                            Pageable pageable) {
+        return employeeService.getNewEmployees(pageable, predicate);
     }
 
     @GetMapping("/{employeeId}")

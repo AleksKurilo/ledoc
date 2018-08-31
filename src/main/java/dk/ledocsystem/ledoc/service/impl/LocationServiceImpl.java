@@ -1,28 +1,35 @@
 package dk.ledocsystem.ledoc.service.impl;
 
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.dto.location.AddressDTO;
 import dk.ledocsystem.ledoc.dto.location.LocationCreateDTO;
 import dk.ledocsystem.ledoc.dto.location.LocationEditDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
-import dk.ledocsystem.ledoc.model.Address;
-import dk.ledocsystem.ledoc.model.Customer;
-import dk.ledocsystem.ledoc.model.Location;
-import dk.ledocsystem.ledoc.model.LocationType;
+import dk.ledocsystem.ledoc.model.*;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.repository.LocationRepository;
 import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.LocationService;
 import dk.ledocsystem.ledoc.util.BeanCopyUtils;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
 class LocationServiceImpl implements LocationService {
+
+    private static final Function<Long, Predicate> CUSTOMER_EQUALS_QUERYDSL_PREDICATE =
+            (customerId) -> ExpressionUtils.eqConst(ExpressionUtils.path(Location.class, "customer.id"), customerId);
+    private static final Predicate ARCHIVED_FALSE = ExpressionUtils.eqConst(QLocation.location.archived, false);
 
     private final LocationRepository locationRepository;
     private final EmployeeService employeeService;
@@ -30,23 +37,40 @@ class LocationServiceImpl implements LocationService {
 
     @Override
     public List<Location> getAll() {
-        return locationRepository.findAll();
+        return getAll(Pageable.unpaged()).getContent();
     }
 
     @Override
-    public Optional<Location> getById(Long id) {
+    public Page<Location> getAll(@NonNull Pageable pageable) {
+        return getAll(ARCHIVED_FALSE, pageable);
+    }
+
+    @Override
+    public List<Location> getAll(@NonNull Predicate predicate) {
+        return getAll(predicate, Pageable.unpaged()).getContent();
+    }
+
+    @Override
+    public Page<Location> getAll(@NonNull Predicate predicate, @NonNull Pageable pageable) {
+        Long currentCustomerId = customerService.getCurrentCustomerReference().getId();
+        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_QUERYDSL_PREDICATE.apply(currentCustomerId));
+        return locationRepository.findAll(combinePredicate, pageable);
+    }
+
+    @Override
+    public Optional<Location> getById(@NonNull Long id) {
         return locationRepository.findById(id);
     }
 
     @Transactional
     @Override
-    public Location createLocation(LocationCreateDTO locationDTO) {
+    public Location createLocation(@NonNull LocationCreateDTO locationDTO) {
         return createLocation(locationDTO, customerService.getCurrentCustomerReference());
     }
 
     @Transactional
     @Override
-    public Location createLocation(LocationCreateDTO locationDTO, Customer customer) {
+    public Location createLocation(@NonNull LocationCreateDTO locationDTO, @NonNull Customer customer) {
         Long responsibleId = locationDTO.getResponsibleId();
         Employee responsible = employeeService.getById(responsibleId)
                 .orElseThrow(() -> new NotFoundException("location.responsible.not.found", responsibleId.toString()));
@@ -56,8 +80,8 @@ class LocationServiceImpl implements LocationService {
 
     @Transactional
     @Override
-    public Location createLocation(LocationCreateDTO locationDTO, Customer customer, Employee responsible,
-                                   boolean isFirstForCustomer) {
+    public Location createLocation(@NonNull LocationCreateDTO locationDTO, @NonNull Customer customer,
+                                   @NonNull Employee responsible, boolean isFirstForCustomer) {
         Location location = (locationDTO.getType() == LocationType.ADDRESS)
                 ? createAddressLocation(locationDTO)
                 : createPhysicalLocation(locationDTO);
@@ -88,7 +112,7 @@ class LocationServiceImpl implements LocationService {
 
     @Transactional
     @Override
-    public Location updateLocation(Long locationId, LocationEditDTO locationEditDTO) {
+    public Location updateLocation(@NonNull Long locationId, @NonNull LocationEditDTO locationEditDTO) {
         Location location = locationRepository.findById(locationId)
                 .orElseThrow(() -> new NotFoundException("location.id.not.found", locationId.toString()));
 
@@ -157,13 +181,13 @@ class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public void deleteById(Long id) {
+    public void deleteById(@NonNull Long id) {
         locationRepository.deleteById(id);
     }
 
     @Transactional
     @Override
-    public void deleteByIds(Collection<Long> ids) {
+    public void deleteByIds(@NonNull Collection<Long> ids) {
         locationRepository.deleteByIdIn(ids);
     }
 }

@@ -1,11 +1,14 @@
 package dk.ledocsystem.ledoc.service;
 
+import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeEditDTO;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Collection;
 import java.util.List;
@@ -62,6 +65,10 @@ public interface EmployeeService extends DomainService<Employee> {
     Optional<Employee> getByUsername(String username);
 
     boolean existsByUsername(String username);
+
+    Page<Employee> getNewEmployees(Pageable pageable);
+
+    Page<Employee> getNewEmployees(Pageable pageable, Predicate predicate);
 
     long countNewEmployees(Long customerId, Long employeeId);
 

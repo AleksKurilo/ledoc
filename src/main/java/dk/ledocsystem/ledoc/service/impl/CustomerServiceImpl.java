@@ -1,15 +1,14 @@
 package dk.ledocsystem.ledoc.service.impl;
 
 
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.location.LocationCreateDTO;
 import dk.ledocsystem.ledoc.dto.customer.CustomerCreateDTO;
 import dk.ledocsystem.ledoc.dto.customer.CustomerEditDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
-import dk.ledocsystem.ledoc.model.Customer;
-import dk.ledocsystem.ledoc.model.Location;
-import dk.ledocsystem.ledoc.model.LocationType;
-import dk.ledocsystem.ledoc.model.Trade;
+import dk.ledocsystem.ledoc.model.*;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.repository.CustomerRepository;
 import dk.ledocsystem.ledoc.repository.TradeRepository;
@@ -17,9 +16,12 @@ import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.LocationService;
 import dk.ledocsystem.ledoc.util.BeanCopyUtils;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +30,8 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor(onConstructor = @__({@Lazy}))
 class CustomerServiceImpl implements CustomerService {
+
+    private static final Predicate ARCHIVED_FALSE = ExpressionUtils.eqConst(QCustomer.customer.archived, false);
 
     private final CustomerRepository customerRepository;
 
@@ -42,17 +46,32 @@ class CustomerServiceImpl implements CustomerService {
 
     @Override
     public List<Customer> getAll() {
-        return customerRepository.findAll();
+        return getAll(Pageable.unpaged()).getContent();
     }
 
     @Override
-    public Optional<Customer> getById(Long id) {
+    public Page<Customer> getAll(@NonNull Pageable pageable) {
+        return getAll(ARCHIVED_FALSE, pageable);
+    }
+
+    @Override
+    public List<Customer> getAll(@NonNull Predicate predicate) {
+        return getAll(predicate, Pageable.unpaged()).getContent();
+    }
+
+    @Override
+    public Page<Customer> getAll(@NonNull Predicate predicate, @NonNull Pageable pageable) {
+        return customerRepository.findAll(predicate, pageable);
+    }
+
+    @Override
+    public Optional<Customer> getById(@NonNull Long id) {
         return customerRepository.findById(id);
     }
 
     @Override
     @Transactional
-    public Customer createCustomer(CustomerCreateDTO customerCreateDTO) {
+    public Customer createCustomer(@NonNull CustomerCreateDTO customerCreateDTO) {
         Customer customer = new Customer();
         BeanCopyUtils.copyProperties(customerCreateDTO, customer);
 
@@ -81,7 +100,7 @@ class CustomerServiceImpl implements CustomerService {
 
     @Transactional
     @Override
-    public Customer updateCustomer(Long customerId, CustomerEditDTO customerEditDTO) {
+    public Customer updateCustomer(@NonNull Long customerId, @NonNull CustomerEditDTO customerEditDTO) {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new NotFoundException("customer.id.not.found", customerId.toString()));
         BeanCopyUtils.copyProperties(customerEditDTO, customer, false);
@@ -100,13 +119,13 @@ class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public void deleteById(Long id) {
+    public void deleteById(@NonNull Long id) {
         customerRepository.deleteById(id);
     }
 
     @Transactional
     @Override
-    public void deleteByIds(Collection<Long> customerIds) {
+    public void deleteByIds(@NonNull Collection<Long> customerIds) {
         customerRepository.deleteByIdIn(customerIds);
     }
 

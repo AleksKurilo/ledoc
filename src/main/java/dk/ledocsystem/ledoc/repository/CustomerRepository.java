@@ -1,15 +1,19 @@
 package dk.ledocsystem.ledoc.repository;
 
 import dk.ledocsystem.ledoc.model.Customer;
+import dk.ledocsystem.ledoc.model.QCustomer;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
+import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
+import org.springframework.data.querydsl.binding.QuerydslBindings;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
-public interface CustomerRepository extends JpaRepository<Customer, Long>  {
+public interface CustomerRepository extends JpaRepository<Customer, Long>, QuerydslPredicateExecutor<Customer>,
+        QuerydslBinderCustomizer<QCustomer> {
 
     /**
      * @param name name
@@ -24,45 +28,16 @@ public interface CustomerRepository extends JpaRepository<Customer, Long>  {
     Optional<Customer> findByCvr(String cvr);
 
     /**
-     * @return All {@link Customer} customers that are not archived
-     */
-    List<Customer> findAllByArchivedIsFalse();
-
-    /**
      * @return Count of {@link Customer} customers that are not archived
      */
     Integer countAllByArchivedFalse();
-
-    /**
-     * @return All {@link Customer} customers that are archived
-     */
-    List<Customer> findAllByArchivedIsTrue();
 
     @Modifying
     @Query("delete from Customer c where c.id in ?1")
     void deleteByIdIn(Collection<Long> ids);
 
-    /**
-     * @param phone company phone
-     * @return Customer {@link Customer} with the given phone
-     */
-    Optional<Customer> findByContactPhone(String phone);
-
-    /**
-     * @param contactEmail contactEmail
-     * @return Customer {@link Customer} with the given contact email
-     */
-    Optional<Customer> findByContactEmail(String contactEmail);
-
-    /**
-     * @param invoiceEmail invoiceEmail
-     * @return Customer {@link Customer} with the given invoice email
-     */
-    Optional<Customer> findByInvoiceEmail(String invoiceEmail);
-
-    /**
-     * @param companyEmail companyEmail
-     * @return Customer {@link Customer} with the company email
-     */
-    Optional<Customer> findByCompanyEmail(String companyEmail);
+    @Override
+    default void customize(QuerydslBindings bindings, QCustomer root) {
+        bindings.including(QCustomer.customer.archived, QCustomer.customer.pointOfContact.id);
+    }
 }
