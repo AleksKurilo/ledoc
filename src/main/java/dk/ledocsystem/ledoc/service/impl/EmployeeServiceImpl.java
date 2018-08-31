@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.service.impl;
 
+import dk.ledocsystem.ledoc.config.security.JwtTokenService;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeEditDTO;
@@ -16,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
@@ -30,6 +33,7 @@ class EmployeeServiceImpl implements EmployeeService {
     private final CustomerService customerService;
     private final PasswordEncoder passwordEncoder;
     private final SimpleMailService mailService;
+    private final JwtTokenService tokenService;
 
     @Value("${spring.mail.username}")
     private String fromEmailAddress;
@@ -88,13 +92,16 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void deleteById(Long id) {
+        tokenService.invalidateByUserId(id);
         employeeRepository.deleteById(id);
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public void deleteByIds(Collection<Long> employeeIds) {
+        tokenService.invalidateByUserIds(employeeIds);
         employeeRepository.deleteByIdIn(employeeIds);
     }
 
@@ -107,6 +114,12 @@ class EmployeeServiceImpl implements EmployeeService {
     @Override
     public void addAuthorities(Long employeeId, UserAuthorities authorities) {
         employeeRepository.addAuthorities(employeeId, authorities);
+    }
+
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Override
+    public void updateAuthorities(Long employeeId, UserAuthorities authorities) {
+        tokenService.updateTokens(employeeId, authorities);
     }
 
     @Override

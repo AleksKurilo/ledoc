@@ -1,6 +1,6 @@
 package dk.ledocsystem.ledoc.service.impl;
 
-import dk.ledocsystem.ledoc.config.security.JwtTokenRegistry;
+import dk.ledocsystem.ledoc.config.security.JwtTokenService;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeDataExcel;
 import dk.ledocsystem.ledoc.exceptions.ExcelExportException;
@@ -43,7 +43,7 @@ class DashboardServiceImpl implements DashboardService {
     private final EmployeeRepository employeeRepository;
     private final CustomerService customerService;
     private final CustomerRepository customerRepository;
-    private final JwtTokenRegistry tokenRegistry;
+    private final JwtTokenService tokenService;
     private final CustomerStatisticRepository customerStatisticRepository;
 
     @Override
@@ -63,7 +63,7 @@ class DashboardServiceImpl implements DashboardService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public SuperAdminStatistic createStatistic() {
         SuperAdminStatistic statistic = new SuperAdminStatistic();
-        statistic.setUsersOnline(tokenRegistry.getActiveTokens());
+        statistic.setUsersOnline(tokenService.countUsersOnline());
         statistic.setTotalActiveCustomersCount(customerRepository.countAllByArchivedFalse());
         UserStat userStat = new UserStat();
         userStat.setTotalActiveAdminsCount(employeeRepository.countAllByAuthoritiesContainsAndArchivedIsFalse(UserAuthorities.ADMIN));

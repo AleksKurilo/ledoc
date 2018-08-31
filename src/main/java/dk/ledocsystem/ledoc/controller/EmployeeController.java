@@ -60,4 +60,10 @@ public class EmployeeController {
     public List<EmployeeNames> getAllByRole(@PathVariable String roleName) {
         return employeeService.getAllByRole(UserAuthorities.fromString(roleName));
     }
+
+    @RolesAllowed({"admin", "super_admin"})
+    @GetMapping(value = "/updateRoles/{employeeId}/{authorityCode}")
+    public void updateAuthorities(@PathVariable Long employeeId, @PathVariable Integer authorityCode) {
+        employeeService.updateAuthorities(employeeId, UserAuthorities.fromCode(authorityCode));
+    }
 }

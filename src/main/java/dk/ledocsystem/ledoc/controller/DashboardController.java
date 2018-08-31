@@ -31,13 +31,13 @@ public class DashboardController {
     }
 
     @RolesAllowed("super_admin")
-    @GetMapping("/importCustomers")
+    @GetMapping("/exportCustomers")
     public ResponseEntity<StreamingResponseBody> excelCustomers() {
         return ResponseEntity.ok().header("Content-Disposition", "attachment; filename=\"Customers.xslx\"").body(dashboardService.exportExcelCustomers());
     }
 
     @RolesAllowed("super_admin")
-    @GetMapping("/importEmployees")
+    @GetMapping("/exportEmployees")
     public ResponseEntity<StreamingResponseBody> importEmployees() {
         return ResponseEntity.ok().header("Content-Disposition", "attachment; filename=\"All_users.xslx\"").body(dashboardService.exportExcelEmployees());
     }

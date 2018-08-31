@@ -11,5 +11,5 @@ public class SuperAdminStatistic {
 
     private UserStat userStat;
 
-    private Integer usersOnline;
+    private Long usersOnline;
 }

@@ -55,6 +55,8 @@ public interface EmployeeService extends DomainService<Employee> {
      */
     void addAuthorities(Long employeeId, UserAuthorities authorities);
 
+    void updateAuthorities(Long employeeId, UserAuthorities authorities);
+
     List<Employee> findAllById(Collection<Long> ids);
 
     Optional<Employee> getByUsername(String username);

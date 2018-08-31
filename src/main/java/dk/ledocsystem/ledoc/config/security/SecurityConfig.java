@@ -41,6 +41,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final LocaleResolver localeResolver;
     private final JwtSettingAuthenticationSuccessHandler jwtSettingAuthenticationSuccessHandler;
     private final DataSource dataSource;
+    private final JwtTokenService tokenRegistry;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -53,11 +54,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .formLogin()
                     .permitAll()
                     .and()
-                .logout()
-                    .permitAll()
-                    .and()
+                .logout().disable()
                 .addFilter(usernamePasswordAuthenticationFilter())
-                .addFilter(new JwtAuthenticationFilter(authenticationManager()))
+                .addFilter(new JwtAuthenticationFilter(authenticationManager(), tokenRegistry))
                 .csrf()
                     .disable()
                 .cors()
