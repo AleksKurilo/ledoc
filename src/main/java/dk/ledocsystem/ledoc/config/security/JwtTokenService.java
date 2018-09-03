@@ -1,6 +1,7 @@
 package dk.ledocsystem.ledoc.config.security;
 
 import dk.ledocsystem.ledoc.exceptions.InvalidTokenException;
+import dk.ledocsystem.ledoc.exceptions.RoleAlreadyExistsException;
 import dk.ledocsystem.ledoc.model.security.State;
 import dk.ledocsystem.ledoc.model.security.Token;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
@@ -24,6 +25,8 @@ import static dk.ledocsystem.ledoc.config.security.SecurityConstants.*;
 
 @Service
 public class JwtTokenService {
+
+    private static final String ROLE_PREFIX = "ROLE_";
 
     @Resource
     private TokenRepository tokenRepository;
@@ -78,6 +81,7 @@ public class JwtTokenService {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void updateTokens(Long employeeId, UserAuthorities authorities) {
         List<String> tokens = tokenRepository.selectAllTokensByUserId(employeeId);
         tokens.forEach(token -> {
@@ -85,9 +89,12 @@ public class JwtTokenService {
                     .parseClaimsJws(token)
                     .getBody();
 
+            Collection<String> grantedAuthorities = claims.get(JWT_AUTHORITIES_CLAIM, Collection.class);
+            checkRoleExists(grantedAuthorities, authorities);
+
             String updatedToken = Jwts.builder()
                     .setSubject(claims.getSubject())
-                    .claim(JWT_AUTHORITIES_CLAIM, updateAuthorities(claims, authorities))
+                    .claim(JWT_AUTHORITIES_CLAIM, updateAuthorities(grantedAuthorities, authorities))
                     .claim(CUSTOMER_CLAIM, claims.get(CUSTOMER_CLAIM, Long.class))
                     .setExpiration(claims.getExpiration())
                     .signWith(SignatureAlgorithm.HS512, JWT_SECRET.getBytes())
@@ -98,10 +105,15 @@ public class JwtTokenService {
         });
     }
 
-    private String updateAuthorities(Claims claims, UserAuthorities authorities) {
-        List<GrantedAuthority> grantedAuthorities =
-                AuthorityUtils.commaSeparatedStringToAuthorityList(claims.get(JWT_AUTHORITIES_CLAIM, String.class));
-        grantedAuthorities.add(new SimpleGrantedAuthority(authorities.name()));
-        return StringUtils.join(grantedAuthorities, ',');
+    private Collection<String> updateAuthorities(Collection<String> grantedAuthorities, UserAuthorities authorities) {
+        grantedAuthorities.add(ROLE_PREFIX + authorities.name().toLowerCase());
+        return grantedAuthorities;
+    }
+
+    private void checkRoleExists(Collection<String> grantedAuthorities, UserAuthorities authorities) {
+        String newRole = ROLE_PREFIX + authorities.name().toLowerCase();
+        if (grantedAuthorities.contains(newRole)) {
+            throw new RoleAlreadyExistsException("user.authorities.exists", authorities.name().toLowerCase());
+        }
     }
 }

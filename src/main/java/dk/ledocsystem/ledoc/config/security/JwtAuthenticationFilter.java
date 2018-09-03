@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.config.security;
 
+import com.google.common.collect.Collections2;
 import dk.ledocsystem.ledoc.exceptions.TokenNotFoundException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -13,6 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
@@ -22,6 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.Principal;
+import java.util.Collection;
 import java.util.List;
 
 import static dk.ledocsystem.ledoc.config.security.SecurityConstants.*;
@@ -96,11 +99,9 @@ class JwtAuthenticationFilter extends BasicAuthenticationFilter {
         Long customerId = claims.get(CUSTOMER_CLAIM, Long.class);
         Principal principal = new UserPrincipal(username, customerId);
 
-        if (username != null) {
-            List<GrantedAuthority> authorities =
-                AuthorityUtils.commaSeparatedStringToAuthorityList(claims.get(JWT_AUTHORITIES_CLAIM, String.class));
-            return new UsernamePasswordAuthenticationToken(principal, null, authorities);
-        }
-        return null;
+        @SuppressWarnings("unchecked")
+        Collection<String> authorities = (Collection<String>) claims.get(JWT_AUTHORITIES_CLAIM);
+        return new UsernamePasswordAuthenticationToken(principal, null,
+                Collections2.transform(authorities, SimpleGrantedAuthority::new));
     }
 }
