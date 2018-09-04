@@ -91,8 +91,9 @@ public class JwtTokenService {
 
             String updatedToken = Jwts.builder()
                     .setSubject(claims.getSubject())
-                    .claim(JWT_AUTHORITIES_CLAIM, updateAuthorities(grantedAuthorities, authorities))
+                    .claim(ID_CLAIM, claims.get(ID_CLAIM, Long.class))
                     .claim(CUSTOMER_CLAIM, claims.get(CUSTOMER_CLAIM, Long.class))
+                    .claim(JWT_AUTHORITIES_CLAIM, updateAuthorities(grantedAuthorities, authorities))
                     .setExpiration(claims.getExpiration())
                     .signWith(SignatureAlgorithm.HS512, JWT_SECRET.getBytes())
                     .compact();
@@ -102,15 +103,15 @@ public class JwtTokenService {
         });
     }
 
-    private Collection<String> updateAuthorities(Collection<String> grantedAuthorities, UserAuthorities authorities) {
-        grantedAuthorities.add(ROLE_PREFIX + authorities.name().toLowerCase());
-        return grantedAuthorities;
-    }
-
     private void checkRoleExists(Collection<String> grantedAuthorities, UserAuthorities authorities) {
         String newRole = ROLE_PREFIX + authorities.name().toLowerCase();
         if (grantedAuthorities.contains(newRole)) {
             throw new RoleAlreadyExistsException("user.authorities.exists", authorities.name().toLowerCase());
         }
+    }
+
+    private Collection<String> updateAuthorities(Collection<String> grantedAuthorities, UserAuthorities authorities) {
+        grantedAuthorities.add(ROLE_PREFIX + authorities.name().toLowerCase());
+        return grantedAuthorities;
     }
 }

@@ -6,6 +6,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -30,13 +31,18 @@ class RestExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, Locale locale) {
+    public ResponseEntity<RestResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, Locale locale) {
         BindingResult result = ex.getBindingResult();
         List<String> errorMessages = result.getAllErrors()
                 .stream()
                 .map(objectError -> messageSource.getMessage(objectError, locale))
                 .collect(Collectors.toList());
         return new ResponseEntity<>(new RestResponse(errorMessages), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<RestResponse> handleAccessDenied(AccessDeniedException ex, Locale locale) {
+        return handleExceptionInternal(ex, new RestResponse("Access denied to given URL"));
     }
 
     @ExceptionHandler(Exception.class)

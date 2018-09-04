@@ -86,4 +86,10 @@ public class EmployeeController {
     public void updateAuthorities(@PathVariable Long employeeId, @PathVariable Integer authorityCode) {
         employeeService.updateAuthorities(employeeId, UserAuthorities.fromCode(authorityCode));
     }
+
+    @RolesAllowed("can_create_point_of_contact")
+    @PostMapping(value = "/createPoC", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Employee createPointOfContact(@RequestBody @Valid EmployeeCreateDTO employeeCreateDTO) {
+        return employeeService.createPointOfContact(employeeCreateDTO);
+    }
 }

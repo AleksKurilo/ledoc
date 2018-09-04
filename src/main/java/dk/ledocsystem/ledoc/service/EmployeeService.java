@@ -10,6 +10,7 @@ import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import javax.validation.Valid;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +33,14 @@ public interface EmployeeService extends DomainService<Employee> {
      * @return Newly created {@link Employee}
      */
     Employee createEmployee(EmployeeCreateDTO employeeCreateDTO);
+
+    /**
+     * Creates new {@link Employee} point of contact, using the data from {@code employeeCreateDTO}.
+     *
+     * @param employeeCreateDTO Employee properties
+     * @return Newly created {@link Employee}
+     */
+    Employee createPointOfContact(EmployeeCreateDTO employeeCreateDTO);
 
     /**
      * Updates the properties of the employee with the given ID with properties of {@code employeeCreateDTO}.

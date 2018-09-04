@@ -86,6 +86,14 @@ class EmployeeServiceImpl implements EmployeeService {
 
     @Transactional
     @Override
+    public Employee createPointOfContact(@NonNull EmployeeCreateDTO employeeCreateDTO) {
+        Employee poc = createEmployee(employeeCreateDTO, customerService.getCurrentCustomerReference());
+        addAuthorities(poc.getId(), UserAuthorities.SUPER_ADMIN);
+        return poc;
+    }
+
+    @Transactional
+    @Override
     public Employee createEmployee(@NonNull EmployeeCreateDTO employeeCreateDTO, @NonNull Customer customer) {
         Employee employee = new Employee();
         BeanCopyUtils.copyProperties(employeeCreateDTO, employee);
@@ -207,16 +215,16 @@ class EmployeeServiceImpl implements EmployeeService {
                         .orElseThrow(() -> new NotFoundException("employee.responsible.not.found", responsibleId.toString()));
     }
 
-    private void buildAndSendMessage(EmployeeCreateDTO admin) {
-        mailService.sendEmail(fromEmailAddress, admin.getUsername(), WelcomeEmailHolder.TOPIC, buildBody(admin));
+    private void buildAndSendMessage(EmployeeCreateDTO employeeCreateDTO) {
+        mailService.sendEmail(fromEmailAddress, employeeCreateDTO.getUsername(), WelcomeEmailHolder.TOPIC, buildBody(employeeCreateDTO));
     }
 
-    private String buildBody(EmployeeCreateDTO admin) {
+    private String buildBody(EmployeeCreateDTO employeeCreateDTO) {
         StringBuilder builder = new StringBuilder();
-        if (admin.isWelcomeMessage()) {
+        if (employeeCreateDTO.isWelcomeMessage()) {
             builder.append(WelcomeEmailHolder.WELCOME_MESSAGE).append("\n\n");
         }
-        builder.append(String.format(WelcomeEmailHolder.CREDENTIALS, admin.getUsername(), admin.getPassword()));
+        builder.append(String.format(WelcomeEmailHolder.CREDENTIALS, employeeCreateDTO.getUsername(), employeeCreateDTO.getPassword()));
         builder.append("\n\n");
         builder.append(WelcomeEmailHolder.FOOTER);
         return builder.toString();

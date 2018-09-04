@@ -10,7 +10,8 @@ public enum UserAuthorities {
     ADMIN(1),
     SUPER_ADMIN(2),
 
-    CAN_CREATE_PERSONAL_LOCATION(3);
+    CAN_CREATE_PERSONAL_LOCATION(3),
+    CAN_CREATE_POINT_OF_CONTACT(4); //requirments of LD4-39
 
     @Getter
     private final int code;
