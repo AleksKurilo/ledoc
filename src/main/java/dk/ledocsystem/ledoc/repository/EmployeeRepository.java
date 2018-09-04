@@ -92,13 +92,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Loggi
 
     @Override
     default void customize(QuerydslBindings bindings, QEmployee root) {
-        bindings.including(QEmployee.employee.archived, QEmployee.employee.responsible.id,
-                QEmployee.employee.authorities, QEmployee.employee.username, QEmployee.employee.firstName,
-                QEmployee.employee.lastName, QEmployee.employee.cellPhone, QEmployee.employee.idNumber,
-                QEmployee.employee.initials, QEmployee.employee.phoneNumber, QEmployee.employee.details.title,
-                QEmployee.employee.nearestRelative.email, QEmployee.employee.nearestRelative.phoneNumber,
-                QEmployee.employee.personalInfo.personalMobile, QEmployee.employee.personalInfo.privateEmail,
-                ExpressionUtils.path(Employee.class, QEmployee.employee, "locations.id"));
+        bindings.including(root.archived, root.responsible.id, root.authorities, root.username, root.firstName,
+                root.lastName, root.cellPhone, root.idNumber, root.initials, root.phoneNumber, root.details.title,
+                root.nearestRelative.email, root.nearestRelative.phoneNumber, root.personalInfo.personalMobile,
+                root.personalInfo.privateEmail,
+                ExpressionUtils.path(Employee.class, root, "locations.id"));
         bindings.bind(String.class).first((SingleValueBinding<StringPath, String>) StringExpression::containsIgnoreCase);
     }
 }

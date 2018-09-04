@@ -38,6 +38,6 @@ public interface LocationRepository extends JpaRepository<Location, Long>, Query
 
     @Override
     default void customize(QuerydslBindings bindings, QLocation root) {
-        bindings.including(QLocation.location.archived, QLocation.location.responsible.id);
+        bindings.including(root.archived, root.responsible.id);
     }
 }

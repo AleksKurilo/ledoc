@@ -38,6 +38,6 @@ public interface CustomerRepository extends JpaRepository<Customer, Long>, Query
 
     @Override
     default void customize(QuerydslBindings bindings, QCustomer root) {
-        bindings.including(QCustomer.customer.archived, QCustomer.customer.pointOfContact.id);
+        bindings.including(root.archived, root.pointOfContact.id);
     }
 }
