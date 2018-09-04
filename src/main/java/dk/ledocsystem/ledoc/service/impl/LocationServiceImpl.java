@@ -73,7 +73,7 @@ class LocationServiceImpl implements LocationService {
     public Location createLocation(@NonNull LocationCreateDTO locationDTO, @NonNull Customer customer) {
         Long responsibleId = locationDTO.getResponsibleId();
         Employee responsible = employeeService.getById(responsibleId)
-                .orElseThrow(() -> new NotFoundException("location.responsible.not.found", responsibleId.toString()));
+                .orElseThrow(() -> new NotFoundException("employee.responsible.not.found", responsibleId.toString()));
 
         return createLocation(locationDTO, customer, responsible, false);
     }
@@ -136,7 +136,7 @@ class LocationServiceImpl implements LocationService {
         Long responsibleId = locationEditDTO.getResponsibleId();
         if (responsibleId != null) {
             Employee responsible = employeeService.getById(responsibleId)
-                    .orElseThrow(() -> new NotFoundException("location.responsible.not.found", responsibleId.toString()));
+                    .orElseThrow(() -> new NotFoundException("employee.responsible.not.found", responsibleId.toString()));
             location.setResponsible(responsible);
         }
 

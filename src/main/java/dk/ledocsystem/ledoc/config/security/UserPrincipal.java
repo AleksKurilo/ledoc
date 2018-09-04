@@ -10,6 +10,7 @@ import java.security.Principal;
 @Value
 public class UserPrincipal implements Principal {
 
+    Long userId;
     String username;
     Long customerId;
 

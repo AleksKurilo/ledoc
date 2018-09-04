@@ -1,93 +1,27 @@
 package dk.ledocsystem.ledoc.repository;
 
 import dk.ledocsystem.ledoc.model.Equipment;
-import dk.ledocsystem.ledoc.model.Status;
+import dk.ledocsystem.ledoc.model.QEquipment;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
+import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 
-import java.util.List;
+import java.util.Collection;
 
-public interface EquipmentRepository extends JpaRepository<Equipment, Long>, LoggingRepository<Equipment, Long> {
+public interface EquipmentRepository extends JpaRepository<Equipment, Long>, LoggingRepository<Equipment, Long>,
+        QuerydslPredicateExecutor<Equipment> {
 
-    /**
-     * @return All {@link Equipment} equipments that are not archived
-     */
-    List<Equipment> findAllByArchivedIsFalse();
-
-    /**
-     * @return All {@link Equipment} equipments that are not archived
-     */
-    List<Equipment> findAllByArchivedIsTrue();
+    boolean existsByName(String name);
 
     /**
-     * @param supplierId supplierId
-     * @return All {@link Equipment} associated with given supplier
+     * Deletes equipment items with the given IDs.
+     *
+     * @param ids The collection of equipment IDs.
      */
-    List<Equipment> findAllBySupplier_Id(Long supplierId);
-
-    /**
-     * @param supplierId supplierId
-     * @return All {@link Equipment} archived equipments associated with given supplier
-     */
-    List<Equipment> findAllBySupplier_IdAndArchivedIsTrue(Long supplierId);
-
-    /**
-     * @param supplierId supplierId
-     * @return All {@link Equipment} not archived equipments associated with given supplier
-     */
-    List<Equipment> findAllBySupplier_IdAndArchivedIsFalse(Long supplierId);
-
-    /**
-     * @param status status
-     * @return All {@link Equipment} equipments associated with given status
-     */
-    List<Equipment> findAllByStatus(Status status);
-
-    /**
-     * @param status status
-     * @return All {@link Equipment} archived equipments associated with given status
-     */
-    List<Equipment> findAllByStatusAndArchivedIsTrue(Status status);
-
-    /**
-     * @param status status
-     * @return All {@link Equipment} not archived equipments associated with given status
-     */
-    List<Equipment> findAllByStatusAndArchivedIsFalse(Status status);
-
-    /**
-     * @param employeeId employeeId
-     * @return All {@link Equipment} equipments owned by given employee
-     */
-    List<Equipment> findAllByCreator_Id(Long employeeId);
-
-    /**
-     * @param employeeId employeeId
-     * @return All {@link Equipment} archived equipments owned by given employee
-     */
-    List<Equipment> findAllByCreator_IdAndArchivedIsTrue(Long employeeId);
-
-    /**
-     * @param employeeId employeeId
-     * @return All {@link Equipment} not archived equipments owned by given employee
-     */
-    List<Equipment> findAllByCreator_IdAndArchivedIsFalse(Long employeeId);
-
-    /**
-     * @param customerId customerId
-     * @return All {@link Equipment} equipments owned by given company
-     */
-    List<Equipment> findAllByCustomer_Id(Long customerId);
-
-    /**
-     * @param customerId customerId
-     * @return All {@link Equipment} archived equipments owned by given company
-     */
-    List<Equipment> findAllByCustomer_IdAndArchivedIsTrue(Long customerId);
-
-    /**
-     * @param customerId customerId
-     * @return All {@link Equipment} not archived equipments owned by given company
-     */
-    List<Equipment> findAllByCustomer_IdAndArchivedIsFalse(Long customerId);
+    @Modifying
+    @Query("delete from Equipment eq where eq.id in ?1")
+    void deleteByIdIn(Collection<Long> ids);
 
 }

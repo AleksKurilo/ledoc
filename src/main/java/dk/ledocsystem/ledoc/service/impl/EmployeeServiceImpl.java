@@ -78,6 +78,12 @@ class EmployeeServiceImpl implements EmployeeService {
         return employeeRepository.findById(id);
     }
 
+    @Override
+    public Employee getCurrentUserReference() {
+        Long currentUserId = getCurrentUser().getUserId();
+        return employeeRepository.getOne(currentUserId);
+    }
+
     @Transactional
     @Override
     public Employee createEmployee(@NonNull EmployeeCreateDTO employeeCreateDTO) {
@@ -120,6 +126,11 @@ class EmployeeServiceImpl implements EmployeeService {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new NotFoundException("employee.id.not.found", employeeId.toString()));
         BeanCopyUtils.copyProperties(employeeEditDTO, employee, false);
+
+        Long responsibleId = employeeEditDTO.getResponsibleId();
+        if (responsibleId != null) {
+            employee.setResponsible(resolveResponsible(responsibleId));
+        }
 
         Long skillResponsibleId = employeeEditDTO.getDetails().getSkillResponsibleId();
         if (skillResponsibleId != null) {
@@ -187,12 +198,12 @@ class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public Page<Employee> getNewEmployees(@NonNull Pageable pageable, @NotNull Predicate predicate) {
-        Long currentUserId = getCurrentUserId();
+        Employee currentUser = getCurrentUserReference();
 
         Predicate newEmployeesPredicate = ExpressionUtils.allOf(
                 predicate,
-                ExpressionUtils.neConst(QEmployee.employee.id, currentUserId),
-                ExpressionUtils.notIn(Expressions.constant(currentUserId), QEmployee.employee.visitedBy));
+                ExpressionUtils.neConst(QEmployee.employee.id, currentUser.getId()),
+                ExpressionUtils.notIn(Expressions.constant(currentUser), QEmployee.employee.visitedBy));
         return getAll(newEmployeesPredicate, pageable);
     }
 

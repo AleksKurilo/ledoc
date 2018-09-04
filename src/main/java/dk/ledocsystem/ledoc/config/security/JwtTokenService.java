@@ -74,7 +74,7 @@ public class JwtTokenService {
             tokenRepository.save(t);
         }
         else {
-            throw new InvalidTokenException("token.invalid", "");
+            throw new InvalidTokenException("token.not.found", token);
         }
     }
 

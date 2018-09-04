@@ -42,6 +42,8 @@ public class EmployeeEditDTO {
     @MobilePhone
     private String phoneNumber;
 
+    private Long responsibleId;
+
     private Boolean canCreatePersonalLocation;
 
     private LocalDate expireOfIdCard;

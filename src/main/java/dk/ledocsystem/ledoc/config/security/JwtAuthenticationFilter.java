@@ -40,24 +40,22 @@ class JwtAuthenticationFilter extends BasicAuthenticationFilter {
                                     HttpServletResponse res,
                                     FilterChain chain) throws IOException, ServletException {
         String header = req.getHeader(HttpHeaders.AUTHORIZATION);
+
         if (header != null && header.startsWith("Bearer ")) {
             String tokenValue = header.replace("Bearer ", "");
-            if (tokenValue != null) {
-                try {
-                    validateToken(tokenValue, res);
-                }
-                catch (TokenNotFoundException e) {
-                    Logger.error(e.getMessage());
-                    res.sendError(HttpStatus.FORBIDDEN.value(), "Invalid token. Login and get valid value.");
-                }
-                catch (IOException e) {
-                    Logger.error(e);
-                    res.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Unexpcted error on server side.");
-                }
+            try {
+                validateToken(tokenValue, res);
             }
-            else {
-                res.sendError(HttpStatus.FORBIDDEN.value(), "Invalid token. Token is empty.");
+            catch (TokenNotFoundException e) {
+                Logger.error(e.getMessage());
+                res.sendError(HttpStatus.FORBIDDEN.value(), "Invalid token. Login and get valid value.");
             }
+            catch (IOException e) {
+                Logger.error(e);
+                res.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Unexpected error on server side.");
+            }
+        } else {
+            res.sendError(HttpStatus.FORBIDDEN.value(), "Invalid or absent token.");
         }
 
         chain.doFilter(req, res);
@@ -92,9 +90,10 @@ class JwtAuthenticationFilter extends BasicAuthenticationFilter {
             .parseClaimsJws(token)
             .getBody();
 
+        Long userId = claims.get(ID_CLAIM, Long.class);
         String username = claims.getSubject();
         Long customerId = claims.get(CUSTOMER_CLAIM, Long.class);
-        Principal principal = new UserPrincipal(username, customerId);
+        Principal principal = new UserPrincipal(userId, username, customerId);
 
         @SuppressWarnings("unchecked")
         Collection<String> authorities = (Collection<String>) claims.get(JWT_AUTHORITIES_CLAIM);

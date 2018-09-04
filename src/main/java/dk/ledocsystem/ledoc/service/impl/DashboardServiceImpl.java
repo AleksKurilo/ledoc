@@ -49,7 +49,7 @@ class DashboardServiceImpl implements DashboardService {
     @Override
     public Dashboard createDashboard() {
         Dashboard dashboard = new Dashboard();
-        Long currentUserId = employeeService.getCurrentUserId();
+        Long currentUserId = employeeService.getCurrentUserReference().getId();
         Long customerId = customerService.getCurrentCustomerReference().getId();
 
         dashboard.setNewEmployeesCount(employeeService.countNewEmployees(customerId, currentUserId));

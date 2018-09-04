@@ -1,6 +1,8 @@
 package dk.ledocsystem.ledoc.util;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.reflect.ClassPath;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 
@@ -22,7 +24,7 @@ public class ValidationMessageChecker {
     private static final String PACKAGE_NAME = "dk.ledocsystem.ledoc.dto";
     private static final String MESSAGE_RESOURCE_NAME = "messages.properties";
     private static final List<Class<? extends Annotation>> notValidatingAnnotations =
-            Arrays.asList(Valid.class, JsonAlias.class);
+            Arrays.asList(Valid.class, JsonAlias.class, JsonDeserialize.class, JsonTypeInfo.class);
 
     public static void main(String[] args) throws Exception {
         final ClassLoader loader = Thread.currentThread().getContextClassLoader();

@@ -10,7 +10,6 @@ import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import javax.validation.Valid;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -81,11 +80,11 @@ public interface EmployeeService extends DomainService<Employee> {
 
     long countNewEmployees(Long customerId, Long employeeId);
 
-    default Long getCurrentUserId() {
-        String currentUserName = getCurrentUser().getName();
-        Employee currentUser = getByUsername(currentUserName).orElseThrow(IllegalStateException::new);
-        return currentUser.getId();
-    }
+    /**
+     * @return A proxy, whose state can be lazily populated upon access until the end of current transaction.
+     * @see EntityManager#getReference(Class, Object)
+     */
+    Employee getCurrentUserReference();
 
     List<EmployeeNames> getAllByRole(UserAuthorities authorities);
 }
