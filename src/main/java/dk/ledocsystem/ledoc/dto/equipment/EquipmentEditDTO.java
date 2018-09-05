@@ -2,7 +2,7 @@ package dk.ledocsystem.ledoc.dto.equipment;
 
 import dk.ledocsystem.ledoc.annotations.validation.OnlyAscii;
 import dk.ledocsystem.ledoc.annotations.validation.equipment.UniqueName;
-import dk.ledocsystem.ledoc.model.Status;
+import dk.ledocsystem.ledoc.model.equipment.Status;
 import lombok.Getter;
 import lombok.Setter;
 

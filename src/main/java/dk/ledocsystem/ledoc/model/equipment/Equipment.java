@@ -1,5 +1,6 @@
-package dk.ledocsystem.ledoc.model;
+package dk.ledocsystem.ledoc.model.equipment;
 
+import dk.ledocsystem.ledoc.model.*;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

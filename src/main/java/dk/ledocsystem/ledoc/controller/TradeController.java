@@ -20,4 +20,6 @@ public class TradeController {
     public List<Trade> getAlltrades() {
         return tradeRepository.findAll();
     }
+
+
 }

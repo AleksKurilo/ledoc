@@ -1,4 +1,4 @@
-package dk.ledocsystem.ledoc.model;
+package dk.ledocsystem.ledoc.model.equipment;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 

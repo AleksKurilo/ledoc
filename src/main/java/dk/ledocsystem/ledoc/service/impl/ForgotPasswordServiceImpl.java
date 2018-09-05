@@ -4,7 +4,7 @@ import dk.ledocsystem.ledoc.dto.ForgotPasswordDTO;
 import dk.ledocsystem.ledoc.dto.ResetPasswordDTO;
 import dk.ledocsystem.ledoc.exceptions.InvalidCredentialsException;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
-import dk.ledocsystem.ledoc.model.ResetToken;
+import dk.ledocsystem.ledoc.model.security.ResetToken;
 import dk.ledocsystem.ledoc.repository.ResetTokenRepository;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.ForgotPasswordService;

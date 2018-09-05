@@ -4,7 +4,7 @@ import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentCreateDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentEditDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
-import dk.ledocsystem.ledoc.model.Equipment;
+import dk.ledocsystem.ledoc.model.equipment.Equipment;
 import dk.ledocsystem.ledoc.service.EquipmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;

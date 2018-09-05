@@ -3,7 +3,7 @@ package dk.ledocsystem.ledoc.service;
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentCreateDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentEditDTO;
-import dk.ledocsystem.ledoc.model.Equipment;
+import dk.ledocsystem.ledoc.model.equipment.Equipment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

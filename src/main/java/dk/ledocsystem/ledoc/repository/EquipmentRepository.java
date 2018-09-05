@@ -1,6 +1,6 @@
 package dk.ledocsystem.ledoc.repository;
 
-import dk.ledocsystem.ledoc.model.Equipment;
+import dk.ledocsystem.ledoc.model.equipment.Equipment;
 import dk.ledocsystem.ledoc.model.QEquipment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

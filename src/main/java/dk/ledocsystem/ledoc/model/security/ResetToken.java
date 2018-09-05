@@ -1,4 +1,4 @@
-package dk.ledocsystem.ledoc.model;
+package dk.ledocsystem.ledoc.model.security;
 
 import lombok.Getter;
 import lombok.Setter;
