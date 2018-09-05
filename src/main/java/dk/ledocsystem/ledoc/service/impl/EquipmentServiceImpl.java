@@ -3,14 +3,18 @@ package dk.ledocsystem.ledoc.service.impl;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.Expressions;
+import dk.ledocsystem.ledoc.dto.equipment.AuthenticationTypeDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentCreateDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentEditDTO;
+import dk.ledocsystem.ledoc.dto.projections.IdAndLocalizedName;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
+import dk.ledocsystem.ledoc.model.AuthenticationType;
 import dk.ledocsystem.ledoc.model.equipment.Equipment;
 import dk.ledocsystem.ledoc.model.equipment.EquipmentCategory;
 import dk.ledocsystem.ledoc.model.Location;
-import dk.ledocsystem.ledoc.model.QEquipment;
+import dk.ledocsystem.ledoc.model.equipment.QEquipment;
 import dk.ledocsystem.ledoc.model.employee.Employee;
+import dk.ledocsystem.ledoc.repository.AuthenticationTypeRepository;
 import dk.ledocsystem.ledoc.repository.EquipmentCategoryRepository;
 import dk.ledocsystem.ledoc.repository.EquipmentRepository;
 import dk.ledocsystem.ledoc.service.CustomerService;
@@ -41,6 +45,7 @@ class EquipmentServiceImpl implements EquipmentService {
 
     private final EquipmentRepository equipmentRepository;
     private final EquipmentCategoryRepository equipmentCategoryRepository;
+    private final AuthenticationTypeRepository authenticationTypeRepository;
     private final CustomerService customerService;
     private final EmployeeService employeeService;
     private final LocationService locationService;
@@ -83,6 +88,7 @@ class EquipmentServiceImpl implements EquipmentService {
         equipment.setCategory(resolveCategory(equipmentCreateDTO.getCategoryId()));
         equipment.setLocation(resolveLocation(equipmentCreateDTO.getLocationId()));
         equipment.setResponsible(resolveResponsible(equipmentCreateDTO.getResponsibleId()));
+        equipment.setAuthenticationType(resolveAuthenticationType(equipmentCreateDTO.getAuthTypeId()));
 
         return equipmentRepository.save(equipment);
     }
@@ -109,6 +115,11 @@ class EquipmentServiceImpl implements EquipmentService {
             equipment.setResponsible(resolveResponsible(responsibleId));
         }
 
+        Long authTypeId = equipmentEditDTO.getAuthTypeId();
+        if (authTypeId != null) {
+            equipment.setAuthenticationType(resolveAuthenticationType(authTypeId));
+        }
+
         return equipmentRepository.save(equipment);
     }
 
@@ -127,6 +138,12 @@ class EquipmentServiceImpl implements EquipmentService {
                 .orElseThrow(() -> new NotFoundException("employee.responsible.not.found", responsibleId.toString()));
     }
 
+    private AuthenticationType resolveAuthenticationType(Long authTypeId) {
+        return (authTypeId == null) ? null :
+                authenticationTypeRepository.findById(authTypeId)
+                        .orElseThrow(() -> new NotFoundException("equipment.authentication.type.not.found", authTypeId.toString()));
+    }
+
     @Override
     public Page<Equipment> getNewEquipment(@NonNull Pageable pageable) {
         return getNewEquipment(pageable, ARCHIVED_FALSE);
@@ -140,6 +157,19 @@ class EquipmentServiceImpl implements EquipmentService {
                 predicate,
                 ExpressionUtils.notIn(Expressions.constant(currentUser), QEquipment.equipment.visitedBy));
         return getAll(newEquipmentPredicate, pageable);
+    }
+
+    @Override
+    public List<IdAndLocalizedName> getAuthTypes() {
+        return authenticationTypeRepository.getAllBy();
+    }
+
+    @Override
+    public AuthenticationType createAuthType(AuthenticationTypeDTO authenticationTypeDTO) {
+        AuthenticationType authenticationType = new AuthenticationType();
+        BeanCopyUtils.copyProperties(authenticationTypeDTO, authenticationType);
+
+        return authenticationTypeRepository.save(authenticationType);
     }
 
     @Override

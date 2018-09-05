@@ -78,6 +78,10 @@ public class Equipment implements Visitable {
     private String archiveReason;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "auth_type_id")
+    private AuthenticationType authenticationType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creator_id", nullable = false)
     private Employee creator;
 

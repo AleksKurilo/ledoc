@@ -11,12 +11,12 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/")
+@RequestMapping("/trades")
 public class TradeController {
 
     private final TradeRepository tradeRepository;
 
-    @GetMapping()
+    @GetMapping
     public List<Trade> getAlltrades() {
         return tradeRepository.findAll();
     }

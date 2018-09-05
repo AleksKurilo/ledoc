@@ -1,11 +1,16 @@
 package dk.ledocsystem.ledoc.service;
 
 import com.querydsl.core.types.Predicate;
+import dk.ledocsystem.ledoc.dto.equipment.AuthenticationTypeDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentCreateDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentEditDTO;
+import dk.ledocsystem.ledoc.dto.projections.IdAndLocalizedName;
+import dk.ledocsystem.ledoc.model.AuthenticationType;
 import dk.ledocsystem.ledoc.model.equipment.Equipment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 public interface EquipmentService extends DomainService<Equipment> {
 
@@ -29,4 +34,8 @@ public interface EquipmentService extends DomainService<Equipment> {
     Page<Equipment> getNewEquipment(Pageable pageable);
 
     Page<Equipment> getNewEquipment(Pageable pageable, Predicate predicate);
+
+    List<IdAndLocalizedName> getAuthTypes();
+
+    AuthenticationType createAuthType(AuthenticationTypeDTO authenticationTypeDTO);
 }

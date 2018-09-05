@@ -1,7 +1,7 @@
 package dk.ledocsystem.ledoc.repository;
 
 import dk.ledocsystem.ledoc.model.equipment.Equipment;
-import dk.ledocsystem.ledoc.model.QEquipment;
+import dk.ledocsystem.ledoc.model.equipment.QEquipment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -27,6 +27,7 @@ public interface EquipmentRepository extends JpaRepository<Equipment, Long>, Log
 
     @Override
     default void customize(QuerydslBindings bindings, QEquipment root) {
-        bindings.including(root.responsible.id, root.archived, root.location.id, root.category.id);
+        bindings.including(root.responsible.id, root.archived, root.location.id,
+                root.category.id, root.authenticationType.id);
     }
 }

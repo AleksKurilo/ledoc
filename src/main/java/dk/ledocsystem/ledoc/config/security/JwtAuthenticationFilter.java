@@ -54,8 +54,6 @@ class JwtAuthenticationFilter extends BasicAuthenticationFilter {
                 Logger.error(e);
                 res.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Unexpected error on server side.");
             }
-        } else {
-            res.sendError(HttpStatus.FORBIDDEN.value(), "Invalid or absent token.");
         }
 
         chain.doFilter(req, res);

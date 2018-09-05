@@ -23,6 +23,8 @@ public class EquipmentCreateDTO {
     @OnlyAscii
     private String idNumber;
 
+    private Long authTypeId;
+
     @NotNull
     private Long categoryId;
 

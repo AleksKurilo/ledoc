@@ -23,6 +23,8 @@ public class EquipmentEditDTO {
     @OnlyAscii
     private String idNumber;
 
+    private Long authTypeId;
+
     private Long categoryId;
 
     private Long responsibleId;

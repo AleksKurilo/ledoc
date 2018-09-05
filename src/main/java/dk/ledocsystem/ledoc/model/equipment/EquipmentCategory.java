@@ -1,4 +1,4 @@
-package dk.ledocsystem.ledoc.model;
+package dk.ledocsystem.ledoc.model.equipment;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -6,7 +6,6 @@ import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.*;
-import java.util.Set;
 
 @Setter
 @Getter

@@ -13,6 +13,9 @@ class UniqueTradeNameValidator implements ConstraintValidator<UniqueTradeName, C
 
     @Override
     public boolean isValid(CharSequence value, ConstraintValidatorContext context) {
+        if (value == null) {
+            return true;
+        }
         String tradeName = value.toString();
         return !tradeRepository.existsByName(tradeName);
     }
