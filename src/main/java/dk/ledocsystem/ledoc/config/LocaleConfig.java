@@ -15,7 +15,7 @@ public class LocaleConfig {
     public LocaleResolver localeResolver() {
         AcceptHeaderLocaleResolver localeResolver = new AcceptHeaderLocaleResolver();
         localeResolver.setDefaultLocale(Locale.US);
-        localeResolver.setSupportedLocales(Collections.singletonList(Locale.US));
+        localeResolver.setSupportedLocales(Collections.singletonList(Locale.forLanguageTag("da-DK")));
         return localeResolver;
     }
 }
