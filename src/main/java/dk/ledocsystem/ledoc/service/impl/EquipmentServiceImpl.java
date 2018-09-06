@@ -4,6 +4,7 @@ import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.Expressions;
 import dk.ledocsystem.ledoc.dto.equipment.AuthenticationTypeDTO;
+import dk.ledocsystem.ledoc.dto.equipment.EquipmentCategoryCreateDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentCreateDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentEditDTO;
 import dk.ledocsystem.ledoc.dto.projections.IdAndLocalizedName;
@@ -14,6 +15,7 @@ import dk.ledocsystem.ledoc.model.equipment.EquipmentCategory;
 import dk.ledocsystem.ledoc.model.Location;
 import dk.ledocsystem.ledoc.model.equipment.QEquipment;
 import dk.ledocsystem.ledoc.model.employee.Employee;
+import dk.ledocsystem.ledoc.model.equipment.ReviewFrequency;
 import dk.ledocsystem.ledoc.repository.AuthenticationTypeRepository;
 import dk.ledocsystem.ledoc.repository.EquipmentCategoryRepository;
 import dk.ledocsystem.ledoc.repository.EquipmentRepository;
@@ -170,6 +172,16 @@ class EquipmentServiceImpl implements EquipmentService {
         BeanCopyUtils.copyProperties(authenticationTypeDTO, authenticationType);
 
         return authenticationTypeRepository.save(authenticationType);
+    }
+
+    @Override
+    public EquipmentCategory createNewCategory(EquipmentCategoryCreateDTO categoryCreateDTO) {
+        EquipmentCategory category = new EquipmentCategory();
+        category.setNameEn(categoryCreateDTO.getNameEn());
+        category.setNameDa(categoryCreateDTO.getNameDa());
+        category.setReviewFrequency(ReviewFrequency.fromString(categoryCreateDTO.getReviewFrequency()));
+
+        return equipmentCategoryRepository.save(category);
     }
 
     @Override

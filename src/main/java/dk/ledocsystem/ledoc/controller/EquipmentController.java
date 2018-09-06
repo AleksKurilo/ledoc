@@ -2,12 +2,14 @@ package dk.ledocsystem.ledoc.controller;
 
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.dto.equipment.AuthenticationTypeDTO;
+import dk.ledocsystem.ledoc.dto.equipment.EquipmentCategoryCreateDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentCreateDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentEditDTO;
 import dk.ledocsystem.ledoc.dto.projections.IdAndLocalizedName;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.AuthenticationType;
 import dk.ledocsystem.ledoc.model.equipment.Equipment;
+import dk.ledocsystem.ledoc.model.equipment.EquipmentCategory;
 import dk.ledocsystem.ledoc.service.EquipmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -86,4 +88,11 @@ public class EquipmentController {
     public void deleteByIds(@RequestParam("ids") Collection<Long> ids) {
         equipmentService.deleteByIds(ids);
     }
+
+    @RolesAllowed("super_admin")
+    @PostMapping(value = "/category/create")
+    public EquipmentCategory createNewEqCategory(@RequestBody @Valid EquipmentCategoryCreateDTO categoryCreateDTO) {
+        return equipmentService.createNewCategory(categoryCreateDTO);
+    }
+
 }
