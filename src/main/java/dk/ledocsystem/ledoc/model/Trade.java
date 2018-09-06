@@ -14,7 +14,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Table(name = "trades")
-@ToString(of = {"name"})
+@ToString(of = {"nameEn"})
 public class Trade {
 
     @Id
@@ -22,8 +22,11 @@ public class Trade {
     @SequenceGenerator(name = "trades_seq", sequenceName = "trades_seq")
     private Long id;
 
-    @Column
-    private String name;
+    @Column(name = "name_en", nullable = false)
+    private String nameEn;
+
+    @Column(name = "name_da", nullable = false)
+    private String nameDa;
 
     @ManyToMany(mappedBy = "trades", cascade = CascadeType.ALL)
     private Set<Customer> customer = new HashSet<>();

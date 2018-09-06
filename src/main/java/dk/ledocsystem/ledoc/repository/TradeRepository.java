@@ -5,5 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TradeRepository extends JpaRepository<Trade, Long> {
 
-    boolean existsByName(String name);
+    boolean existsByNameEn(String name);
+
+    boolean existsByNameDa(String name);
 }

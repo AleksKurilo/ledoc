@@ -13,7 +13,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 @Documented
 @Constraint(validatedBy = UniqueNameEnValidator.class)
-public @interface UniqueNameEn {
+public @interface UniqueCategoryNameEn {
 
     String message() default "";
 

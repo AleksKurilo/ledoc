@@ -7,7 +7,7 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
 @AllArgsConstructor
-public class UniqueNameDaValidator implements ConstraintValidator<UniqueNameDa, CharSequence> {
+public class UniqueNameDaValidator implements ConstraintValidator<UniqueCategoryNameDa, CharSequence> {
 
     private final EquipmentCategoryRepository categoryRepository;
 

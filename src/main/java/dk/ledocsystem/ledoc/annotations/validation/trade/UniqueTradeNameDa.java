@@ -1,4 +1,4 @@
-package dk.ledocsystem.ledoc.annotations.validation.equipment.category;
+package dk.ledocsystem.ledoc.annotations.validation.trade;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
@@ -7,13 +7,15 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.ElementType.TYPE_USE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
 @Documented
-@Constraint(validatedBy = UniqueNameDaValidator.class)
-public @interface UniqueNameDa {
+@Constraint(validatedBy = { UniqueTradeNameDkValidator.class })
+public @interface UniqueTradeNameDa {
 
     String message() default "";
 

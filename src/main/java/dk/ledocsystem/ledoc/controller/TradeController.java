@@ -1,12 +1,13 @@
 package dk.ledocsystem.ledoc.controller;
 
+import dk.ledocsystem.ledoc.dto.trades.TradeCreateDTO;
 import dk.ledocsystem.ledoc.model.Trade;
-import dk.ledocsystem.ledoc.repository.TradeRepository;
+import dk.ledocsystem.ledoc.service.TradeService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.security.RolesAllowed;
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -14,12 +15,16 @@ import java.util.List;
 @RequestMapping("/trades")
 public class TradeController {
 
-    private final TradeRepository tradeRepository;
+    private final TradeService tradeService;
 
-    @GetMapping
+    @GetMapping("/all")
     public List<Trade> getAlltrades() {
-        return tradeRepository.findAll();
+        return tradeService.getAll();
     }
 
-
+    @RolesAllowed("super_admin")
+    @PostMapping("/new")
+    public Trade createNew(@RequestBody @Valid TradeCreateDTO createDTO) {
+        return tradeService.createNew(createDTO);
+    }
 }
