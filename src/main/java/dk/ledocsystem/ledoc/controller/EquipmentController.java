@@ -5,9 +5,10 @@ import dk.ledocsystem.ledoc.dto.equipment.AuthenticationTypeDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentCategoryCreateDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentCreateDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentEditDTO;
+import dk.ledocsystem.ledoc.dto.equipment.EquipmentLoadDTO;
 import dk.ledocsystem.ledoc.dto.projections.IdAndLocalizedName;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
-import dk.ledocsystem.ledoc.model.AuthenticationType;
+import dk.ledocsystem.ledoc.model.equipment.AuthenticationType;
 import dk.ledocsystem.ledoc.model.equipment.Equipment;
 import dk.ledocsystem.ledoc.model.equipment.EquipmentCategory;
 import dk.ledocsystem.ledoc.service.EquipmentService;
@@ -63,7 +64,7 @@ public class EquipmentController {
     }
 
     @RolesAllowed("ROLE_super_admin")
-    @PostMapping("/auth-types")
+    @PostMapping(value = "/auth-types", consumes = MediaType.APPLICATION_JSON_VALUE)
     public AuthenticationType createAuthType(@RequestBody @Valid AuthenticationTypeDTO authenticationTypeDTO) {
         return equipmentService.createAuthType(authenticationTypeDTO);
     }
@@ -79,6 +80,17 @@ public class EquipmentController {
         return equipmentService.updateEquipment(equipmentId, equipmentEditDTO);
     }
 
+    @PostMapping(value = "/loan/{equipmentId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public void loanEquipment(@PathVariable Long equipmentId,
+                              @RequestBody @Valid EquipmentLoadDTO equipmentLoadDTO) {
+        equipmentService.loanEquipment(equipmentId, equipmentLoadDTO);
+    }
+
+    @PostMapping(value = "/loan/{equipmentId}/return")
+    public void returnLentEquipment(@PathVariable Long equipmentId) {
+        equipmentService.returnLoanedEquipment(equipmentId);
+    }
+
     @DeleteMapping("/{equipmentId}")
     public void deleteById(@PathVariable Long equipmentId) {
         equipmentService.deleteById(equipmentId);
@@ -90,7 +102,7 @@ public class EquipmentController {
     }
 
     @RolesAllowed("super_admin")
-    @PostMapping(value = "/category/create")
+    @PostMapping(value = "/category/create", consumes = MediaType.APPLICATION_JSON_VALUE)
     public EquipmentCategory createNewEqCategory(@RequestBody @Valid EquipmentCategoryCreateDTO categoryCreateDTO) {
         return equipmentService.createNewCategory(categoryCreateDTO);
     }

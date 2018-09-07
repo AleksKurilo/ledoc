@@ -5,8 +5,9 @@ import dk.ledocsystem.ledoc.dto.equipment.AuthenticationTypeDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentCategoryCreateDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentCreateDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentEditDTO;
+import dk.ledocsystem.ledoc.dto.equipment.EquipmentLoadDTO;
 import dk.ledocsystem.ledoc.dto.projections.IdAndLocalizedName;
-import dk.ledocsystem.ledoc.model.AuthenticationType;
+import dk.ledocsystem.ledoc.model.equipment.AuthenticationType;
 import dk.ledocsystem.ledoc.model.equipment.Equipment;
 import dk.ledocsystem.ledoc.model.equipment.EquipmentCategory;
 import org.springframework.data.domain.Page;
@@ -37,6 +38,10 @@ public interface EquipmentService extends DomainService<Equipment> {
     Page<Equipment> getNewEquipment(Pageable pageable);
 
     Page<Equipment> getNewEquipment(Pageable pageable, Predicate predicate);
+
+    void loanEquipment(Long equipmentId, EquipmentLoadDTO equipmentLoadDTO);
+
+    void returnLoanedEquipment(Long equipmentId);
 
     List<IdAndLocalizedName> getAuthTypes();
 

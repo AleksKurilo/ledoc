@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.model.equipment;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import dk.ledocsystem.ledoc.model.*;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import lombok.EqualsAndHashCode;
@@ -100,6 +101,10 @@ public class Equipment implements Visitable {
 
     @Column(length = 400)
     private String remark;
+
+    @OneToOne(mappedBy = "equipment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private EquipmentLoan loan;
 
     @ManyToMany
     @JoinTable(name = "equipment_log",

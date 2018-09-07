@@ -7,12 +7,14 @@ import dk.ledocsystem.ledoc.dto.equipment.AuthenticationTypeDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentCategoryCreateDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentCreateDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentEditDTO;
+import dk.ledocsystem.ledoc.dto.equipment.EquipmentLoadDTO;
 import dk.ledocsystem.ledoc.dto.projections.IdAndLocalizedName;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
-import dk.ledocsystem.ledoc.model.AuthenticationType;
+import dk.ledocsystem.ledoc.model.equipment.AuthenticationType;
 import dk.ledocsystem.ledoc.model.equipment.Equipment;
 import dk.ledocsystem.ledoc.model.equipment.EquipmentCategory;
 import dk.ledocsystem.ledoc.model.Location;
+import dk.ledocsystem.ledoc.model.equipment.EquipmentLoan;
 import dk.ledocsystem.ledoc.model.equipment.QEquipment;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.model.equipment.ReviewFrequency;
@@ -125,6 +127,44 @@ class EquipmentServiceImpl implements EquipmentService {
         return equipmentRepository.save(equipment);
     }
 
+    @Override
+    public Page<Equipment> getNewEquipment(@NonNull Pageable pageable) {
+        return getNewEquipment(pageable, ARCHIVED_FALSE);
+    }
+
+    @Override
+    public Page<Equipment> getNewEquipment(@NonNull Pageable pageable, @NotNull Predicate predicate) {
+        Employee currentUser = employeeService.getCurrentUserReference();
+
+        Predicate newEquipmentPredicate = ExpressionUtils.and(
+                predicate,
+                ExpressionUtils.notIn(Expressions.constant(currentUser), QEquipment.equipment.visitedBy));
+        return getAll(newEquipmentPredicate, pageable);
+    }
+
+    @Override
+    @Transactional
+    public void loanEquipment(Long equipmentId, EquipmentLoadDTO equipmentLoadDTO) {
+        EquipmentLoan equipmentLoan = new EquipmentLoan();
+        BeanCopyUtils.copyProperties(equipmentLoadDTO, equipmentLoan);
+
+        equipmentLoan.setBorrower(resolveBorrower(equipmentLoadDTO.getBorrowerId()));
+        equipmentLoan.setLocation(resolveLocation(equipmentLoadDTO.getLocationId()));
+
+        Equipment equipment = equipmentRepository.findById(equipmentId)
+                .orElseThrow(() -> new NotFoundException("equipment.id.not.found", equipmentId.toString()));
+        equipmentLoan.setEquipment(equipment);
+        equipment.setLoan(equipmentLoan);
+    }
+
+    @Override
+    @Transactional
+    public void returnLoanedEquipment(Long equipmentId) {
+        Equipment equipment = equipmentRepository.findById(equipmentId)
+                .orElseThrow(() -> new NotFoundException("equipment.id.not.found", equipmentId.toString()));
+        equipment.setLoan(null);
+    }
+
     private EquipmentCategory resolveCategory(Long categoryId) {
         return equipmentCategoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("equipment.category.not.found", categoryId.toString()));
@@ -146,19 +186,9 @@ class EquipmentServiceImpl implements EquipmentService {
                         .orElseThrow(() -> new NotFoundException("equipment.authentication.type.not.found", authTypeId.toString()));
     }
 
-    @Override
-    public Page<Equipment> getNewEquipment(@NonNull Pageable pageable) {
-        return getNewEquipment(pageable, ARCHIVED_FALSE);
-    }
-
-    @Override
-    public Page<Equipment> getNewEquipment(@NonNull Pageable pageable, @NotNull Predicate predicate) {
-        Employee currentUser = employeeService.getCurrentUserReference();
-
-        Predicate newEquipmentPredicate = ExpressionUtils.and(
-                predicate,
-                ExpressionUtils.notIn(Expressions.constant(currentUser), QEquipment.equipment.visitedBy));
-        return getAll(newEquipmentPredicate, pageable);
+    private Employee resolveBorrower(Long borrowerId) {
+        return employeeService.getById(borrowerId)
+                .orElseThrow(() -> new NotFoundException("equipment.borrower.not.found", borrowerId.toString()));
     }
 
     @Override

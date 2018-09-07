@@ -1,0 +1,28 @@
+package dk.ledocsystem.ledoc.dto.equipment;
+
+import lombok.Getter;
+import lombok.Setter;
+
+import javax.validation.constraints.FutureOrPresent;
+import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
+
+@Getter
+@Setter
+public class EquipmentLoadDTO {
+
+    @NotNull
+    private Long borrowerId;
+
+    @NotNull
+    private Long locationId;
+
+    private Boolean shouldBeInspected;
+
+    private Boolean borrowerResponsibleForReview;
+
+    @FutureOrPresent
+    private LocalDate deadline;
+
+    private String comment;
+}

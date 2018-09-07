@@ -1,7 +1,7 @@
 package dk.ledocsystem.ledoc.repository;
 
 import dk.ledocsystem.ledoc.dto.projections.IdAndLocalizedName;
-import dk.ledocsystem.ledoc.model.AuthenticationType;
+import dk.ledocsystem.ledoc.model.equipment.AuthenticationType;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;

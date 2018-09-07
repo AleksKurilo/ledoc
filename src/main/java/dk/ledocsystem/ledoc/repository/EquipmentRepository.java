@@ -1,7 +1,11 @@
 package dk.ledocsystem.ledoc.repository;
 
+import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.model.equipment.Equipment;
 import dk.ledocsystem.ledoc.model.equipment.QEquipment;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -13,6 +17,10 @@ import java.util.Collection;
 
 public interface EquipmentRepository extends JpaRepository<Equipment, Long>, LoggingRepository<Equipment, Long>,
         QuerydslPredicateExecutor<Equipment>, QuerydslBinderCustomizer<QEquipment> {
+
+    @EntityGraph(attributePaths = "loan")
+    @Override
+    Page<Equipment> findAll(Predicate predicate, Pageable pageable);
 
     boolean existsByName(String name);
 
@@ -28,6 +36,6 @@ public interface EquipmentRepository extends JpaRepository<Equipment, Long>, Log
     @Override
     default void customize(QuerydslBindings bindings, QEquipment root) {
         bindings.including(root.responsible.id, root.archived, root.location.id,
-                root.category.id, root.authenticationType.id);
+                root.category.id, root.authenticationType.id, root.loan.borrower.id);
     }
 }
