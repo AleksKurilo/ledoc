@@ -41,7 +41,7 @@ class RestExceptionHandler {
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<RestResponse> handleAccessDenied(AccessDeniedException ex, Locale locale) {
+    public ResponseEntity<RestResponse> handleAccessDenied(AccessDeniedException ex) {
         return handleExceptionInternal(ex, new RestResponse("Access denied to given URL"));
     }
 

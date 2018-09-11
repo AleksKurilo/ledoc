@@ -82,7 +82,7 @@ public interface EmployeeService extends DomainService<Employee> {
 
     /**
      * @return A proxy, whose state can be lazily populated upon access until the end of current transaction.
-     * @see EntityManager#getReference(Class, Object)
+     * @see javax.persistence.EntityManager#getReference(Class, Object)
      */
     Employee getCurrentUserReference();
 

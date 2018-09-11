@@ -14,12 +14,12 @@ import dk.ledocsystem.ledoc.model.employee.QEmployee;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import dk.ledocsystem.ledoc.service.CustomerService;
+import dk.ledocsystem.ledoc.service.EmailTemplateService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.SimpleMailService;
 import dk.ledocsystem.ledoc.util.BeanCopyUtils;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,9 +29,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 
 @Service
@@ -47,9 +45,7 @@ class EmployeeServiceImpl implements EmployeeService {
     private final PasswordEncoder passwordEncoder;
     private final SimpleMailService mailService;
     private final JwtTokenService tokenService;
-
-    @Value("${spring.mail.username}")
-    private String fromEmailAddress;
+    private final EmailTemplateService emailTemplateService;
 
     @Override
     public List<Employee> getAll() {
@@ -226,18 +222,10 @@ class EmployeeServiceImpl implements EmployeeService {
                         .orElseThrow(() -> new NotFoundException("employee.responsible.not.found", responsibleId.toString()));
     }
 
-    private void buildAndSendMessage(EmployeeCreateDTO employeeCreateDTO) {
-        mailService.sendEmail(fromEmailAddress, employeeCreateDTO.getUsername(), WelcomeEmailHolder.TOPIC, buildBody(employeeCreateDTO));
-    }
+    public void buildAndSendMessage(EmployeeCreateDTO employeeCreateDTO) {
+        EmailTemplateService.EmailTemplate template = emailTemplateService.getTemplateLocalized("welcome");
+        String html = template.parseTemplate(employeeCreateDTO);
 
-    private String buildBody(EmployeeCreateDTO employeeCreateDTO) {
-        StringBuilder builder = new StringBuilder();
-        if (employeeCreateDTO.isWelcomeMessage()) {
-            builder.append(WelcomeEmailHolder.WELCOME_MESSAGE).append("\n\n");
-        }
-        builder.append(String.format(WelcomeEmailHolder.CREDENTIALS, employeeCreateDTO.getUsername(), employeeCreateDTO.getPassword()));
-        builder.append("\n\n");
-        builder.append(WelcomeEmailHolder.FOOTER);
-        return builder.toString();
+        mailService.sendMimeMessage(employeeCreateDTO.getUsername(), template.getSubject(), html);
     }
 }

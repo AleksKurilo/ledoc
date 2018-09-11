@@ -11,7 +11,7 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class TradeServiceImpl implements TradeService {
+class TradeServiceImpl implements TradeService {
 
     private final TradeRepository tradeRepository;
 
