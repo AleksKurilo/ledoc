@@ -5,16 +5,12 @@ import dk.ledocsystem.ledoc.excel.model.Sheet;
 import java.util.Arrays;
 import java.util.List;
 
-public class LocationsSheet implements Sheet {
+public class LocationsSheet extends AbstractLocationsSheet {
 
     private static final String QUERY = "select main.locations.name, " +
             "concat(main.employees.first_name, ' ', main.employees.last_name) as responsible\n" +
-            "from main.locations LEFT JOIN main.employees on main.locations.responsible_id = main.employees.id";
-
-    @Override
-    public List<String> getHeaders() {
-        return Arrays.asList("NAME", "RESPONSIBLE");
-    }
+            "from main.locations LEFT JOIN main.employees on main.locations.responsible_id = main.employees.id " +
+            "where main.locations.archived is false";
 
     @Override
     public String getQuery() {

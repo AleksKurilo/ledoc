@@ -7,6 +7,7 @@ import dk.ledocsystem.ledoc.excel.model.Sheet;
 import dk.ledocsystem.ledoc.exceptions.ExcelExportException;
 import lombok.AllArgsConstructor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.pmw.tinylog.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
@@ -33,7 +34,8 @@ public class ExcelExportServiceImpl implements ExcelExportService {
             workbook.write(bos);
         }
         catch (IOException e) {
-            throw new ExcelExportException("dashboard.excel.error", e.getMessage());
+            Logger.error(e);
+            throw new ExcelExportException("dashboard.excel.error");
         }
 
         return outputStream -> outputStream.write(bos.toByteArray());

@@ -2,7 +2,8 @@ package dk.ledocsystem.ledoc.excel.factory;
 
 import dk.ledocsystem.ledoc.excel.model.ModuleDTO;
 import dk.ledocsystem.ledoc.excel.model.Sheet;
-import org.springframework.context.annotation.Lazy;
+import dk.ledocsystem.ledoc.exceptions.LedocException;
+import org.pmw.tinylog.Logger;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -10,7 +11,6 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
-@Lazy
 public class SpreadSheetFactory {
 
     private static final String CLASSES_PACKAGE = "dk.ledocsystem.ledoc.excel.model.";
@@ -23,7 +23,7 @@ public class SpreadSheetFactory {
     private List<Sheet> getInplementations(ModuleDTO moduleDTO) {
         List<Sheet> result = new ArrayList<>(moduleDTO.getTables().length);
         Arrays.stream(moduleDTO.getTables()).forEach(t -> {
-            result.add(loadImpl(moduleDTO.getInput(), t));
+            result.add(loadImpl(moduleDTO.getModule(), t));
         });
 
         return result;
@@ -36,10 +36,9 @@ public class SpreadSheetFactory {
             Class<Sheet> impl = (Class<Sheet>)Class.forName(className);
             return impl.newInstance();
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
-            e.printStackTrace();
+            Logger.error(e);
+            throw new LedocException("dashboard.excel.error");
         }
-
-        return null;
     }
 
     private String getFullClassName(String module, String tableName) {

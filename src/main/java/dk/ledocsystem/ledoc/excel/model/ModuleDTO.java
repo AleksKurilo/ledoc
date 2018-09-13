@@ -7,7 +7,7 @@ import lombok.Setter;
 @Setter
 public class ModuleDTO {
 
-    private String input;
+    private String module;
 
     private String[] tables;
 }

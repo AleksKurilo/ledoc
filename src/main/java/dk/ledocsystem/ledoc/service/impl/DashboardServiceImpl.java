@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.pmw.tinylog.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -145,7 +146,8 @@ class DashboardServiceImpl implements DashboardService {
             workbook.write(bos);
         }
         catch (IOException e) {
-            throw new ExcelExportException("dashboard.excel.error", e.getMessage());
+            Logger.error(e);
+            throw new ExcelExportException("dashboard.excel.error");
         }
 
         return outputStream -> outputStream.write(bos.toByteArray());
