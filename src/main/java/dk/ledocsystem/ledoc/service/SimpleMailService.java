@@ -1,6 +1,9 @@
 package dk.ledocsystem.ledoc.service;
 
+import com.google.api.client.http.HttpResponse;
+import org.springframework.util.concurrent.ListenableFuture;
+
 public interface SimpleMailService {
 
-    void sendMimeMessage(String to, String subject, String body);
+    ListenableFuture<HttpResponse> sendMimeMessage(String to, String subject, String body);
 }

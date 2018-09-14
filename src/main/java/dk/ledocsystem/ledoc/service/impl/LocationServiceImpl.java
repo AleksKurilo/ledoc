@@ -7,7 +7,9 @@ import dk.ledocsystem.ledoc.dto.location.LocationCreateDTO;
 import dk.ledocsystem.ledoc.dto.location.LocationEditDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.*;
+import dk.ledocsystem.ledoc.model.email_notifications.EmailNotification;
 import dk.ledocsystem.ledoc.model.employee.Employee;
+import dk.ledocsystem.ledoc.repository.EmailNotificationRepository;
 import dk.ledocsystem.ledoc.repository.LocationRepository;
 import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
@@ -29,11 +31,11 @@ class LocationServiceImpl implements LocationService {
 
     private static final Function<Long, Predicate> CUSTOMER_EQUALS_QUERYDSL_PREDICATE =
             (customerId) -> ExpressionUtils.eqConst(ExpressionUtils.path(Location.class, "customer.id"), customerId);
-    private static final Predicate ARCHIVED_FALSE = ExpressionUtils.eqConst(QLocation.location.archived, false);
 
     private final LocationRepository locationRepository;
     private final EmployeeService employeeService;
     private final CustomerService customerService;
+    private final EmailNotificationRepository emailNotificationRepository;
 
     @Override
     public List<Location> getAll() {
@@ -42,7 +44,7 @@ class LocationServiceImpl implements LocationService {
 
     @Override
     public Page<Location> getAll(@NonNull Pageable pageable) {
-        return getAll(ARCHIVED_FALSE, pageable);
+        return getAll(null, pageable);
     }
 
     @Override
@@ -90,6 +92,9 @@ class LocationServiceImpl implements LocationService {
         location.setCustomer(customer);
         location.setResponsible(responsible);
         location.setEmployees(resolveEmployees(locationDTO.getEmployeeIds()));
+
+        sendMessages(responsible);
+        sendMessages(employeeService.getCurrentUserReference());
 
         return locationRepository.save(location);
     }
@@ -167,6 +172,11 @@ class LocationServiceImpl implements LocationService {
         if (locationEditDTO.getAddress() != null) {
             BeanCopyUtils.copyProperties(locationEditDTO.getAddress(), location.getAddress(), false);
         }
+    }
+
+    private void sendMessages(Employee employee) {
+        EmailNotification notification = new EmailNotification(employee.getUsername(), "location_created");
+        emailNotificationRepository.save(notification);
     }
 
     private Set<Employee> resolveEmployees(Collection<Long> employeeIds) {

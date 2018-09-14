@@ -17,21 +17,16 @@ import java.util.Locale;
 @RequiredArgsConstructor
 class EmailTemplateServiceImpl implements EmailTemplateService {
 
-    private static final String SUBJECT_KEY_SUFFIX = ".email.subject";
     private static final String TEMPLATE_SUFFIX = ".ftl";
     private final Configuration freemarkerConfig;
     private final MessageSource messageSource;
 
     @Override
-    public EmailTemplate getTemplateLocalized(String key) {
+    public EmailTemplate getTemplateLocalized(String key) throws IOException {
         Locale currentLocale = LocaleContextHolder.getLocale();
-        try {
-            String subject = messageSource.getMessage(key + SUBJECT_KEY_SUFFIX, null, currentLocale);
-            Template template = freemarkerConfig.getTemplate(key + TEMPLATE_SUFFIX, currentLocale);
-            return new EmailTemplateImpl(template, subject);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        String subject = messageSource.getMessage(key, null, currentLocale);
+        Template template = freemarkerConfig.getTemplate(key + TEMPLATE_SUFFIX, currentLocale);
+        return new EmailTemplateImpl(template, subject);
     }
 
     private static class EmailTemplateImpl extends EmailTemplate {
@@ -41,12 +36,8 @@ class EmailTemplateServiceImpl implements EmailTemplateService {
         }
 
         @Override
-        public String parseTemplate(Object modelObject) {
-            try {
-                return FreeMarkerTemplateUtils.processTemplateIntoString(getTemplate(), modelObject);
-            } catch (IOException | TemplateException e) {
-                throw new RuntimeException(e);
-            }
+        public String parseTemplate(Object modelObject) throws IOException, TemplateException {
+            return FreeMarkerTemplateUtils.processTemplateIntoString(getTemplate(), modelObject);
         }
     }
 }

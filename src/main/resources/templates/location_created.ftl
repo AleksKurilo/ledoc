@@ -1,0 +1,1 @@
+<p>New location created</p>

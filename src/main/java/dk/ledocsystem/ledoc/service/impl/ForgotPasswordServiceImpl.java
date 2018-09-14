@@ -5,17 +5,18 @@ import dk.ledocsystem.ledoc.dto.ForgotPasswordDTO;
 import dk.ledocsystem.ledoc.dto.ResetPasswordDTO;
 import dk.ledocsystem.ledoc.exceptions.InvalidCredentialsException;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
+import dk.ledocsystem.ledoc.model.email_notifications.EmailNotification;
 import dk.ledocsystem.ledoc.model.security.ResetToken;
+import dk.ledocsystem.ledoc.repository.EmailNotificationRepository;
 import dk.ledocsystem.ledoc.repository.ResetTokenRepository;
-import dk.ledocsystem.ledoc.service.EmailTemplateService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.ForgotPasswordService;
-import dk.ledocsystem.ledoc.service.SimpleMailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -23,9 +24,8 @@ import java.util.UUID;
 class ForgotPasswordServiceImpl implements ForgotPasswordService {
     private final EmployeeService employeeService;
     private final ResetTokenRepository resetTokenRepository;
-    private final SimpleMailService simpleMailService;
+    private final EmailNotificationRepository emailNotificationRepository;
     private final PasswordEncoder passwordEncoder;
-    private final EmailTemplateService emailTemplateService;
 
     @Override
     @Transactional
@@ -59,11 +59,9 @@ class ForgotPasswordServiceImpl implements ForgotPasswordService {
 
     private void sendResetEmail(String destination, String resetUrl, String token) {
         String link = resetUrl + "?" + token;
+        Map<String, Object> model = ImmutableMap.of("link", link);
+        EmailNotification linkEmail = new EmailNotification(destination, "reset_password", model);
 
-        EmailTemplateService.EmailTemplate template = emailTemplateService.getTemplateLocalized("reset_password");
-        Object model = ImmutableMap.of("link", link);
-        String html = template.parseTemplate(model);
-
-        simpleMailService.sendMimeMessage(destination, template.getSubject(), html);
+        emailNotificationRepository.save(linkEmail);
     }
 }

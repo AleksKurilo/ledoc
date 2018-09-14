@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.service.impl;
 
+import com.google.common.collect.ImmutableMap;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.Expressions;
@@ -9,14 +10,14 @@ import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeEditDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
+import dk.ledocsystem.ledoc.model.email_notifications.EmailNotification;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.model.employee.QEmployee;
+import dk.ledocsystem.ledoc.repository.EmailNotificationRepository;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import dk.ledocsystem.ledoc.service.CustomerService;
-import dk.ledocsystem.ledoc.service.EmailTemplateService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
-import dk.ledocsystem.ledoc.service.SimpleMailService;
 import dk.ledocsystem.ledoc.util.BeanCopyUtils;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,6 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.function.Function;
 
@@ -38,14 +38,12 @@ class EmployeeServiceImpl implements EmployeeService {
 
     private static final Function<Long, Predicate> CUSTOMER_EQUALS_TO =
             (customerId) -> ExpressionUtils.eqConst(QEmployee.employee.customer.id, customerId);
-    private static final Predicate ARCHIVED_FALSE = ExpressionUtils.eqConst(QEmployee.employee.archived, false);
 
     private final EmployeeRepository employeeRepository;
     private final CustomerService customerService;
     private final PasswordEncoder passwordEncoder;
-    private final SimpleMailService mailService;
     private final JwtTokenService tokenService;
-    private final EmailTemplateService emailTemplateService;
+    private final EmailNotificationRepository emailNotificationRepository;
 
     @Override
     public List<Employee> getAll() {
@@ -54,7 +52,7 @@ class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public Page<Employee> getAll(@NonNull Pageable pageable) {
-        return getAll(ARCHIVED_FALSE, pageable);
+        return getAll(null, pageable);
     }
 
     @Override
@@ -101,14 +99,16 @@ class EmployeeServiceImpl implements EmployeeService {
         BeanCopyUtils.copyProperties(employeeCreateDTO, employee);
         employee.setPassword(passwordEncoder.encode(employee.getPassword()));
         employee.setCustomer(customer);
-        employee.setResponsible(resolveResponsible(employeeCreateDTO.getResponsibleId()));
+
+        Employee responsible = resolveResponsible(employeeCreateDTO.getResponsibleId());
+        employee.setResponsible(responsible);
 
         Long skillResponsibleId = employeeCreateDTO.getDetails().getSkillResponsibleId();
         employee.getDetails().setResponsibleOfSkills(resolveResponsibleOfSkills(skillResponsibleId));
 
         employee = employeeRepository.save(employee);
 
-        buildAndSendMessage(employeeCreateDTO);
+        sendMessages(employeeCreateDTO, responsible);
         if (employeeCreateDTO.isCanCreatePersonalLocation()) {
             addAuthorities(employee.getId(), UserAuthorities.CAN_CREATE_PERSONAL_LOCATION);
         }
@@ -125,7 +125,9 @@ class EmployeeServiceImpl implements EmployeeService {
 
         Long responsibleId = employeeEditDTO.getResponsibleId();
         if (responsibleId != null) {
-            employee.setResponsible(resolveResponsible(responsibleId));
+            Employee responsible = resolveResponsible(responsibleId);
+            employee.setResponsible(responsible);
+            sendNotificationToResponsible(responsible);
         }
 
         Long skillResponsibleId = employeeEditDTO.getDetails().getSkillResponsibleId();
@@ -189,7 +191,7 @@ class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public Page<Employee> getNewEmployees(@NonNull Pageable pageable) {
-        return getNewEmployees(pageable, ARCHIVED_FALSE);
+        return getNewEmployees(pageable, null);
     }
 
     @Override
@@ -222,10 +224,28 @@ class EmployeeServiceImpl implements EmployeeService {
                         .orElseThrow(() -> new NotFoundException("employee.responsible.not.found", responsibleId.toString()));
     }
 
-    public void buildAndSendMessage(EmployeeCreateDTO employeeCreateDTO) {
-        EmailTemplateService.EmailTemplate template = emailTemplateService.getTemplateLocalized("welcome");
-        String html = template.parseTemplate(employeeCreateDTO);
+    public void sendMessages(EmployeeCreateDTO employee, Employee responsible) {
+        if (employee.isWelcomeMessage()) {
+            sendWelcomeMessage(employee);
+        }
 
-        mailService.sendMimeMessage(employeeCreateDTO.getUsername(), template.getSubject(), html);
+        if (responsible != null) {
+            sendNotificationToResponsible(responsible);
+        }
+    }
+
+    private void sendWelcomeMessage(EmployeeCreateDTO employee) {
+        Map<String, Object> model = ImmutableMap.<String, Object>builder()
+                .put("username", employee.getUsername())
+                .put("password", employee.getPassword())
+                .build();
+        EmailNotification welcomeMessage = new EmailNotification(employee.getUsername(), "welcome", model);
+        emailNotificationRepository.save(welcomeMessage);
+    }
+
+    private void sendNotificationToResponsible(Employee responsible) {
+        EmailNotification notification =
+                new EmailNotification(responsible.getUsername(), "employee_created");
+        emailNotificationRepository.save(notification);
     }
 }

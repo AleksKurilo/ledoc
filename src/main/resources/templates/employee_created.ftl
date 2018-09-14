@@ -1,0 +1,1 @@
+<p>New employee created email for responsible</p>

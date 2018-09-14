@@ -10,6 +10,7 @@ import dk.ledocsystem.ledoc.dto.equipment.EquipmentEditDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentLoadDTO;
 import dk.ledocsystem.ledoc.dto.projections.IdAndLocalizedName;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
+import dk.ledocsystem.ledoc.model.email_notifications.EmailNotification;
 import dk.ledocsystem.ledoc.model.equipment.AuthenticationType;
 import dk.ledocsystem.ledoc.model.equipment.Equipment;
 import dk.ledocsystem.ledoc.model.equipment.EquipmentCategory;
@@ -19,6 +20,7 @@ import dk.ledocsystem.ledoc.model.equipment.QEquipment;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.model.equipment.ReviewFrequency;
 import dk.ledocsystem.ledoc.repository.AuthenticationTypeRepository;
+import dk.ledocsystem.ledoc.repository.EmailNotificationRepository;
 import dk.ledocsystem.ledoc.repository.EquipmentCategoryRepository;
 import dk.ledocsystem.ledoc.repository.EquipmentRepository;
 import dk.ledocsystem.ledoc.service.CustomerService;
@@ -33,7 +35,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -45,7 +46,6 @@ class EquipmentServiceImpl implements EquipmentService {
 
     private static final Function<Long, Predicate> CUSTOMER_EQUALS_TO =
             (customerId) -> ExpressionUtils.eqConst(QEquipment.equipment.customer.id, customerId);
-    private static final Predicate ARCHIVED_FALSE = ExpressionUtils.eqConst(QEquipment.equipment.archived, false);
 
     private final EquipmentRepository equipmentRepository;
     private final EquipmentCategoryRepository equipmentCategoryRepository;
@@ -53,6 +53,7 @@ class EquipmentServiceImpl implements EquipmentService {
     private final CustomerService customerService;
     private final EmployeeService employeeService;
     private final LocationService locationService;
+    private final EmailNotificationRepository emailNotificationRepository;
 
     @Override
     public List<Equipment> getAll() {
@@ -61,7 +62,7 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     public Page<Equipment> getAll(@NonNull Pageable pageable) {
-        return getAll(ARCHIVED_FALSE, pageable);
+        return getAll(null, pageable);
     }
 
     @Override
@@ -87,12 +88,18 @@ class EquipmentServiceImpl implements EquipmentService {
         Equipment equipment = new Equipment();
         BeanCopyUtils.copyProperties(equipmentCreateDTO, equipment);
 
-        equipment.setCreator(employeeService.getCurrentUserReference());
+        Employee creator = employeeService.getCurrentUserReference();
+        Employee responsible = resolveResponsible(equipmentCreateDTO.getResponsibleId());
+
+        equipment.setCreator(creator);
+        equipment.setResponsible(responsible);
         equipment.setCustomer(customerService.getCurrentCustomerReference());
         equipment.setCategory(resolveCategory(equipmentCreateDTO.getCategoryId()));
         equipment.setLocation(resolveLocation(equipmentCreateDTO.getLocationId()));
-        equipment.setResponsible(resolveResponsible(equipmentCreateDTO.getResponsibleId()));
         equipment.setAuthenticationType(resolveAuthenticationType(equipmentCreateDTO.getAuthTypeId()));
+
+        sendMessages(creator);
+        sendMessages(responsible);
 
         return equipmentRepository.save(equipment);
     }
@@ -116,7 +123,9 @@ class EquipmentServiceImpl implements EquipmentService {
 
         Long responsibleId = equipmentEditDTO.getResponsibleId();
         if (responsibleId != null) {
-            equipment.setResponsible(resolveResponsible(responsibleId));
+            Employee responsible = resolveResponsible(responsibleId);
+            equipment.setResponsible(responsible);
+            sendMessages(responsible);
         }
 
         Long authTypeId = equipmentEditDTO.getAuthTypeId();
@@ -129,7 +138,7 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     public Page<Equipment> getNewEquipment(@NonNull Pageable pageable) {
-        return getNewEquipment(pageable, ARCHIVED_FALSE);
+        return getNewEquipment(pageable, null);
     }
 
     @Override
@@ -163,6 +172,11 @@ class EquipmentServiceImpl implements EquipmentService {
         Equipment equipment = equipmentRepository.findById(equipmentId)
                 .orElseThrow(() -> new NotFoundException("equipment.id.not.found", equipmentId.toString()));
         equipment.setLoan(null);
+    }
+
+    private void sendMessages(Employee employee) {
+        EmailNotification notification = new EmailNotification(employee.getUsername(), "equipment_created");
+        emailNotificationRepository.save(notification);
     }
 
     private EquipmentCategory resolveCategory(Long categoryId) {

@@ -30,6 +30,7 @@ public class LocationCreateDTO {
     @NotNull
     private Long responsibleId;
 
+    @NotNull
     @Builder.Default
     private Set<Long> employeeIds = Collections.emptySet();
 

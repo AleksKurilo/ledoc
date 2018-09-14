@@ -1,7 +1,6 @@
 package dk.ledocsystem.ledoc.service.impl;
 
 
-import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.location.LocationCreateDTO;
@@ -9,8 +8,10 @@ import dk.ledocsystem.ledoc.dto.customer.CustomerCreateDTO;
 import dk.ledocsystem.ledoc.dto.customer.CustomerEditDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.*;
+import dk.ledocsystem.ledoc.model.email_notifications.EmailNotification;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.repository.CustomerRepository;
+import dk.ledocsystem.ledoc.repository.EmailNotificationRepository;
 import dk.ledocsystem.ledoc.repository.TradeRepository;
 import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
@@ -18,7 +19,6 @@ import dk.ledocsystem.ledoc.service.LocationService;
 import dk.ledocsystem.ledoc.util.BeanCopyUtils;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,8 +31,6 @@ import java.util.*;
 @RequiredArgsConstructor(onConstructor = @__({@Lazy}))
 class CustomerServiceImpl implements CustomerService {
 
-    private static final Predicate ARCHIVED_FALSE = ExpressionUtils.eqConst(QCustomer.customer.archived, false);
-
     private final CustomerRepository customerRepository;
 
     private final EmployeeService employeeService;
@@ -41,8 +39,7 @@ class CustomerServiceImpl implements CustomerService {
 
     private final LocationService locationService;
 
-    @Value("${spring.mail.username}")
-    private String fromEmailAddress;
+    private final EmailNotificationRepository emailNotificationRepository;
 
     @Override
     public List<Customer> getAll() {
@@ -51,7 +48,7 @@ class CustomerServiceImpl implements CustomerService {
 
     @Override
     public Page<Customer> getAll(@NonNull Pageable pageable) {
-        return getAll(ARCHIVED_FALSE, pageable);
+        return customerRepository.findAll(pageable);
     }
 
     @Override
@@ -60,10 +57,8 @@ class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Page<Customer> getAll(Predicate predicate, @NonNull Pageable pageable) {
-        return (predicate != null)
-                ? customerRepository.findAll(predicate, pageable)
-                : customerRepository.findAll(pageable);
+    public Page<Customer> getAll(@NonNull Predicate predicate, @NonNull Pageable pageable) {
+        return customerRepository.findAll(predicate, pageable);
     }
 
     @Override
@@ -96,6 +91,7 @@ class CustomerServiceImpl implements CustomerService {
         Location location = locationService.createLocation(locationCreateDTO, customer, admin, true);
 
         admin.setPlaceOfEmployment(location);
+        sendNotificationToPointOfContact(pointOfContact);
 
         return customer;
     }
@@ -114,7 +110,9 @@ class CustomerServiceImpl implements CustomerService {
 
         Long pointOfContactId = customerEditDTO.getPointOfContactId();
         if (pointOfContactId != null) {
-            customer.setPointOfContact(resolvePointOfContact(pointOfContactId));
+            Employee pointOfContact = resolvePointOfContact(pointOfContactId);
+            customer.setPointOfContact(pointOfContact);
+            sendNotificationToPointOfContact(pointOfContact);
         }
 
         return customerRepository.save(customer);
@@ -145,5 +143,11 @@ class CustomerServiceImpl implements CustomerService {
 
     private Set<Trade> resolveTrades(Set<Long> ids) {
         return new HashSet<>(tradeRepository.findAllById(ids));
+    }
+
+    private void sendNotificationToPointOfContact(Employee pointOfContact) {
+        EmailNotification notification =
+                new EmailNotification(pointOfContact.getUsername(), "customer_created");
+        emailNotificationRepository.save(notification);
     }
 }
