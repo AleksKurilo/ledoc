@@ -51,7 +51,7 @@ class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public Page<Location> getAll(@NonNull Predicate predicate, @NonNull Pageable pageable) {
+    public Page<Location> getAll(Predicate predicate, @NonNull Pageable pageable) {
         Long currentCustomerId = customerService.getCurrentCustomerReference().getId();
         Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_QUERYDSL_PREDICATE.apply(currentCustomerId));
         return locationRepository.findAll(combinePredicate, pageable);

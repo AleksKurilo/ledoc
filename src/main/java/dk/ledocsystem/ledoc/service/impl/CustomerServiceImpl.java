@@ -60,8 +60,10 @@ class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Page<Customer> getAll(@NonNull Predicate predicate, @NonNull Pageable pageable) {
-        return customerRepository.findAll(predicate, pageable);
+    public Page<Customer> getAll(Predicate predicate, @NonNull Pageable pageable) {
+        return (predicate != null)
+                ? customerRepository.findAll(predicate, pageable)
+                : customerRepository.findAll(pageable);
     }
 
     @Override

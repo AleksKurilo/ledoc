@@ -96,7 +96,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Loggi
                 root.lastName, root.cellPhone, root.idNumber, root.initials, root.phoneNumber, root.details.title,
                 root.nearestRelative.email, root.nearestRelative.phoneNumber, root.personalInfo.personalMobile,
                 root.personalInfo.privateEmail,
-                ExpressionUtils.path(Employee.class, root, "locations.id"));
+                ExpressionUtils.path(Employee.class, root, "locations.id"),
+                ExpressionUtils.path(String.class, root, "name"));
+        bindings.bind(ExpressionUtils.path(String.class, root, "name"))
+                .first((path, val) -> root.firstName.concat(" ").concat(root.lastName).containsIgnoreCase(val));
         bindings.bind(String.class).first((SingleValueBinding<StringPath, String>) StringExpression::containsIgnoreCase);
     }
 }

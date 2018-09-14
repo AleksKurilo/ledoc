@@ -63,7 +63,7 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public Page<Employee> getAll(@NonNull Predicate predicate, @NonNull Pageable pageable) {
+    public Page<Employee> getAll(Predicate predicate, @NonNull Pageable pageable) {
         Long currentCustomerId = customerService.getCurrentCustomerReference().getId();
         Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(currentCustomerId));
         return employeeRepository.findAll(combinePredicate, pageable);
@@ -193,7 +193,7 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public Page<Employee> getNewEmployees(@NonNull Pageable pageable, @NotNull Predicate predicate) {
+    public Page<Employee> getNewEmployees(@NonNull Pageable pageable, Predicate predicate) {
         Employee currentUser = getCurrentUserReference();
 
         Predicate newEmployeesPredicate = ExpressionUtils.allOf(

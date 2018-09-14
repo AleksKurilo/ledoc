@@ -70,7 +70,7 @@ class EquipmentServiceImpl implements EquipmentService {
     }
 
     @Override
-    public Page<Equipment> getAll(@NonNull Predicate predicate, @NonNull Pageable pageable) {
+    public Page<Equipment> getAll(Predicate predicate, @NonNull Pageable pageable) {
         Long currentCustomerId = customerService.getCurrentCustomerReference().getId();
         Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(currentCustomerId));
         return equipmentRepository.findAll(combinePredicate, pageable);
@@ -133,7 +133,7 @@ class EquipmentServiceImpl implements EquipmentService {
     }
 
     @Override
-    public Page<Equipment> getNewEquipment(@NonNull Pageable pageable, @NotNull Predicate predicate) {
+    public Page<Equipment> getNewEquipment(@NonNull Pageable pageable, Predicate predicate) {
         Employee currentUser = employeeService.getCurrentUserReference();
 
         Predicate newEquipmentPredicate = ExpressionUtils.and(
