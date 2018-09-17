@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import javax.annotation.security.RolesAllowed;
+
 @RestController
 @AllArgsConstructor
 @RequestMapping("/excel")
@@ -20,7 +22,7 @@ public class ExcelExportController {
 
     private final ExcelExportService excelExportService;
 
-    @PreAuthorize("isFullyAuthenticated()")
+    //@RolesAllowed({"admin", "user"})
     @PostMapping(value = "/export", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<StreamingResponseBody> export(@RequestBody ModuleDTO moduleDTO) {
         Module.validate(moduleDTO.getModule(), moduleDTO.getTables());

@@ -1,6 +1,7 @@
 package dk.ledocsystem.ledoc.excel.service;
 
 import dk.ledocsystem.ledoc.excel.model.Row;
+import dk.ledocsystem.ledoc.excel.model.Sheet;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.lang.NonNull;
@@ -18,8 +19,8 @@ public class QueryExecutor {
     @Resource
     private JdbcTemplate jdbcTemplate;
 
-    List<Row> mapRows(String query) {
-        return jdbcTemplate.query(query, new InnerMapper());
+    List<Row> mapRows(Sheet sheet) {
+        return jdbcTemplate.query(sheet.getQuery(), sheet.getParams(), new InnerMapper());
     }
 
     public static class InnerMapper implements RowMapper<Row> {

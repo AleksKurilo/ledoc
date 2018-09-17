@@ -31,7 +31,7 @@ public class SpreadSheetBuilder {
 
     private void buildExcelSheet(Sheet sheet, XSSFWorkbook workbook) {
         XSSFSheet xssfSheet = workbook.createSheet(sheet.getName());
-        List<Row> rows = queryExecutor.mapRows(sheet.getQuery());
+        List<Row> rows = queryExecutor.mapRows(sheet);
 
         fillInHeader(sheet.getHeaders(), xssfSheet);
         fillInRows(rows, xssfSheet);
