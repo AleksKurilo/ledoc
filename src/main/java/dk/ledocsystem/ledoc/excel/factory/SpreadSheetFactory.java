@@ -22,10 +22,7 @@ public class SpreadSheetFactory {
 
     private List<Sheet> getInplementations(ModuleDTO moduleDTO) {
         List<Sheet> result = new ArrayList<>(moduleDTO.getTables().length);
-        Arrays.stream(moduleDTO.getTables()).forEach(t -> {
-            result.add(loadImpl(moduleDTO.getModule(), t));
-        });
-
+        Arrays.stream(moduleDTO.getTables()).forEach(t -> result.add(loadImpl(moduleDTO.getModule(), t)));
         return result;
     }
 
@@ -35,7 +32,8 @@ public class SpreadSheetFactory {
         try {
             Class<Sheet> impl = (Class<Sheet>)Class.forName(className);
             return impl.newInstance();
-        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+        }
+        catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
             Logger.error(e);
             throw new LedocException("dashboard.excel.error");
         }
@@ -47,5 +45,4 @@ public class SpreadSheetFactory {
                 tableName +
                 CLASSES_SUFFIX;
     }
-
 }
