@@ -17,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -49,7 +50,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                     .antMatchers(HttpMethod.GET, SWAGGER_RESOURCES).permitAll()
                     .antMatchers(HttpMethod.POST, "/password/forgot", "/password/reset").permitAll()
-                    .anyRequest().permitAll()
+                    .anyRequest().fullyAuthenticated()
                     .and()
                 .formLogin()
                     .permitAll()
@@ -57,6 +58,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .logout().disable()
                 .addFilter(usernamePasswordAuthenticationFilter())
                 .addFilter(new JwtAuthenticationFilter(authenticationManager(), tokenRegistry))
+                .exceptionHandling()
+                .authenticationEntryPoint(new Http403ForbiddenEntryPoint())
+                .and()
                 .csrf()
                     .disable()
                 .cors()

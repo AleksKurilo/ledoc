@@ -1,7 +1,6 @@
 package dk.ledocsystem.ledoc.config.security;
 
 import com.google.common.collect.Collections2;
-import dk.ledocsystem.ledoc.exceptions.TokenNotFoundException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -46,23 +45,24 @@ class JwtAuthenticationFilter extends BasicAuthenticationFilter {
             try {
                 validateToken(tokenValue, res);
             }
-            catch (TokenNotFoundException e) {
-                Logger.error(e.getMessage());
-                res.sendError(HttpStatus.FORBIDDEN.value(), "Invalid token. Login and get valid value.");
-            }
+
             catch (IOException e) {
                 Logger.error(e);
                 res.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Unexpected error on server side.");
+            }
+            catch (Exception e) {
+                Logger.error(e.getMessage());
+                res.sendError(HttpStatus.FORBIDDEN.value(), e.getMessage());
             }
         }
 
         chain.doFilter(req, res);
     }
 
-    private void validateToken(String inputToken, HttpServletResponse response) throws TokenNotFoundException, IOException {
+    private void validateToken(String inputToken, HttpServletResponse response) throws Exception {
         String validToken = tokenService.checkAndUpdateToken(inputToken);
         if (StringUtils.isBlank(validToken)) {
-            throw new TokenNotFoundException("Invalid token. Token value is not in DB");
+            throw new Exception("Invalid token. Token value is not in DB");
         } else {
             if (!inputToken.equals(validToken)) {
                 response.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + validToken);
