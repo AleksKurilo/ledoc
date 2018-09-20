@@ -42,7 +42,7 @@ class RestExceptionHandler {
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<RestResponse> handleAccessDenied(AccessDeniedException ex) {
-        return handleExceptionInternal(ex, new RestResponse("Access denied to given URL"));
+        return handleExceptionInternal(ex, new RestResponse(ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

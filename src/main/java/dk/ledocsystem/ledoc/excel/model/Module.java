@@ -1,11 +1,13 @@
 package dk.ledocsystem.ledoc.excel.model;
 
 import dk.ledocsystem.ledoc.excel.exception.InvalidModuleException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Module {
@@ -13,7 +15,7 @@ public class Module {
     private static final Map<String, String[]> USER_MODULES = new HashMap<>();
     private static final Map<String, String[]> ADMIN_MODULES = new HashMap<>();
 
-    private static final String ADMIN_ROLE = "ROLE_admin";
+    private static final String ADMIN_ROLE = "ROLE_super_admin";
     private static final String USER_ROLE = "ROLE_user";
 
     /*For further modules add module name if not already exists, then add table name. NOTE that table name should be
@@ -43,14 +45,20 @@ public class Module {
                     .getAuthorities().contains(new SimpleGrantedAuthority(USER_ROLE))) {
                 checkModule(USER_MODULES, module, tables);
             }
+            else {
+                throw new AccessDeniedException("Access denied for current user");
+            }
         }
     }
 
     private static void checkModule(Map<String, String[]> map, String module, String... tables) {
         String[] tableNames = map.get(module);
         if (tableNames != null) {
-            if (!Arrays.asList(tableNames).containsAll(Arrays.asList(tables))) {
-                throw new InvalidModuleException("excel.module.invalid", module);
+            List<String> tablesList = Arrays.asList(tableNames);
+            for (String table : tables) {
+                if (!tablesList.contains(table)) {
+                    throw new InvalidModuleException("excel.table.invalid", table);
+                }
             }
         }
         else {
