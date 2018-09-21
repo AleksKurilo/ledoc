@@ -56,4 +56,6 @@ public class EmployeeEditDTO {
 
     @Valid
     private EmployeeNearestRelativesDTO nearestRelative;
+
+    private Boolean archived;
 }

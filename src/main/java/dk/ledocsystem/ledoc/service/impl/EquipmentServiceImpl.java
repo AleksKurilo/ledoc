@@ -7,10 +7,11 @@ import dk.ledocsystem.ledoc.dto.equipment.AuthenticationTypeDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentCategoryCreateDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentCreateDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentEditDTO;
-import dk.ledocsystem.ledoc.dto.equipment.EquipmentLoadDTO;
+import dk.ledocsystem.ledoc.dto.equipment.EquipmentLoanDTO;
 import dk.ledocsystem.ledoc.dto.projections.IdAndLocalizedName;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.email_notifications.EmailNotification;
+import dk.ledocsystem.ledoc.model.equipment.ApprovalType;
 import dk.ledocsystem.ledoc.model.equipment.AuthenticationType;
 import dk.ledocsystem.ledoc.model.equipment.Equipment;
 import dk.ledocsystem.ledoc.model.equipment.EquipmentCategory;
@@ -18,7 +19,6 @@ import dk.ledocsystem.ledoc.model.Location;
 import dk.ledocsystem.ledoc.model.equipment.EquipmentLoan;
 import dk.ledocsystem.ledoc.model.equipment.QEquipment;
 import dk.ledocsystem.ledoc.model.employee.Employee;
-import dk.ledocsystem.ledoc.model.equipment.ReviewFrequency;
 import dk.ledocsystem.ledoc.repository.AuthenticationTypeRepository;
 import dk.ledocsystem.ledoc.repository.EmailNotificationRepository;
 import dk.ledocsystem.ledoc.repository.EquipmentCategoryRepository;
@@ -86,7 +86,7 @@ class EquipmentServiceImpl implements EquipmentService {
     @Transactional
     public Equipment createEquipment(@NonNull EquipmentCreateDTO equipmentCreateDTO) {
         Equipment equipment = new Equipment();
-        BeanCopyUtils.copyProperties(equipmentCreateDTO, equipment);
+        BeanCopyUtils.copyProperties(equipmentCreateDTO, equipment, false);
 
         Employee creator = employeeService.getCurrentUserReference();
         Employee responsible = resolveResponsible(equipmentCreateDTO.getResponsibleId());
@@ -133,6 +133,11 @@ class EquipmentServiceImpl implements EquipmentService {
             equipment.setAuthenticationType(resolveAuthenticationType(authTypeId));
         }
 
+        ApprovalType approvalType = equipmentEditDTO.getApprovalType();
+        if (approvalType != null && approvalType == ApprovalType.NO_NEED) {
+            equipment.eraseReviewDetails();
+        }
+
         return equipmentRepository.save(equipment);
     }
 
@@ -152,13 +157,18 @@ class EquipmentServiceImpl implements EquipmentService {
     }
 
     @Override
-    @Transactional
-    public void loanEquipment(Long equipmentId, EquipmentLoadDTO equipmentLoadDTO) {
-        EquipmentLoan equipmentLoan = new EquipmentLoan();
-        BeanCopyUtils.copyProperties(equipmentLoadDTO, equipmentLoan);
+    public List<Equipment> getAllForReview() {
+        return equipmentRepository.findAllByArchivedFalseAndNextReviewDateNotNull();
+    }
 
-        equipmentLoan.setBorrower(resolveBorrower(equipmentLoadDTO.getBorrowerId()));
-        equipmentLoan.setLocation(resolveLocation(equipmentLoadDTO.getLocationId()));
+    @Override
+    @Transactional
+    public void loanEquipment(Long equipmentId, EquipmentLoanDTO equipmentLoanDTO) {
+        EquipmentLoan equipmentLoan = new EquipmentLoan();
+        BeanCopyUtils.copyProperties(equipmentLoanDTO, equipmentLoan);
+
+        equipmentLoan.setBorrower(resolveBorrower(equipmentLoanDTO.getBorrowerId()));
+        equipmentLoan.setLocation(resolveLocation(equipmentLoanDTO.getLocationId()));
 
         Equipment equipment = equipmentRepository.findById(equipmentId)
                 .orElseThrow(() -> new NotFoundException("equipment.id.not.found", equipmentId.toString()));
@@ -221,9 +231,7 @@ class EquipmentServiceImpl implements EquipmentService {
     @Override
     public EquipmentCategory createNewCategory(EquipmentCategoryCreateDTO categoryCreateDTO) {
         EquipmentCategory category = new EquipmentCategory();
-        category.setNameEn(categoryCreateDTO.getNameEn());
-        category.setNameDa(categoryCreateDTO.getNameDa());
-        category.setReviewFrequency(ReviewFrequency.fromString(categoryCreateDTO.getReviewFrequency()));
+        BeanCopyUtils.copyProperties(categoryCreateDTO, category);
 
         return equipmentCategoryRepository.save(category);
     }

@@ -14,6 +14,7 @@ import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface EquipmentRepository extends JpaRepository<Equipment, Long>, LoggingRepository<Equipment, Long>,
         QuerydslPredicateExecutor<Equipment>, QuerydslBinderCustomizer<QEquipment> {
@@ -21,6 +22,9 @@ public interface EquipmentRepository extends JpaRepository<Equipment, Long>, Log
     @EntityGraph(attributePaths = "loan")
     @Override
     Page<Equipment> findAll(Predicate predicate, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"loan", "responsible"})
+    List<Equipment> findAllByArchivedFalseAndNextReviewDateNotNull();
 
     boolean existsByName(String name);
 

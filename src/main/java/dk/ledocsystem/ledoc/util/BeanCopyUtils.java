@@ -6,6 +6,7 @@ import org.springframework.beans.BeanUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.time.temporal.Temporal;
+import java.time.temporal.TemporalAmount;
 
 public final class BeanCopyUtils {
 
@@ -67,7 +68,8 @@ public final class BeanCopyUtils {
         }
 
         private static boolean isSimpleProperty(Class<?> clazz) {
-            return BeanUtils.isSimpleProperty(clazz) || Temporal.class.isAssignableFrom(clazz);
+            return BeanUtils.isSimpleProperty(clazz) || Temporal.class.isAssignableFrom(clazz)
+                    || TemporalAmount.class.isAssignableFrom(clazz);
         }
     }
 

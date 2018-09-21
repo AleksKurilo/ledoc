@@ -5,6 +5,7 @@ import dk.ledocsystem.ledoc.model.*;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.ColumnDefault;
@@ -16,6 +17,7 @@ import org.hibernate.annotations.OnDeleteAction;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.Set;
 
 @Setter
@@ -99,6 +101,16 @@ public class Equipment implements Visitable {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Customer customer;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "approval_type", nullable = false)
+    private ApprovalType approvalType;
+
+    @Column(name = "approval_rate")
+    private Period approvalRate;
+
+    @Column(name = "next_review_date")
+    private LocalDate nextReviewDate;
+
     @Column(length = 400)
     private String remark;
 
@@ -112,4 +124,23 @@ public class Equipment implements Visitable {
             inverseJoinColumns = { @JoinColumn(name = "employee_id") })
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Employee> visitedBy;
+
+    /**
+     * Automatically adjusts {@link #nextReviewDate} to the new value of approval rate.
+     * To erase approval rate use {@link #eraseReviewDetails()}.
+     * Setters methods are usually called from {@link dk.ledocsystem.ledoc.util.BeanCopyUtils}.
+     */
+    public void setApprovalRate(@NonNull Period approvalRate) {
+        this.nextReviewDate = getPrevReviewDate().plus(approvalRate);
+        this.approvalRate = approvalRate;
+    }
+
+    public void eraseReviewDetails() {
+        this.approvalRate = null;
+        this.nextReviewDate = null;
+    }
+
+    private LocalDate getPrevReviewDate() {
+        return (nextReviewDate != null) ? nextReviewDate.minus(approvalRate) : LocalDate.now();
+    }
 }

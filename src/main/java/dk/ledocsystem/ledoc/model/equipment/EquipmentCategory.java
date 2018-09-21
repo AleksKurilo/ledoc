@@ -6,8 +6,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
-import java.util.Set;
+import java.time.Period;
 
 @Setter
 @Getter
@@ -29,5 +28,5 @@ public class EquipmentCategory {
     private String nameDa;
 
     @Column(name = "review_frequency")
-    private ReviewFrequency reviewFrequency;
+    private Period reviewFrequency;
 }

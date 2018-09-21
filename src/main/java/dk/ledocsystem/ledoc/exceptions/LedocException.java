@@ -16,8 +16,4 @@ public class LedocException extends RuntimeException {
         this.params = params;
     }
 
-    public LedocException(String messageKey) {
-        this.messageKey = messageKey;
-    }
-
 }

@@ -19,14 +19,14 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-class EmailNotificationService {
+class EmailNotificationSender {
     private static final int MAX_RETRIES = 3;
 
     private final EmailNotificationRepository emailNotificationRepository;
     private final EmailTemplateService emailTemplateService;
     private final SimpleMailService simpleMailService;
 
-    @Scheduled(initialDelay = 5000, fixedDelay = 5000)
+    @Scheduled(initialDelay = 10000, fixedDelay = 10000)
     public void sendNotificationsScheduled() {
         List<EmailNotification> newNotifications = emailNotificationRepository.findTop100ByStatus(EmailNotificationStatus.NEW);
 

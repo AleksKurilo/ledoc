@@ -7,11 +7,13 @@ import com.querydsl.core.types.dsl.Expressions;
 import dk.ledocsystem.ledoc.config.security.JwtTokenService;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
+import dk.ledocsystem.ledoc.dto.employee.EmployeeDetailsEditDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeEditDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.email_notifications.EmailNotification;
 import dk.ledocsystem.ledoc.model.employee.Employee;
+import dk.ledocsystem.ledoc.model.employee.EmployeeDetails;
 import dk.ledocsystem.ledoc.model.employee.QEmployee;
 import dk.ledocsystem.ledoc.repository.EmailNotificationRepository;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
@@ -21,6 +23,7 @@ import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.util.BeanCopyUtils;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -96,15 +99,17 @@ class EmployeeServiceImpl implements EmployeeService {
     @Override
     public Employee createEmployee(@NonNull EmployeeCreateDTO employeeCreateDTO, @NonNull Customer customer) {
         Employee employee = new Employee();
-        BeanCopyUtils.copyProperties(employeeCreateDTO, employee);
+        BeanCopyUtils.copyProperties(employeeCreateDTO, employee, false);
         employee.setPassword(passwordEncoder.encode(employee.getPassword()));
         employee.setCustomer(customer);
 
         Employee responsible = resolveResponsible(employeeCreateDTO.getResponsibleId());
         employee.setResponsible(responsible);
 
-        Long skillResponsibleId = employeeCreateDTO.getDetails().getSkillResponsibleId();
-        employee.getDetails().setResponsibleOfSkills(resolveResponsibleOfSkills(skillResponsibleId));
+        if (shouldEmployeeBeReviewed(employeeCreateDTO)) {
+            Long skillResponsibleId = employeeCreateDTO.getDetails().getSkillResponsibleId();
+            employee.getDetails().setResponsibleOfSkills(resolveResponsibleOfSkills(skillResponsibleId));
+        }
 
         employee = employeeRepository.save(employee);
 
@@ -114,6 +119,10 @@ class EmployeeServiceImpl implements EmployeeService {
         }
 
         return employee;
+    }
+
+    private boolean shouldEmployeeBeReviewed(EmployeeCreateDTO employeeCreateDTO) {
+        return employeeCreateDTO.getDetails().getSkillAssessed();
     }
 
     @Transactional
@@ -130,12 +139,26 @@ class EmployeeServiceImpl implements EmployeeService {
             sendNotificationToResponsible(responsible);
         }
 
-        Long skillResponsibleId = employeeEditDTO.getDetails().getSkillResponsibleId();
-        if (skillResponsibleId != null) {
-            employee.getDetails().setResponsibleOfSkills(resolveResponsibleOfSkills(skillResponsibleId));
+        if (employeeDetailsChanged(employeeEditDTO)) {
+            updateReviewDetails(employeeEditDTO.getDetails(), employee.getDetails());
         }
 
         return employeeRepository.save(employee);
+    }
+
+    private boolean employeeDetailsChanged(EmployeeEditDTO employeeEditDTO) {
+        return employeeEditDTO.getDetails() != null;
+    }
+
+    private void updateReviewDetails(EmployeeDetailsEditDTO editDTO, EmployeeDetails employeeDetails) {
+         if (BooleanUtils.isFalse(editDTO.getSkillAssessed())) {
+            employeeDetails.eraseReviewDetails();
+        } else {
+            Long skillResponsibleId = editDTO.getSkillResponsibleId();
+            if (skillResponsibleId != null) {
+                employeeDetails.setResponsibleOfSkills(resolveResponsibleOfSkills(skillResponsibleId));
+            }
+        }
     }
 
     @Override
@@ -170,11 +193,6 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public Optional<Employee> getByUsername(@NonNull String username) {
-        return employeeRepository.findByUsername(username);
-    }
-
-    @Override
     public boolean existsByUsername(@NonNull String username) {
         return employeeRepository.existsByUsername(username);
     }
@@ -182,6 +200,11 @@ class EmployeeServiceImpl implements EmployeeService {
     @Override
     public List<Employee> findAllById(@NonNull Collection<Long> ids) {
         return employeeRepository.findAllById(ids);
+    }
+
+    @Override
+    public List<Employee> getAllForReview() {
+        return employeeRepository.findAllForReview();
     }
 
     @Override
@@ -213,9 +236,8 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     private Employee resolveResponsibleOfSkills(Long responsibleId) {
-        return (responsibleId == null) ? null :
-                getById(responsibleId)
-                        .orElseThrow(() -> new NotFoundException("employee.responsible.of.skills.not.found", responsibleId.toString()));
+        return getById(responsibleId)
+                .orElseThrow(() -> new NotFoundException("employee.responsible.of.skills.not.found", responsibleId.toString()));
     }
 
     private Employee resolveResponsible(Long responsibleId) {

@@ -5,7 +5,7 @@ import dk.ledocsystem.ledoc.dto.equipment.AuthenticationTypeDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentCategoryCreateDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentCreateDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentEditDTO;
-import dk.ledocsystem.ledoc.dto.equipment.EquipmentLoadDTO;
+import dk.ledocsystem.ledoc.dto.equipment.EquipmentLoanDTO;
 import dk.ledocsystem.ledoc.dto.projections.IdAndLocalizedName;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.equipment.AuthenticationType;
@@ -82,8 +82,8 @@ public class EquipmentController {
 
     @PostMapping(value = "/loan/{equipmentId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public void loanEquipment(@PathVariable Long equipmentId,
-                              @RequestBody @Valid EquipmentLoadDTO equipmentLoadDTO) {
-        equipmentService.loanEquipment(equipmentId, equipmentLoadDTO);
+                              @RequestBody @Valid EquipmentLoanDTO equipmentLoanDTO) {
+        equipmentService.loanEquipment(equipmentId, equipmentLoanDTO);
     }
 
     @PostMapping(value = "/loan/{equipmentId}/return")

@@ -12,7 +12,6 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 public interface EmployeeService extends DomainService<Employee> {
 
@@ -70,7 +69,10 @@ public interface EmployeeService extends DomainService<Employee> {
 
     List<Employee> findAllById(Collection<Long> ids);
 
-    Optional<Employee> getByUsername(String username);
+    /**
+     * @return All employees eligible for review
+     */
+    List<Employee> getAllForReview();
 
     boolean existsByUsername(String username);
 

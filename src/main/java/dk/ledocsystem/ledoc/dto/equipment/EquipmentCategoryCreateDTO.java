@@ -6,6 +6,8 @@ import dk.ledocsystem.ledoc.annotations.validation.equipment.category.UniqueCate
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Period;
+
 @Getter
 @Setter
 public class EquipmentCategoryCreateDTO {
@@ -18,5 +20,5 @@ public class EquipmentCategoryCreateDTO {
     @UniqueCategoryNameDa
     private String nameDa;
 
-    private String reviewFrequency;
+    private Period reviewFrequency;
 }

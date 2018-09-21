@@ -5,7 +5,7 @@ import dk.ledocsystem.ledoc.dto.equipment.AuthenticationTypeDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentCategoryCreateDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentCreateDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentEditDTO;
-import dk.ledocsystem.ledoc.dto.equipment.EquipmentLoadDTO;
+import dk.ledocsystem.ledoc.dto.equipment.EquipmentLoanDTO;
 import dk.ledocsystem.ledoc.dto.projections.IdAndLocalizedName;
 import dk.ledocsystem.ledoc.model.equipment.AuthenticationType;
 import dk.ledocsystem.ledoc.model.equipment.Equipment;
@@ -13,7 +13,6 @@ import dk.ledocsystem.ledoc.model.equipment.EquipmentCategory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import javax.validation.Valid;
 import java.util.List;
 
 public interface EquipmentService extends DomainService<Equipment> {
@@ -39,7 +38,12 @@ public interface EquipmentService extends DomainService<Equipment> {
 
     Page<Equipment> getNewEquipment(Pageable pageable, Predicate predicate);
 
-    void loanEquipment(Long equipmentId, EquipmentLoadDTO equipmentLoadDTO);
+    /**
+     * @return All equipment eligible for review
+     */
+    List<Equipment> getAllForReview();
+
+    void loanEquipment(Long equipmentId, EquipmentLoanDTO equipmentLoanDTO);
 
     void returnLoanedEquipment(Long equipmentId);
 

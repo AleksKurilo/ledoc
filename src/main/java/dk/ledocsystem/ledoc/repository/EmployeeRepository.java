@@ -90,6 +90,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Loggi
      */
     List<EmployeeDataExcel> findAllByAuthoritiesIn(List<UserAuthorities> authorities);
 
+    @Query("select e from Employee e join fetch e.details.responsibleOfSkills where e.archived = false")
+    List<Employee> findAllForReview();
+
     @Override
     default void customize(QuerydslBindings bindings, QEmployee root) {
         bindings.including(root.archived, root.responsible.id, root.authorities, root.username, root.firstName,
