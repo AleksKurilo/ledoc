@@ -68,6 +68,7 @@ public class Employee implements Visitable, NamedEntity {
             joinColumns = { @JoinColumn(name = "visited_id")},
             inverseJoinColumns = { @JoinColumn(name = "employee_id",
                     foreignKey = @ForeignKey(foreignKeyDefinition = "foreign key (employee_id) references employees on delete cascade")) })
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Employee> visitedBy;
 
     @ManyToOne(fetch = FetchType.LAZY)

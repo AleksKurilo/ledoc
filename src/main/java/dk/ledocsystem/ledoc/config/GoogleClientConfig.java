@@ -15,9 +15,12 @@ import com.google.api.services.gmail.GmailScopes;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
@@ -28,7 +31,7 @@ public class GoogleClientConfig {
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
     private static final List<String> SCOPES = Collections.singletonList(GmailScopes.GMAIL_SEND);
     private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
-    private static final String TOKENS_DIRECTORY_PATH = "tokens";
+    private static final String TOKENS_FILE = "tokens/StoredCredential";
 
     @Bean
     public HttpTransport httpTransport() throws GeneralSecurityException, IOException {
@@ -44,7 +47,7 @@ public class GoogleClientConfig {
         // Build flow and trigger user authorization request.
         GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
                 httpTransport, JSON_FACTORY, clientSecrets, SCOPES)
-                .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(TOKENS_DIRECTORY_PATH)))
+                .setDataStoreFactory(new FileDataStoreFactory(getTokensDirectory()))
                 .setAccessType("offline")
                 .build();
         return new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("me");
@@ -55,5 +58,12 @@ public class GoogleClientConfig {
         return new Gmail.Builder(httpTransport, JSON_FACTORY, getCredentials(httpTransport))
                 .setApplicationName(APPLICATION_NAME)
                 .build();
+    }
+
+    private File getTokensDirectory() throws IOException {
+        InputStream tokensFile = getClass().getClassLoader().getResourceAsStream(TOKENS_FILE);
+        Path tempDirectory = Files.createTempDirectory(null);
+        Files.copy(tokensFile, tempDirectory.resolve("StoredCredential"));
+        return tempDirectory.toFile();
     }
 }
