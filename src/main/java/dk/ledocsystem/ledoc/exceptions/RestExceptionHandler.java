@@ -2,6 +2,7 @@ package dk.ledocsystem.ledoc.exceptions;
 
 import lombok.RequiredArgsConstructor;
 import org.pmw.tinylog.Logger;
+import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.context.MessageSource;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.http.HttpStatus;
@@ -13,13 +14,14 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
 @ControllerAdvice
 @RequiredArgsConstructor
-class RestExceptionHandler {
+class RestExceptionHandler implements AsyncUncaughtExceptionHandler {
 
     private static final String UNEXPECTED_ERROR = "Exception.unexpected";
     private final MessageSource messageSource;
@@ -49,6 +51,11 @@ class RestExceptionHandler {
     public ResponseEntity<RestResponse> handleException(Exception ex, Locale locale) {
         String errorMessage = messageSource.getMessage(UNEXPECTED_ERROR, null, locale);
         return handleExceptionInternal(ex, new RestResponse(errorMessage));
+    }
+
+    @Override
+    public void handleUncaughtException(Throwable ex, Method method, Object... params) {
+        Logger.error(RestResponse.logMessageFrom(ex));
     }
 
     private ResponseEntity<RestResponse> handleExceptionInternal(Exception ex, RestResponse error) {
