@@ -4,9 +4,9 @@ import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeEditDTO;
+import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.employee.Employee;
-import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -54,7 +54,7 @@ public class EmployeeController {
                 .orElseThrow(() -> new NotFoundException("employee.id.not.found", employeeId.toString()));
     }
 
-    //@RolesAllowed("admin")
+    @RolesAllowed("admin")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public Employee createEmployee(@RequestBody @Valid EmployeeCreateDTO employeeCreateDTO) {
         return employeeService.createEmployee(employeeCreateDTO);
