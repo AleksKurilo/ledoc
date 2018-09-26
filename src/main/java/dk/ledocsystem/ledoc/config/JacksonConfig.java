@@ -1,6 +1,7 @@
 package dk.ledocsystem.ledoc.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
@@ -24,6 +25,7 @@ public class JacksonConfig {
         return Jackson2ObjectMapperBuilder.json()
                 .modulesToInstall(jacksonHibernateModule())
                 .dateFormat(DateFormat.getDateInstance())
+                .featuresToDisable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
                 .serializationInclusion(JsonInclude.Include.NON_EMPTY)
                 .build();
     }

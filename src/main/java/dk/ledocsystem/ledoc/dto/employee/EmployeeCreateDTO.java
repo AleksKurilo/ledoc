@@ -59,7 +59,6 @@ public class EmployeeCreateDTO {
     private LocalDate expireOfIdCard;
 
     @Valid
-    @NotNull
     private EmployeeDetailsCreateDTO details;
 
     @Valid
