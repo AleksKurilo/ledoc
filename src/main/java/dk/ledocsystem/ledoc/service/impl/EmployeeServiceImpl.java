@@ -12,6 +12,7 @@ import dk.ledocsystem.ledoc.dto.employee.EmployeeEditDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.email_notifications.EmailNotification;
+import dk.ledocsystem.ledoc.model.Avatar;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.model.employee.EmployeeDetails;
 import dk.ledocsystem.ledoc.model.employee.QEmployee;
@@ -111,6 +112,8 @@ class EmployeeServiceImpl implements EmployeeService {
             employee.getDetails().setResponsibleOfSkills(resolveResponsibleOfSkills(skillResponsibleId));
         }
 
+        setAvatar(employeeCreateDTO.getAvatar(), employee);
+
         employee = employeeRepository.save(employee);
 
         sendMessages(employeeCreateDTO, responsible);
@@ -142,7 +145,7 @@ class EmployeeServiceImpl implements EmployeeService {
         if (employeeDetailsChanged(employeeEditDTO)) {
             updateReviewDetails(employeeEditDTO.getDetails(), employee.getDetails());
         }
-
+        setAvatar(employeeEditDTO.getAvatar(), employee);
         return employeeRepository.save(employee);
     }
 
@@ -244,6 +247,14 @@ class EmployeeServiceImpl implements EmployeeService {
         return (responsibleId == null) ? null :
                 getById(responsibleId)
                         .orElseThrow(() -> new NotFoundException("employee.responsible.not.found", responsibleId.toString()));
+    }
+
+    private void setAvatar(String avatar, Employee employee) {
+        if(avatar != null) {
+            Avatar employeeAvatar = new Avatar();
+            employeeAvatar.setAvatar(avatar);
+            employee.setAvatarEmployee(employeeAvatar);
+        }
     }
 
     public void sendMessages(EmployeeCreateDTO employee, Employee responsible) {

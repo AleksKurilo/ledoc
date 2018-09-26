@@ -54,7 +54,7 @@ public class EmployeeController {
                 .orElseThrow(() -> new NotFoundException("employee.id.not.found", employeeId.toString()));
     }
 
-    @RolesAllowed("admin")
+    //@RolesAllowed("admin")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public Employee createEmployee(@RequestBody @Valid EmployeeCreateDTO employeeCreateDTO) {
         return employeeService.createEmployee(employeeCreateDTO);

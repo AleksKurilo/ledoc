@@ -67,4 +67,6 @@ public class EquipmentCreateDTO {
     @Size(max = 400)
     @OnlyAscii
     private String remark;
+
+    private String avatar;
 }

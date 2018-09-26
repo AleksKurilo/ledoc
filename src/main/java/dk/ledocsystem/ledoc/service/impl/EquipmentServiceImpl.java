@@ -12,12 +12,9 @@ import dk.ledocsystem.ledoc.dto.projections.IdAndLocalizedName;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.email_notifications.EmailNotification;
 import dk.ledocsystem.ledoc.model.equipment.ApprovalType;
-import dk.ledocsystem.ledoc.model.equipment.AuthenticationType;
-import dk.ledocsystem.ledoc.model.equipment.Equipment;
-import dk.ledocsystem.ledoc.model.equipment.EquipmentCategory;
+import dk.ledocsystem.ledoc.model.Avatar;
+import dk.ledocsystem.ledoc.model.equipment.*;
 import dk.ledocsystem.ledoc.model.Location;
-import dk.ledocsystem.ledoc.model.equipment.EquipmentLoan;
-import dk.ledocsystem.ledoc.model.equipment.QEquipment;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.repository.AuthenticationTypeRepository;
 import dk.ledocsystem.ledoc.repository.EmailNotificationRepository;
@@ -97,6 +94,7 @@ class EquipmentServiceImpl implements EquipmentService {
         equipment.setCategory(resolveCategory(equipmentCreateDTO.getCategoryId()));
         equipment.setLocation(resolveLocation(equipmentCreateDTO.getLocationId()));
         equipment.setAuthenticationType(resolveAuthenticationType(equipmentCreateDTO.getAuthTypeId()));
+        setAvatar(equipmentCreateDTO.getAvatar(), equipment);
 
         sendMessages(creator);
         sendMessages(responsible);
@@ -137,8 +135,16 @@ class EquipmentServiceImpl implements EquipmentService {
         if (approvalType != null && approvalType == ApprovalType.NO_NEED) {
             equipment.eraseReviewDetails();
         }
-
+        setAvatar(equipmentEditDTO.getAvatar(), equipment);
         return equipmentRepository.save(equipment);
+    }
+
+    private void setAvatar(String avatar, Equipment equipment) {
+        if(avatar != null) {
+            Avatar equipmentAvatar = new Avatar();
+            equipmentAvatar.setAvatar(avatar);
+            equipment.setAvatarEquipment(equipmentAvatar);
+        }
     }
 
     @Override

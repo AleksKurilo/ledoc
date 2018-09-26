@@ -1,11 +1,11 @@
 package dk.ledocsystem.ledoc.model.employee;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
-import dk.ledocsystem.ledoc.model.Customer;
-import dk.ledocsystem.ledoc.model.NamedEntity;
-import dk.ledocsystem.ledoc.model.Visitable;
-import dk.ledocsystem.ledoc.model.Location;
+import dk.ledocsystem.ledoc.model.*;
 import lombok.*;
 import org.hibernate.annotations.*;
 
@@ -94,6 +94,9 @@ public class Employee implements Visitable, NamedEntity {
     @Embedded
     private EmployeeNearestRelative nearestRelative = new EmployeeNearestRelative();
 
+    @Embedded
+    private Avatar avatarEmployee = new Avatar();
+
     @ManyToMany(mappedBy = "employees")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Location> locations;
@@ -113,5 +116,10 @@ public class Employee implements Visitable, NamedEntity {
     @Override
     public String getName() {
         return firstName + " " + lastName;
+    }
+
+    @JsonUnwrapped
+    public Avatar getAvatarEmployee(){
+        return avatarEmployee;
     }
 }

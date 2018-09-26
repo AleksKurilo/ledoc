@@ -51,6 +51,8 @@ public class EmployeeEditDTO {
 
     private LocalDate expireOfIdCard;
 
+    private String avatar;
+
     @Valid
     private EmployeeDetailsEditDTO details;
 

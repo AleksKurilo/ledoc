@@ -58,6 +58,8 @@ public class EmployeeCreateDTO {
 
     private LocalDate expireOfIdCard;
 
+    private String avatar;
+
     @Valid
     @NotNull
     private EmployeeDetailsCreateDTO details;

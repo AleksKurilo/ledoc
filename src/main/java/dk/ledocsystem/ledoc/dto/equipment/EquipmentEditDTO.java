@@ -65,4 +65,6 @@ public class EquipmentEditDTO {
     @Size(max = 400)
     @OnlyAscii
     private String remark;
+
+    private String avatar;
 }

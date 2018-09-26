@@ -1,7 +1,11 @@
 package dk.ledocsystem.ledoc.model.equipment;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import dk.ledocsystem.ledoc.model.*;
+import dk.ledocsystem.ledoc.model.Avatar;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -80,6 +84,9 @@ public class Equipment implements Visitable {
     @Column(name = "archive_reason")
     private String archiveReason;
 
+    @Embedded
+    private Avatar avatarEquipment = new Avatar();
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "auth_type_id")
     private AuthenticationType authenticationType;
@@ -142,5 +149,10 @@ public class Equipment implements Visitable {
 
     private LocalDate getPrevReviewDate() {
         return (nextReviewDate != null) ? nextReviewDate.minus(approvalRate) : LocalDate.now();
+    }
+
+    @JsonUnwrapped
+    public Avatar getAvatarEquipment(){
+        return avatarEquipment;
     }
 }
