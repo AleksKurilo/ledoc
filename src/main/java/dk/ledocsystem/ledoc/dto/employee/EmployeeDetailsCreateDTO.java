@@ -12,11 +12,8 @@ import java.time.Period;
 @ReviewDetails
 public class EmployeeDetailsCreateDTO {
 
-    @NotNull
-    private String title;
-
     @OnlyAscii
-    @Size(max = 500)
+    @Size(max = 400)
     private String comment;
 
     @NotNull

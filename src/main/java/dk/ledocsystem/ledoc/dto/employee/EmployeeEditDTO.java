@@ -42,6 +42,9 @@ public class EmployeeEditDTO {
     @MobilePhone
     private String phoneNumber;
 
+    @Size(min = 2, max = 40)
+    private String title;
+
     private Long responsibleId;
 
     private Boolean canCreatePersonalLocation;

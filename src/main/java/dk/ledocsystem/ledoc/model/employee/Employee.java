@@ -58,6 +58,9 @@ public class Employee implements Visitable, NamedEntity {
     @Column(name = "phone_number", length = 40)
     private String phoneNumber;
 
+    @Column(length = 40)
+    private String title;
+
     @ElementCollection
     @CollectionTable(name = "employee_authorities")
     @Column(name = "authority", nullable = false)

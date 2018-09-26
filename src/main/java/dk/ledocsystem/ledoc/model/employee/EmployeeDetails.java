@@ -9,14 +9,10 @@ import java.time.Period;
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString(of = "title")
 @Embeddable
 public class EmployeeDetails {
 
-    @Column(nullable = false)
-    private String title;
-
-    @Column
+    @Column(length = 400)
     private String comment;
 
     @Column(name = "review_frequency")

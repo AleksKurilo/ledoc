@@ -122,7 +122,7 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     private boolean shouldEmployeeBeReviewed(EmployeeCreateDTO employeeCreateDTO) {
-        return employeeCreateDTO.getDetails().getSkillAssessed();
+        return employeeCreateDTO.getDetails() != null && employeeCreateDTO.getDetails().getSkillAssessed();
     }
 
     @Transactional

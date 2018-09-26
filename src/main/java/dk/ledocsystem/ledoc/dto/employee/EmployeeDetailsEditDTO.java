@@ -11,10 +11,8 @@ import java.time.Period;
 @ReviewDetails
 public class EmployeeDetailsEditDTO {
 
-    private String title;
-
     @OnlyAscii
-    @Size(max = 500)
+    @Size(max = 400)
     private String comment;
 
     private Boolean skillAssessed;
