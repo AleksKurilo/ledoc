@@ -1,14 +1,19 @@
 package dk.ledocsystem.ledoc.dto.equipment;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import dk.ledocsystem.ledoc.annotations.validation.OnlyAscii;
 import dk.ledocsystem.ledoc.annotations.validation.equipment.UniqueName;
 import dk.ledocsystem.ledoc.annotations.validation.review.ReviewDetails;
+import dk.ledocsystem.ledoc.model.Avatar;
 import dk.ledocsystem.ledoc.model.equipment.ApprovalType;
 import dk.ledocsystem.ledoc.model.equipment.Status;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.validation.constraints.*;
+import javax.validation.constraints.FutureOrPresent;
+import javax.validation.constraints.PastOrPresent;
+import javax.validation.constraints.PositiveOrZero;
+import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Period;
@@ -65,4 +70,7 @@ public class EquipmentEditDTO {
     @Size(max = 400)
     @OnlyAscii
     private String remark;
+
+    @JsonUnwrapped
+    private Avatar avatar;
 }

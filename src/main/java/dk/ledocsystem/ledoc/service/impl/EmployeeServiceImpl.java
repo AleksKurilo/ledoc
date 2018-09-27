@@ -9,6 +9,7 @@ import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeDetailsEditDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeEditDTO;
+import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.email_notifications.EmailNotification;
@@ -17,7 +18,6 @@ import dk.ledocsystem.ledoc.model.employee.EmployeeDetails;
 import dk.ledocsystem.ledoc.model.employee.QEmployee;
 import dk.ledocsystem.ledoc.repository.EmailNotificationRepository;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
-import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.util.BeanCopyUtils;
@@ -32,7 +32,10 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 @Service
@@ -40,7 +43,7 @@ import java.util.function.Function;
 class EmployeeServiceImpl implements EmployeeService {
 
     private static final Function<Long, Predicate> CUSTOMER_EQUALS_TO =
-            (customerId) -> ExpressionUtils.eqConst(QEmployee.employee.customer.id, customerId);
+            customerId -> ExpressionUtils.eqConst(QEmployee.employee.customer.id, customerId);
 
     private final EmployeeRepository employeeRepository;
     private final CustomerService customerService;
@@ -142,7 +145,6 @@ class EmployeeServiceImpl implements EmployeeService {
         if (employeeDetailsChanged(employeeEditDTO)) {
             updateReviewDetails(employeeEditDTO.getDetails(), employee.getDetails());
         }
-
         return employeeRepository.save(employee);
     }
 

@@ -3,22 +3,13 @@ package dk.ledocsystem.ledoc.service.impl;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.Expressions;
-import dk.ledocsystem.ledoc.dto.equipment.AuthenticationTypeDTO;
-import dk.ledocsystem.ledoc.dto.equipment.EquipmentCategoryCreateDTO;
-import dk.ledocsystem.ledoc.dto.equipment.EquipmentCreateDTO;
-import dk.ledocsystem.ledoc.dto.equipment.EquipmentEditDTO;
-import dk.ledocsystem.ledoc.dto.equipment.EquipmentLoanDTO;
+import dk.ledocsystem.ledoc.dto.equipment.*;
 import dk.ledocsystem.ledoc.dto.projections.IdAndLocalizedName;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
-import dk.ledocsystem.ledoc.model.email_notifications.EmailNotification;
-import dk.ledocsystem.ledoc.model.equipment.ApprovalType;
-import dk.ledocsystem.ledoc.model.equipment.AuthenticationType;
-import dk.ledocsystem.ledoc.model.equipment.Equipment;
-import dk.ledocsystem.ledoc.model.equipment.EquipmentCategory;
 import dk.ledocsystem.ledoc.model.Location;
-import dk.ledocsystem.ledoc.model.equipment.EquipmentLoan;
-import dk.ledocsystem.ledoc.model.equipment.QEquipment;
+import dk.ledocsystem.ledoc.model.email_notifications.EmailNotification;
 import dk.ledocsystem.ledoc.model.employee.Employee;
+import dk.ledocsystem.ledoc.model.equipment.*;
 import dk.ledocsystem.ledoc.repository.AuthenticationTypeRepository;
 import dk.ledocsystem.ledoc.repository.EmailNotificationRepository;
 import dk.ledocsystem.ledoc.repository.EquipmentCategoryRepository;
@@ -45,7 +36,7 @@ import java.util.function.Function;
 class EquipmentServiceImpl implements EquipmentService {
 
     private static final Function<Long, Predicate> CUSTOMER_EQUALS_TO =
-            (customerId) -> ExpressionUtils.eqConst(QEquipment.equipment.customer.id, customerId);
+            customerId -> ExpressionUtils.eqConst(QEquipment.equipment.customer.id, customerId);
 
     private final EquipmentRepository equipmentRepository;
     private final EquipmentCategoryRepository equipmentCategoryRepository;
@@ -137,7 +128,6 @@ class EquipmentServiceImpl implements EquipmentService {
         if (approvalType != null && approvalType == ApprovalType.NO_NEED) {
             equipment.eraseReviewDetails();
         }
-
         return equipmentRepository.save(equipment);
     }
 
