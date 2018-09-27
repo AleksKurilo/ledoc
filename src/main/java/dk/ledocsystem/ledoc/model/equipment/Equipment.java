@@ -1,23 +1,15 @@
 package dk.ledocsystem.ledoc.model.equipment;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import dk.ledocsystem.ledoc.model.*;
-import dk.ledocsystem.ledoc.model.Avatar;
 import dk.ledocsystem.ledoc.model.employee.Employee;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.ToString;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
+import lombok.*;
+import org.hibernate.annotations.*;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -85,7 +77,8 @@ public class Equipment implements Visitable {
     private String archiveReason;
 
     @Embedded
-    private Avatar avatarEquipment = new Avatar();
+    @JsonUnwrapped
+    private Avatar avatar = new Avatar();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "auth_type_id")
@@ -152,7 +145,7 @@ public class Equipment implements Visitable {
     }
 
     @JsonUnwrapped
-    public Avatar getAvatarEquipment(){
-        return avatarEquipment;
+    public Avatar getAvatar(){
+        return avatar;
     }
 }

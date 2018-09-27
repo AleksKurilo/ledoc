@@ -1,7 +1,5 @@
 package dk.ledocsystem.ledoc.model.employee;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
@@ -9,11 +7,11 @@ import dk.ledocsystem.ledoc.model.*;
 import lombok.*;
 import org.hibernate.annotations.*;
 
-import javax.persistence.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
 import javax.persistence.Table;
+import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.Set;
 
@@ -95,7 +93,8 @@ public class Employee implements Visitable, NamedEntity {
     private EmployeeNearestRelative nearestRelative = new EmployeeNearestRelative();
 
     @Embedded
-    private Avatar avatarEmployee = new Avatar();
+    @JsonUnwrapped
+    private Avatar avatar = new Avatar();
 
     @ManyToMany(mappedBy = "employees")
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -116,10 +115,5 @@ public class Employee implements Visitable, NamedEntity {
     @Override
     public String getName() {
         return firstName + " " + lastName;
-    }
-
-    @JsonUnwrapped
-    public Avatar getAvatarEmployee(){
-        return avatarEmployee;
     }
 }

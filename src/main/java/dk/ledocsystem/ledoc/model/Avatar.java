@@ -1,12 +1,11 @@
 package dk.ledocsystem.ledoc.model;
 
 import lombok.NoArgsConstructor;
-import org.pmw.tinylog.Logger;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.Transient;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 @Embeddable
@@ -20,15 +19,10 @@ public class Avatar {
     private String avatarBase64;
 
     public String getAvatar() {
-        byte[] decodedString = new byte[0];
-        try {
-            if (avatar != null) {
-                decodedString = Base64.getDecoder().decode(new String(avatar).getBytes("UTF-8"));
-            }
-        } catch (UnsupportedEncodingException e) {
-            Logger.error(e);
+        if (avatar != null) {
+            byte[] decodedString = Base64.getDecoder().decode(new String(avatar).getBytes(StandardCharsets.UTF_8));
+            avatarBase64 = new String(decodedString);
         }
-        avatarBase64 = new String(decodedString);
         return avatarBase64;
     }
 
