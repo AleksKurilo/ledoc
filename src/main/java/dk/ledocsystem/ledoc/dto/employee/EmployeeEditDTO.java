@@ -1,12 +1,13 @@
 package dk.ledocsystem.ledoc.dto.employee;
 
-import dk.ledocsystem.ledoc.annotations.validation.MobilePhone;
+import dk.ledocsystem.ledoc.annotations.validation.PhoneNumber;
 import dk.ledocsystem.ledoc.annotations.validation.OnlyAscii;
 import dk.ledocsystem.ledoc.annotations.validation.employee.UniqueUsername;
 import lombok.Data;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
 
@@ -36,10 +37,10 @@ public class EmployeeEditDTO {
     @Size(min = 2, max = 40)
     private String initials;
 
-    @MobilePhone
+    @PhoneNumber
     private String cellPhone;
 
-    @MobilePhone
+    @PhoneNumber
     private String phoneNumber;
 
     @Size(min = 2, max = 40)

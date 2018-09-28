@@ -44,7 +44,7 @@ public class Customer {
             inverseJoinColumns = {@JoinColumn(name = "trade_id")})
     private Set<Trade> trades = new HashSet<>(); //ok
 
-    @Column(name = "contact_phone", length = 20)
+    @Column(name = "contact_phone", length = 25)
     private String contactPhone; //ok
 
     @Column(name = "contact_email")

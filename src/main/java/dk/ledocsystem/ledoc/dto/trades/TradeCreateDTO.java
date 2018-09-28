@@ -1,7 +1,7 @@
 package dk.ledocsystem.ledoc.dto.trades;
 
 import dk.ledocsystem.ledoc.annotations.validation.OnlyAscii;
-import dk.ledocsystem.ledoc.annotations.validation.trade.UniqueTradeName;
+import dk.ledocsystem.ledoc.annotations.validation.trade.UniqueTradeNameEn;
 import dk.ledocsystem.ledoc.annotations.validation.trade.UniqueTradeNameDa;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,7 +11,7 @@ import lombok.Setter;
 public class TradeCreateDTO {
 
     @OnlyAscii
-    @UniqueTradeName
+    @UniqueTradeNameEn
     private String nameEn;
 
     @UniqueTradeNameDa

@@ -50,10 +50,10 @@ public class Employee implements Visitable, NamedEntity {
     @Column(length = 40)
     private String initials;
 
-    @Column(name = "cell_phone", length = 40)
+    @Column(name = "cell_phone", length = 25)
     private String cellPhone;
 
-    @Column(name = "phone_number", length = 40)
+    @Column(name = "phone_number", length = 25)
     private String phoneNumber;
 
     @Column(length = 40)

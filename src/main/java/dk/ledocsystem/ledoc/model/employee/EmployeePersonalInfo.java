@@ -26,10 +26,10 @@ public class EmployeePersonalInfo {
     @Column(length = 40)
     private String city;
 
-    @Column(name = "personal_phone", length = 40)
+    @Column(name = "personal_phone", length = 25)
     private String personalPhone;
 
-    @Column(name = "personal_mobile", length = 40)
+    @Column(name = "personal_mobile", length = 25)
     private String personalMobile;
 
     @Column(name = "date_of_birth")
@@ -40,4 +40,7 @@ public class EmployeePersonalInfo {
 
     @Column(name = "day_of_employment")
     private LocalDate dayOfEmployment;
+
+    @Column(name = "personal_comment", length = 400)
+    private String comment;
 }

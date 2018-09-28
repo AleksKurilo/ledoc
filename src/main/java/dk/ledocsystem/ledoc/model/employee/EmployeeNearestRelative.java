@@ -25,7 +25,7 @@ public class EmployeeNearestRelative {
     @Column(name = "rel_email", length = 40)
     private String email;
 
-    @Column(name = "rel_phone_number", length = 40)
+    @Column(name = "rel_phone_number", length = 25)
     private String phoneNumber;
 
 }

@@ -2,7 +2,7 @@ package dk.ledocsystem.ledoc.dto.customer;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import dk.ledocsystem.ledoc.annotations.validation.OnlyAscii;
-import dk.ledocsystem.ledoc.annotations.validation.customer.MobilePhone;
+import dk.ledocsystem.ledoc.annotations.validation.PhoneNumber;
 import dk.ledocsystem.ledoc.annotations.validation.customer.UniqueCVR;
 import dk.ledocsystem.ledoc.annotations.validation.customer.UniqueName;
 import dk.ledocsystem.ledoc.dto.location.AddressCreateDTO;
@@ -37,7 +37,7 @@ public class CustomerCreateDTO {
     @NotEmpty
     private Set<Long> tradeIds;
 
-    @MobilePhone
+    @PhoneNumber
     private String contactPhone;
 
     @Email

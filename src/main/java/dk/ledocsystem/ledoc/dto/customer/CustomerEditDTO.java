@@ -1,7 +1,7 @@
 package dk.ledocsystem.ledoc.dto.customer;
 
 import dk.ledocsystem.ledoc.annotations.validation.OnlyAscii;
-import dk.ledocsystem.ledoc.annotations.validation.customer.MobilePhone;
+import dk.ledocsystem.ledoc.annotations.validation.PhoneNumber;
 import dk.ledocsystem.ledoc.annotations.validation.customer.UniqueCVR;
 import dk.ledocsystem.ledoc.annotations.validation.customer.UniqueName;
 import lombok.Data;
@@ -27,7 +27,7 @@ public class CustomerEditDTO {
 
     private Set<Long> tradeIds;
 
-    @MobilePhone
+    @PhoneNumber
     private String contactPhone;
 
     @Email

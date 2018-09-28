@@ -17,9 +17,9 @@ public class EquipmentLoanDTO {
     @NotNull
     private Long locationId;
 
-    private Boolean shouldBeInspected;
+    private boolean shouldBeInspected;
 
-    private Boolean borrowerResponsibleForReview;
+    private boolean borrowerResponsibleForReview;
 
     @FutureOrPresent
     private LocalDate deadline;

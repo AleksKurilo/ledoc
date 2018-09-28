@@ -1,13 +1,13 @@
 package dk.ledocsystem.ledoc.annotations.validation.trade;
 
 import dk.ledocsystem.ledoc.repository.TradeRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
-@AllArgsConstructor
-public class UniqueTradeNameDkValidator implements ConstraintValidator<UniqueTradeNameDa, CharSequence> {
+@RequiredArgsConstructor
+class UniqueTradeNameEnValidator implements ConstraintValidator<UniqueTradeNameEn, CharSequence> {
 
     private final TradeRepository tradeRepository;
 
@@ -17,6 +17,6 @@ public class UniqueTradeNameDkValidator implements ConstraintValidator<UniqueTra
             return true;
         }
         String tradeName = value.toString();
-        return !tradeRepository.existsByNameDa(tradeName);
+        return !tradeRepository.existsByNameEn(tradeName);
     }
 }

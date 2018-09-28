@@ -143,9 +143,4 @@ public class Equipment implements Visitable {
     private LocalDate getPrevReviewDate() {
         return (nextReviewDate != null) ? nextReviewDate.minus(approvalRate) : LocalDate.now();
     }
-
-    @JsonUnwrapped
-    public Avatar getAvatar(){
-        return avatar;
-    }
 }
