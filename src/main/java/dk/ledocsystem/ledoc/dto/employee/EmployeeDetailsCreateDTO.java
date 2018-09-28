@@ -15,8 +15,7 @@ public class EmployeeDetailsCreateDTO {
     @Size(max = 400)
     private String comment;
 
-    @NotNull
-    private Boolean skillAssessed;
+    private boolean skillAssessed;
 
     private Period reviewFrequency;
 

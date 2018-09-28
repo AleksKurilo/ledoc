@@ -24,6 +24,7 @@ import dk.ledocsystem.ledoc.util.BeanCopyUtils;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,6 +37,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 
 @Service
@@ -94,7 +96,7 @@ class EmployeeServiceImpl implements EmployeeService {
     @Override
     public Employee createPointOfContact(@NonNull EmployeeCreateDTO employeeCreateDTO) {
         Employee poc = createEmployee(employeeCreateDTO, customerService.getCurrentCustomerReference());
-        addAuthorities(poc.getId(), UserAuthorities.SUPER_ADMIN);
+        addAuthorities(poc, UserAuthorities.SUPER_ADMIN);
         return poc;
     }
 
@@ -116,16 +118,22 @@ class EmployeeServiceImpl implements EmployeeService {
 
         employee = employeeRepository.save(employee);
 
+        addAuthorities(employee, employeeCreateDTO);
         sendMessages(employeeCreateDTO, responsible);
-        if (employeeCreateDTO.isCanCreatePersonalLocation()) {
-            addAuthorities(employee.getId(), UserAuthorities.CAN_CREATE_PERSONAL_LOCATION);
-        }
-
         return employee;
     }
 
     private boolean shouldEmployeeBeReviewed(EmployeeCreateDTO employeeCreateDTO) {
-        return employeeCreateDTO.getDetails() != null && employeeCreateDTO.getDetails().getSkillAssessed();
+        return employeeCreateDTO.getDetails() != null && employeeCreateDTO.getDetails().isSkillAssessed();
+    }
+
+    private void addAuthorities(Employee employee, EmployeeCreateDTO employeeCreateDTO) {
+        String roleString = ObjectUtils.defaultIfNull(employeeCreateDTO.getRole(), "user");
+        addAuthorities(employee, UserAuthorities.fromString(roleString));
+
+        if (employeeCreateDTO.isCanCreatePersonalLocation()) {
+            addAuthorities(employee, UserAuthorities.CAN_CREATE_PERSONAL_LOCATION);
+        }
     }
 
     @Transactional
@@ -145,6 +153,11 @@ class EmployeeServiceImpl implements EmployeeService {
         if (employeeDetailsChanged(employeeEditDTO)) {
             updateReviewDetails(employeeEditDTO.getDetails(), employee.getDetails());
         }
+
+        if (employeeEditDTO.getRole() != null) {
+            changeRole(employee, UserAuthorities.fromString(employeeEditDTO.getRole()));
+        }
+
         return employeeRepository.save(employee);
     }
 
@@ -161,6 +174,18 @@ class EmployeeServiceImpl implements EmployeeService {
                 employeeDetails.setResponsibleOfSkills(resolveResponsibleOfSkills(skillResponsibleId));
             }
         }
+    }
+
+    private void changeRole(Employee employee, UserAuthorities role) {
+        Set<UserAuthorities> authorities = employee.getAuthorities();
+        if (role == UserAuthorities.USER) {
+            authorities.remove(UserAuthorities.ADMIN);
+            authorities.add(UserAuthorities.USER);
+        } else {
+            authorities.remove(UserAuthorities.USER);
+            authorities.add(UserAuthorities.ADMIN);
+        }
+        tokenService.updateTokens(employee.getId(), employee.getAuthorities());
     }
 
     @Override
@@ -182,16 +207,22 @@ class EmployeeServiceImpl implements EmployeeService {
         employeeRepository.changePassword(username, newPassword);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     @Override
-    public void addAuthorities(@NonNull Long employeeId, @NonNull UserAuthorities authorities) {
-        employeeRepository.addAuthorities(employeeId, authorities);
+    public void grantAuthorities(@NonNull Long employeeId, @NonNull UserAuthorities authorities) {
+        Employee employee = getById(employeeId)
+                .orElseThrow(() -> new NotFoundException("employee.id.not.found", employeeId.toString()));
+        employee.getAuthorities().add(authorities);
+        tokenService.updateTokens(employeeId, employee.getAuthorities());
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     @Override
-    public void updateAuthorities(Long employeeId, UserAuthorities authorities) {
-        tokenService.updateTokens(employeeId, authorities);
+    public void revokeAuthorities(@NonNull Long employeeId, @NonNull UserAuthorities authorities) {
+        Employee employee = getById(employeeId)
+                .orElseThrow(() -> new NotFoundException("employee.id.not.found", employeeId.toString()));
+        employee.getAuthorities().remove(authorities);
+        tokenService.updateTokens(employeeId, employee.getAuthorities());
     }
 
     @Override
@@ -235,6 +266,10 @@ class EmployeeServiceImpl implements EmployeeService {
         long allEmployees = employeeRepository.countByCustomerIdAndArchivedFalse(customerId);
         long visitedEmployees = employeeRepository.countVisited(employeeId);
         return allEmployees - visitedEmployees - 1;
+    }
+
+    private void addAuthorities(Employee employee, UserAuthorities userAuthorities) {
+        employeeRepository.addAuthorities(employee.getId(), userAuthorities);
     }
 
     private Employee resolveResponsibleOfSkills(Long responsibleId) {

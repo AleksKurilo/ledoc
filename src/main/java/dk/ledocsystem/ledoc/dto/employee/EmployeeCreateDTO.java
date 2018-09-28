@@ -28,6 +28,9 @@ public class EmployeeCreateDTO {
     @OnlyAscii
     private String password;
 
+    @Pattern(regexp = "admin|user", flags = Pattern.Flag.CASE_INSENSITIVE)
+    private String role;
+
     @NotNull
     @Size(min = 2, max = 40)
     @OnlyAscii

@@ -82,13 +82,13 @@ public class EmployeeController {
     }
 
     @RolesAllowed({"admin", "super_admin"})
-    @GetMapping(value = "/updateRoles/{employeeId}/{authorityCode}")
-    public void updateAuthorities(@PathVariable Long employeeId, @PathVariable Integer authorityCode) {
-        employeeService.updateAuthorities(employeeId, UserAuthorities.fromCode(authorityCode));
+    @PutMapping("/{employeeId}/roles")
+    public void updateAuthorities(@PathVariable Long employeeId, @RequestParam String role) {
+        employeeService.grantAuthorities(employeeId, UserAuthorities.fromString(role));
     }
 
     @RolesAllowed("can_create_point_of_contact")
-    @PostMapping(value = "/createPoC", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/point-of-contact", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Employee createPointOfContact(@RequestBody @Valid EmployeeCreateDTO employeeCreateDTO) {
         return employeeService.createPointOfContact(employeeCreateDTO);
     }

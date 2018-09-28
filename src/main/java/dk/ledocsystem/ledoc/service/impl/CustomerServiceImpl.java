@@ -2,7 +2,6 @@ package dk.ledocsystem.ledoc.service.impl;
 
 
 import com.querydsl.core.types.Predicate;
-import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.location.LocationCreateDTO;
 import dk.ledocsystem.ledoc.dto.customer.CustomerCreateDTO;
 import dk.ledocsystem.ledoc.dto.customer.CustomerEditDTO;
@@ -81,7 +80,6 @@ class CustomerServiceImpl implements CustomerService {
         customerRepository.save(customer);
 
         Employee admin = employeeService.createEmployee(customerCreateDTO.getEmployeeCreateDTO(), customer);
-        employeeService.addAuthorities(admin.getId(), UserAuthorities.ADMIN);
 
         LocationCreateDTO locationCreateDTO = LocationCreateDTO.builder()
                 .type(LocationType.ADDRESS)

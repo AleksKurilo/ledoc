@@ -1,10 +1,9 @@
 package dk.ledocsystem.ledoc.config.security;
 
+import com.google.common.collect.Collections2;
 import dk.ledocsystem.ledoc.exceptions.InvalidTokenException;
-import dk.ledocsystem.ledoc.exceptions.RoleAlreadyExistsException;
 import dk.ledocsystem.ledoc.model.security.State;
 import dk.ledocsystem.ledoc.model.security.Token;
-import dk.ledocsystem.ledoc.repository.EmployeeRepository;
 import dk.ledocsystem.ledoc.repository.TokenRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -17,6 +16,7 @@ import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import static dk.ledocsystem.ledoc.config.security.SecurityConstants.*;
 
@@ -27,9 +27,6 @@ public class JwtTokenService {
 
     @Resource
     private TokenRepository tokenRepository;
-
-    @Resource
-    private EmployeeRepository employeeRepository;
 
     @Transactional
     public void saveToken(String accessToken, Long userId, LocalDateTime expDate) {
@@ -78,40 +75,24 @@ public class JwtTokenService {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public void updateTokens(Long employeeId, UserAuthorities authorities) {
+    public void updateTokens(Long employeeId, Set<UserAuthorities> authorities) {
         List<String> tokens = tokenRepository.selectAllTokensByUserId(employeeId);
         tokens.forEach(token -> {
             Claims claims = Jwts.parser().setSigningKey(JWT_SECRET.getBytes())
                     .parseClaimsJws(token)
                     .getBody();
 
-            Collection<String> grantedAuthorities = claims.get(JWT_AUTHORITIES_CLAIM, Collection.class);
-            checkRoleExists(grantedAuthorities, authorities);
-
             String updatedToken = Jwts.builder()
-                    .setSubject(claims.getSubject())
-                    .claim(ID_CLAIM, claims.get(ID_CLAIM, Long.class))
-                    .claim(CUSTOMER_CLAIM, claims.get(CUSTOMER_CLAIM, Long.class))
-                    .claim(JWT_AUTHORITIES_CLAIM, updateAuthorities(grantedAuthorities, authorities))
-                    .setExpiration(claims.getExpiration())
+                    .setClaims(claims)
+                    .claim(JWT_AUTHORITIES_CLAIM, convertAuthorities(authorities))
                     .signWith(SignatureAlgorithm.HS512, JWT_SECRET.getBytes())
                     .compact();
 
             tokenRepository.updateToken(updatedToken, employeeId);
-            employeeRepository.addAuthorities(employeeId, authorities);
         });
     }
 
-    private void checkRoleExists(Collection<String> grantedAuthorities, UserAuthorities authorities) {
-        String newRole = ROLE_PREFIX + authorities.name().toLowerCase();
-        if (grantedAuthorities.contains(newRole)) {
-            throw new RoleAlreadyExistsException("user.authorities.exists", authorities.name().toLowerCase());
-        }
-    }
-
-    private Collection<String> updateAuthorities(Collection<String> grantedAuthorities, UserAuthorities authorities) {
-        grantedAuthorities.add(ROLE_PREFIX + authorities.name().toLowerCase());
-        return grantedAuthorities;
+    private Collection<String> convertAuthorities(Collection<UserAuthorities> userAuthorities) {
+        return Collections2.transform(userAuthorities, (auth) -> ROLE_PREFIX + auth.toString().toLowerCase());
     }
 }

@@ -23,6 +23,9 @@ public class EmployeeEditDTO {
     @OnlyAscii
     private String password;
 
+    @Pattern(regexp = "admin|user", flags = Pattern.Flag.CASE_INSENSITIVE)
+    private String role;
+
     @Size(min = 2, max = 40)
     @OnlyAscii
     private String firstName;

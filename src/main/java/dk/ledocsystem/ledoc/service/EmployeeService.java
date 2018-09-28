@@ -58,14 +58,20 @@ public interface EmployeeService extends DomainService<Employee> {
     void changePassword(String username, String newPassword);
 
     /**
-     * Adds the provided {@link UserAuthorities authorities} to employee.
+     * Grants the provided {@link UserAuthorities authorities} to employee.
      *
      * @param employeeId  ID of the employee
      * @param authorities Authorities
      */
-    void addAuthorities(Long employeeId, UserAuthorities authorities);
+    void grantAuthorities(Long employeeId, UserAuthorities authorities);
 
-    void updateAuthorities(Long employeeId, UserAuthorities authorities);
+    /**
+     * Revokes the provided {@link UserAuthorities authorities} from employee.
+     *
+     * @param employeeId  ID of the employee
+     * @param authorities Authorities
+     */
+    void revokeAuthorities(Long employeeId, UserAuthorities authorities);
 
     List<Employee> findAllById(Collection<Long> ids);
 
