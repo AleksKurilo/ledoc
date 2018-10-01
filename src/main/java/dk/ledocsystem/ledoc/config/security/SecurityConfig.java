@@ -108,7 +108,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
+    public static PasswordEncoder passwordEncoder() {
         return new Pbkdf2PasswordEncoder("", 1000, 160);
     }
 }
