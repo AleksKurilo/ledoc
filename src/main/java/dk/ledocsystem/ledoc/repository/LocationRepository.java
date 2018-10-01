@@ -13,8 +13,6 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 
-import java.util.Collection;
-
 public interface LocationRepository extends JpaRepository<Location, Long>, QuerydslPredicateExecutor<Location>,
         QuerydslBinderCustomizer<QLocation> {
 
@@ -30,11 +28,11 @@ public interface LocationRepository extends JpaRepository<Location, Long>, Query
     /**
      * Deletes locations with the given IDs.
      *
-     * @param ids The collection of employeeCreateDTO IDs.
+     * @param ids The collection of location IDs.
      */
     @Modifying
-    @Query("delete from Employee e where e.id in ?1")
-    void deleteByIdIn(Collection<Long> ids);
+    @Query("delete from Location l where l.id in ?1")
+    void deleteByIdIn(Iterable<Long> ids);
 
     @Override
     default void customize(QuerydslBindings bindings, QLocation root) {

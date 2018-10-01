@@ -18,11 +18,11 @@ import dk.ledocsystem.ledoc.model.employee.EmployeeDetails;
 import dk.ledocsystem.ledoc.model.employee.QEmployee;
 import dk.ledocsystem.ledoc.repository.EmailNotificationRepository;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
-import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.util.BeanCopyUtils;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.data.domain.Page;
@@ -33,7 +33,6 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -48,57 +47,9 @@ class EmployeeServiceImpl implements EmployeeService {
             customerId -> ExpressionUtils.eqConst(QEmployee.employee.customer.id, customerId);
 
     private final EmployeeRepository employeeRepository;
-    private final CustomerService customerService;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenService tokenService;
     private final EmailNotificationRepository emailNotificationRepository;
-
-    @Override
-    public List<Employee> getAll() {
-        return getAll(Pageable.unpaged()).getContent();
-    }
-
-    @Override
-    public Page<Employee> getAll(@NonNull Pageable pageable) {
-        return getAll(null, pageable);
-    }
-
-    @Override
-    public List<Employee> getAll(@NonNull Predicate predicate) {
-        return getAll(predicate, Pageable.unpaged()).getContent();
-    }
-
-    @Override
-    public Page<Employee> getAll(Predicate predicate, @NonNull Pageable pageable) {
-        Long currentCustomerId = customerService.getCurrentCustomerReference().getId();
-        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(currentCustomerId));
-        return employeeRepository.findAll(combinePredicate, pageable);
-    }
-
-    @Override
-    public Optional<Employee> getById(@NonNull Long id) {
-        return employeeRepository.findById(id);
-    }
-
-    @Override
-    public Employee getCurrentUserReference() {
-        Long currentUserId = getCurrentUser().getUserId();
-        return employeeRepository.getOne(currentUserId);
-    }
-
-    @Transactional
-    @Override
-    public Employee createEmployee(@NonNull EmployeeCreateDTO employeeCreateDTO) {
-        return createEmployee(employeeCreateDTO, customerService.getCurrentCustomerReference());
-    }
-
-    @Transactional
-    @Override
-    public Employee createPointOfContact(@NonNull EmployeeCreateDTO employeeCreateDTO) {
-        Employee poc = createEmployee(employeeCreateDTO, customerService.getCurrentCustomerReference());
-        addAuthorities(poc, UserAuthorities.SUPER_ADMIN);
-        return poc;
-    }
 
     @Transactional
     @Override
@@ -138,6 +89,14 @@ class EmployeeServiceImpl implements EmployeeService {
 
     @Transactional
     @Override
+    public Employee createPointOfContact(@NonNull EmployeeCreateDTO employeeCreateDTO, Customer customer) {
+        Employee poc = createEmployee(employeeCreateDTO, customer);
+        addAuthorities(poc, UserAuthorities.SUPER_ADMIN);
+        return poc;
+    }
+
+    @Transactional
+    @Override
     public Employee updateEmployee(@NonNull Long employeeId, @NonNull EmployeeEditDTO employeeEditDTO) {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new NotFoundException("employee.id.not.found", employeeId.toString()));
@@ -166,7 +125,7 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     private void updateReviewDetails(EmployeeDetailsEditDTO editDTO, EmployeeDetails employeeDetails) {
-         if (BooleanUtils.isFalse(editDTO.getSkillAssessed())) {
+        if (BooleanUtils.isFalse(editDTO.getSkillAssessed())) {
             employeeDetails.eraseReviewDetails();
         } else {
             Long skillResponsibleId = editDTO.getSkillResponsibleId();
@@ -186,20 +145,6 @@ class EmployeeServiceImpl implements EmployeeService {
             authorities.add(UserAuthorities.ADMIN);
         }
         tokenService.updateTokens(employee.getId(), employee.getAuthorities());
-    }
-
-    @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void deleteById(@NonNull Long id) {
-        tokenService.invalidateByUserId(id);
-        employeeRepository.deleteById(id);
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    @Override
-    public void deleteByIds(@NonNull Collection<Long> employeeIds) {
-        tokenService.invalidateByUserIds(employeeIds);
-        employeeRepository.deleteByIdIn(employeeIds);
     }
 
     @Override
@@ -231,11 +176,6 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public List<Employee> findAllById(@NonNull Collection<Long> ids) {
-        return employeeRepository.findAllById(ids);
-    }
-
-    @Override
     public List<Employee> getAllForReview() {
         return employeeRepository.findAllForReview();
     }
@@ -246,26 +186,28 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public Page<Employee> getNewEmployees(@NonNull Pageable pageable) {
-        return getNewEmployees(pageable, null);
+    public Page<Employee> getNewEmployees(@NonNull Long userId, @NonNull Pageable pageable) {
+        return getNewEmployees(userId, pageable, null);
     }
 
     @Override
-    public Page<Employee> getNewEmployees(@NonNull Pageable pageable, Predicate predicate) {
-        Employee currentUser = getCurrentUserReference();
+    public Page<Employee> getNewEmployees(@NonNull Long userId, @NonNull Pageable pageable, Predicate predicate) {
+        Customer customer = getById(userId)
+                .orElseThrow(() -> new NotFoundException("employee.id.not.found", userId.toString()))
+                .getCustomer();
 
         Predicate newEmployeesPredicate = ExpressionUtils.allOf(
                 predicate,
-                ExpressionUtils.neConst(QEmployee.employee.id, currentUser.getId()),
-                ExpressionUtils.notIn(Expressions.constant(currentUser), QEmployee.employee.visitedBy));
-        return getAll(newEmployeesPredicate, pageable);
+                QEmployee.employee.archived.eq(Boolean.FALSE),
+                ExpressionUtils.neConst(QEmployee.employee.id, userId),
+                ExpressionUtils.notIn(Expressions.constant(userId), QEmployee.employee.visitedBy));
+        return getAllByCustomer(customer.getId(), newEmployeesPredicate, pageable);
     }
 
     @Override
-    public long countNewEmployees(@NonNull Long customerId, @NonNull Long employeeId) {
-        long allEmployees = employeeRepository.countByCustomerIdAndArchivedFalse(customerId);
-        long visitedEmployees = employeeRepository.countVisited(employeeId);
-        return allEmployees - visitedEmployees - 1;
+    public Employee getCurrentUserReference() {
+        Long currentUserId = getCurrentUser().getUserId();
+        return employeeRepository.getOne(currentUserId);
     }
 
     private void addAuthorities(Employee employee, UserAuthorities userAuthorities) {
@@ -283,7 +225,7 @@ class EmployeeServiceImpl implements EmployeeService {
                         .orElseThrow(() -> new NotFoundException("employee.responsible.not.found", responsibleId.toString()));
     }
 
-    public void sendMessages(EmployeeCreateDTO employee, Employee responsible) {
+    private void sendMessages(EmployeeCreateDTO employee, Employee responsible) {
         if (employee.isWelcomeMessage()) {
             sendWelcomeMessage(employee);
         }
@@ -307,4 +249,73 @@ class EmployeeServiceImpl implements EmployeeService {
                 new EmailNotification(responsible.getUsername(), "employee_created");
         emailNotificationRepository.save(notification);
     }
+
+    //region GET/DELETE standard API
+
+    @Override
+    public List<Employee> getAll() {
+        return employeeRepository.findAll();
+    }
+
+    @Override
+    public Page<Employee> getAll(@NonNull Pageable pageable) {
+        return employeeRepository.findAll(pageable);
+    }
+
+    @Override
+    public List<Employee> getAll(@NonNull Predicate predicate) {
+        return IterableUtils.toList(employeeRepository.findAll(predicate));
+    }
+
+    @Override
+    public Page<Employee> getAll(@NonNull Predicate predicate, @NonNull Pageable pageable) {
+        return employeeRepository.findAll(predicate, pageable);
+    }
+
+    @Override
+    public List<Employee> getAllByCustomer(@NonNull Long customerId) {
+        return getAllByCustomer(customerId, Pageable.unpaged()).getContent();
+    }
+
+    @Override
+    public Page<Employee> getAllByCustomer(@NonNull Long customerId, @NonNull Pageable pageable) {
+        return getAllByCustomer(customerId, null, pageable);
+    }
+
+    @Override
+    public List<Employee> getAllByCustomer(@NonNull Long customerId, Predicate predicate) {
+        return getAllByCustomer(customerId, predicate, Pageable.unpaged()).getContent();
+    }
+
+    @Override
+    public Page<Employee> getAllByCustomer(@NonNull Long customerId, Predicate predicate, @NonNull Pageable pageable) {
+        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
+        return employeeRepository.findAll(combinePredicate, pageable);
+    }
+
+    @Override
+    public Optional<Employee> getById(@NonNull Long id) {
+        return employeeRepository.findById(id);
+    }
+
+    @Override
+    public List<Employee> getAllById(@NonNull Iterable<Long> ids) {
+        return employeeRepository.findAllById(ids);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Override
+    public void deleteById(@NonNull Long id) {
+        tokenService.invalidateByUserId(id);
+        employeeRepository.deleteById(id);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Override
+    public void deleteByIds(@NonNull Iterable<Long> employeeIds) {
+        tokenService.invalidateByUserIds(employeeIds);
+        employeeRepository.deleteByIdIn(employeeIds);
+    }
+
+    //endregion
 }

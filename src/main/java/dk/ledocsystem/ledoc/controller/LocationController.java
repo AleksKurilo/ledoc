@@ -4,7 +4,9 @@ import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.dto.location.LocationCreateDTO;
 import dk.ledocsystem.ledoc.dto.location.LocationEditDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
+import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.Location;
+import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.LocationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -21,16 +23,17 @@ import java.util.Collection;
 public class LocationController {
 
     private final LocationService locationService;
+    private final CustomerService customerService;
 
     @GetMapping
     public Iterable<Location> getAllLocations(Pageable pageable) {
-        return locationService.getAll(pageable);
+        return locationService.getAllByCustomer(getCurrentCustomerId(), pageable);
     }
 
     @GetMapping("/filter")
     public Iterable<Location> getAllFilteredLocations(@QuerydslPredicate(root = Location.class) Predicate predicate,
                                                       Pageable pageable) {
-        return locationService.getAll(predicate, pageable);
+        return locationService.getAllByCustomer(getCurrentCustomerId(), predicate, pageable);
     }
 
     @GetMapping("/{locationId}")
@@ -41,7 +44,8 @@ public class LocationController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public Location createLocation(@RequestBody @Valid LocationCreateDTO locationCreateDTO) {
-        return locationService.createLocation(locationCreateDTO);
+        Customer currentCustomer = customerService.getCurrentCustomerReference();
+        return locationService.createLocation(locationCreateDTO, currentCustomer);
     }
 
     @PutMapping(value = "/{locationId}", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -58,6 +62,10 @@ public class LocationController {
     @DeleteMapping
     public void deleteByIds(@RequestParam("ids") Collection<Long> ids) {
         locationService.deleteByIds(ids);
+    }
+
+    private Long getCurrentCustomerId() {
+        return customerService.getCurrentCustomerId();
     }
 }
 

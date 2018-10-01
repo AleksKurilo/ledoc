@@ -16,7 +16,6 @@ import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.querydsl.binding.SingleValueBinding;
 import org.springframework.data.repository.query.Param;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -76,7 +75,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Loggi
      */
     @Modifying
     @Query("delete from Employee e where e.id in ?1")
-    void deleteByIdIn(Collection<Long> ids);
+    void deleteByIdIn(Iterable<Long> ids);
 
     /**
      * Counts employees that are not archived and

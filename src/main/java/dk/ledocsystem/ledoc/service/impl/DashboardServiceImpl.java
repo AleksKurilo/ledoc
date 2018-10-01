@@ -11,14 +11,16 @@ import dk.ledocsystem.ledoc.model.dashboard.UserStat;
 import dk.ledocsystem.ledoc.repository.CustomerRepository;
 import dk.ledocsystem.ledoc.repository.CustomerStatisticRepository;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
-import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.DashboardService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
+import dk.ledocsystem.ledoc.service.EquipmentService;
+import dk.ledocsystem.ledoc.service.LocationService;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.pmw.tinylog.Logger;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,8 +43,9 @@ class DashboardServiceImpl implements DashboardService {
     private static final String[] EXCEL_EMPLOYEES_FIELDS = {"First name(s)", "Last name", "E-mail"};
 
     private final EmployeeService employeeService;
+    private final EquipmentService equipmentService;
+    private final LocationService locationService;
     private final EmployeeRepository employeeRepository;
-    private final CustomerService customerService;
     private final CustomerRepository customerRepository;
     private final JwtTokenService tokenService;
     private final CustomerStatisticRepository customerStatisticRepository;
@@ -51,11 +54,10 @@ class DashboardServiceImpl implements DashboardService {
     public Dashboard createDashboard() {
         Dashboard dashboard = new Dashboard();
         Long currentUserId = employeeService.getCurrentUserReference().getId();
-        Long customerId = customerService.getCurrentCustomerReference().getId();
 
-        dashboard.setNewEmployeesCount(employeeService.countNewEmployees(customerId, currentUserId));
-        dashboard.setNewEquipmentCount(12);
-        dashboard.setNewLocationsCount(55);
+        dashboard.setNewEmployeesCount(employeeService.getNewEmployees(currentUserId, Pageable.unpaged()).getTotalElements());
+        dashboard.setNewEquipmentCount(equipmentService.getNewEquipment(currentUserId, Pageable.unpaged()).getTotalElements());
+        dashboard.setNewLocationsCount(locationService.getAllByCustomer(locationService.getCurrentUser().getCustomerId()).size());
 
         return dashboard;
     }

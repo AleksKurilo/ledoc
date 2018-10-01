@@ -13,7 +13,6 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 
-import java.util.Collection;
 import java.util.List;
 
 public interface EquipmentRepository extends JpaRepository<Equipment, Long>, LoggingRepository<Equipment, Long>,
@@ -35,7 +34,7 @@ public interface EquipmentRepository extends JpaRepository<Equipment, Long>, Log
      */
     @Modifying
     @Query("delete from Equipment eq where eq.id in ?1")
-    void deleteByIdIn(Collection<Long> ids);
+    void deleteByIdIn(Iterable<Long> ids);
 
     @Override
     default void customize(QuerydslBindings bindings, QEquipment root) {

@@ -1,6 +1,5 @@
 package dk.ledocsystem.ledoc.service.impl;
 
-
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.dto.location.LocationCreateDTO;
 import dk.ledocsystem.ledoc.dto.customer.CustomerCreateDTO;
@@ -18,7 +17,7 @@ import dk.ledocsystem.ledoc.service.LocationService;
 import dk.ledocsystem.ledoc.util.BeanCopyUtils;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Lazy;
+import org.apache.commons.collections4.IterableUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,46 +26,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 
 @Service
-@RequiredArgsConstructor(onConstructor = @__({@Lazy}))
+@RequiredArgsConstructor
 class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
-
     private final EmployeeService employeeService;
-
     private final TradeRepository tradeRepository;
-
     private final LocationService locationService;
-
     private final EmailNotificationRepository emailNotificationRepository;
 
-    @Override
-    public List<Customer> getAll() {
-        return getAll(Pageable.unpaged()).getContent();
-    }
-
-    @Override
-    public Page<Customer> getAll(@NonNull Pageable pageable) {
-        return customerRepository.findAll(pageable);
-    }
-
-    @Override
-    public List<Customer> getAll(@NonNull Predicate predicate) {
-        return getAll(predicate, Pageable.unpaged()).getContent();
-    }
-
-    @Override
-    public Page<Customer> getAll(@NonNull Predicate predicate, @NonNull Pageable pageable) {
-        return customerRepository.findAll(predicate, pageable);
-    }
-
-    @Override
-    public Optional<Customer> getById(@NonNull Long id) {
-        return customerRepository.findById(id);
-    }
-
-    @Override
     @Transactional
+    @Override
     public Customer createCustomer(@NonNull CustomerCreateDTO customerCreateDTO) {
         Customer customer = new Customer();
         BeanCopyUtils.copyProperties(customerCreateDTO, customer);
@@ -77,7 +47,7 @@ class CustomerServiceImpl implements CustomerService {
         Set<Trade> trades = resolveTrades(customerCreateDTO.getTradeIds());
         customer.setTrades(trades);
 
-        customerRepository.save(customer);
+        customer = customerRepository.save(customer);
 
         Employee admin = employeeService.createEmployee(customerCreateDTO.getEmployeeCreateDTO(), customer);
 
@@ -117,20 +87,13 @@ class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public void deleteById(@NonNull Long id) {
-        customerRepository.deleteById(id);
-    }
-
-    @Transactional
-    @Override
-    public void deleteByIds(@NonNull Collection<Long> customerIds) {
-        customerRepository.deleteByIdIn(customerIds);
+    public Long getCurrentCustomerId() {
+        return getCurrentUser().getCustomerId();
     }
 
     @Override
     public Customer getCurrentCustomerReference() {
-        Long currentCustomerId = getCurrentUser().getCustomerId();
-        return customerRepository.getOne(currentCustomerId);
+        return customerRepository.getOne(getCurrentCustomerId());
     }
 
     private Employee resolvePointOfContact(Long pointOfContactId) {
@@ -148,4 +111,49 @@ class CustomerServiceImpl implements CustomerService {
                 new EmailNotification(pointOfContact.getUsername(), "customer_created");
         emailNotificationRepository.save(notification);
     }
+
+    //region GET/DELETE standard API
+
+    @Override
+    public List<Customer> getAll() {
+        return customerRepository.findAll();
+    }
+
+    @Override
+    public Page<Customer> getAll(@NonNull Pageable pageable) {
+        return customerRepository.findAll(pageable);
+    }
+
+    @Override
+    public List<Customer> getAll(@NonNull Predicate predicate) {
+        return IterableUtils.toList(customerRepository.findAll(predicate));
+    }
+
+    @Override
+    public Page<Customer> getAll(@NonNull Predicate predicate, @NonNull Pageable pageable) {
+        return customerRepository.findAll(predicate, pageable);
+    }
+
+    @Override
+    public Optional<Customer> getById(@NonNull Long id) {
+        return customerRepository.findById(id);
+    }
+
+    @Override
+    public List<Customer> getAllById(@NonNull Iterable<Long> ids) {
+        return customerRepository.findAllById(ids);
+    }
+
+    @Override
+    public void deleteById(@NonNull Long id) {
+        customerRepository.deleteById(id);
+    }
+
+    @Transactional
+    @Override
+    public void deleteByIds(@NonNull Iterable<Long> customerIds) {
+        customerRepository.deleteById(customerIds);
+    }
+
+    //endregion
 }

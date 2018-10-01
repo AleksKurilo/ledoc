@@ -6,15 +6,7 @@ import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.Location;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 
-public interface LocationService extends DomainService<Location> {
-
-    /**
-     * Creates new {@link Location}, using the data from {@code locationDTO}.
-     *
-     * @param locationDTO Location properties
-     * @return Newly created {@link Location}
-     */
-    Location createLocation(LocationCreateDTO locationDTO);
+public interface LocationService extends CustomerBasedDomainService<Location> {
 
     /**
      * Creates new {@link Location}, using the data from {@code locationDTO}, and assigns {@code customer} to it.

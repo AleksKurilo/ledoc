@@ -26,6 +26,11 @@ public interface CustomerService extends DomainService<Customer> {
     Customer updateCustomer(Long customerId, CustomerEditDTO customerEditDTO);
 
     /**
+     * @return Current customer id
+     */
+    Long getCurrentCustomerId();
+
+    /**
      * @return A proxy, whose state can be lazily populated upon access until the end of current transaction.
      * @see EntityManager#getReference(Class, Object)
      */

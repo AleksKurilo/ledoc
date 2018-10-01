@@ -11,12 +11,12 @@ import dk.ledocsystem.ledoc.model.email_notifications.EmailNotification;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.repository.EmailNotificationRepository;
 import dk.ledocsystem.ledoc.repository.LocationRepository;
-import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.LocationService;
 import dk.ledocsystem.ledoc.util.BeanCopyUtils;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.IterableUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,46 +29,12 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 class LocationServiceImpl implements LocationService {
 
-    private static final Function<Long, Predicate> CUSTOMER_EQUALS_QUERYDSL_PREDICATE =
-            (customerId) -> ExpressionUtils.eqConst(ExpressionUtils.path(Location.class, "customer.id"), customerId);
+    private static final Function<Long, Predicate> CUSTOMER_EQUALS_TO =
+            (customerId) -> ExpressionUtils.eqConst(QLocation.location.customer.id, customerId);
 
     private final LocationRepository locationRepository;
     private final EmployeeService employeeService;
-    private final CustomerService customerService;
     private final EmailNotificationRepository emailNotificationRepository;
-
-    @Override
-    public List<Location> getAll() {
-        return getAll(Pageable.unpaged()).getContent();
-    }
-
-    @Override
-    public Page<Location> getAll(@NonNull Pageable pageable) {
-        return getAll(null, pageable);
-    }
-
-    @Override
-    public List<Location> getAll(@NonNull Predicate predicate) {
-        return getAll(predicate, Pageable.unpaged()).getContent();
-    }
-
-    @Override
-    public Page<Location> getAll(Predicate predicate, @NonNull Pageable pageable) {
-        Long currentCustomerId = customerService.getCurrentCustomerReference().getId();
-        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_QUERYDSL_PREDICATE.apply(currentCustomerId));
-        return locationRepository.findAll(combinePredicate, pageable);
-    }
-
-    @Override
-    public Optional<Location> getById(@NonNull Long id) {
-        return locationRepository.findById(id);
-    }
-
-    @Transactional
-    @Override
-    public Location createLocation(@NonNull LocationCreateDTO locationDTO) {
-        return createLocation(locationDTO, customerService.getCurrentCustomerReference());
-    }
 
     @Transactional
     @Override
@@ -180,7 +146,7 @@ class LocationServiceImpl implements LocationService {
     }
 
     private Set<Employee> resolveEmployees(Collection<Long> employeeIds) {
-        return new HashSet<>(employeeService.findAllById(employeeIds));
+        return new HashSet<>(employeeService.getAllById(employeeIds));
     }
 
     private void createAndSetAddress(Location owningLocation, AddressDTO addressDTO) {
@@ -190,6 +156,59 @@ class LocationServiceImpl implements LocationService {
         address.setLocation(owningLocation);
     }
 
+    //region GET/DELETE standard API
+
+    @Override
+    public List<Location> getAll() {
+        return locationRepository.findAll();
+    }
+
+    @Override
+    public Page<Location> getAll(@NonNull Pageable pageable) {
+        return locationRepository.findAll(pageable);
+    }
+
+    @Override
+    public List<Location> getAll(@NonNull Predicate predicate) {
+        return IterableUtils.toList(locationRepository.findAll(predicate));
+    }
+
+    @Override
+    public Page<Location> getAll(@NonNull Predicate predicate, @NonNull Pageable pageable) {
+        return locationRepository.findAll(predicate, pageable);
+    }
+
+    @Override
+    public List<Location> getAllByCustomer(@NonNull Long customerId) {
+        return getAllByCustomer(customerId, Pageable.unpaged()).getContent();
+    }
+
+    @Override
+    public Page<Location> getAllByCustomer(@NonNull Long customerId, @NonNull Pageable pageable) {
+        return getAllByCustomer(customerId, null, pageable);
+    }
+
+    @Override
+    public List<Location> getAllByCustomer(@NonNull Long customerId, Predicate predicate) {
+        return getAllByCustomer(customerId, predicate, Pageable.unpaged()).getContent();
+    }
+
+    @Override
+    public Page<Location> getAllByCustomer(@NonNull Long customerId, Predicate predicate, @NonNull Pageable pageable) {
+        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
+        return locationRepository.findAll(combinePredicate, pageable);
+    }
+
+    @Override
+    public Optional<Location> getById(@NonNull Long id) {
+        return locationRepository.findById(id);
+    }
+
+    @Override
+    public List<Location> getAllById(@NonNull Iterable<Long> ids) {
+        return locationRepository.findAllById(ids);
+    }
+
     @Override
     public void deleteById(@NonNull Long id) {
         locationRepository.deleteById(id);
@@ -197,7 +216,9 @@ class LocationServiceImpl implements LocationService {
 
     @Transactional
     @Override
-    public void deleteByIds(@NonNull Collection<Long> ids) {
-        locationRepository.deleteByIdIn(ids);
+    public void deleteByIds(@NonNull Iterable<Long> locationIds) {
+        locationRepository.deleteByIdIn(locationIds);
     }
+
+    //endregion
 }

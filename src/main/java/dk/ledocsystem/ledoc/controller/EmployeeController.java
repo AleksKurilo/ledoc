@@ -6,7 +6,9 @@ import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeEditDTO;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
+import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.employee.Employee;
+import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -25,27 +27,28 @@ import java.util.List;
 public class EmployeeController {
 
     private final EmployeeService employeeService;
+    private final CustomerService customerService;
 
     @GetMapping
     public Iterable<Employee> getAllEmployees(Pageable pageable) {
-        return employeeService.getAll(pageable);
+        return employeeService.getAllByCustomer(getCurrentCustomerId(), pageable);
     }
 
     @GetMapping("/filter")
     public Iterable<Employee> getAllFilteredEmployees(@QuerydslPredicate(root = Employee.class) Predicate predicate,
                                                       Pageable pageable) {
-        return employeeService.getAll(predicate, pageable);
+        return employeeService.getAllByCustomer(getCurrentCustomerId(), predicate, pageable);
     }
 
     @GetMapping("/new")
     public Iterable<Employee> getNewEmployeesForCurrentUser(Pageable pageable) {
-        return employeeService.getNewEmployees(pageable);
+        return employeeService.getNewEmployees(getCurrentUserId(), pageable);
     }
 
     @GetMapping("/new/filter")
     public Iterable<Employee> getNewEmployeesForCurrentUser(@QuerydslPredicate(root = Employee.class) Predicate predicate,
                                                             Pageable pageable) {
-        return employeeService.getNewEmployees(pageable, predicate);
+        return employeeService.getNewEmployees(getCurrentUserId(), pageable, predicate);
     }
 
     @GetMapping("/{employeeId}")
@@ -57,7 +60,8 @@ public class EmployeeController {
     @RolesAllowed("admin")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public Employee createEmployee(@RequestBody @Valid EmployeeCreateDTO employeeCreateDTO) {
-        return employeeService.createEmployee(employeeCreateDTO);
+        Customer currentCustomer = customerService.getCurrentCustomerReference();
+        return employeeService.createEmployee(employeeCreateDTO, currentCustomer);
     }
 
     @PutMapping(value = "/{employeeId}", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -90,6 +94,15 @@ public class EmployeeController {
     @RolesAllowed("can_create_point_of_contact")
     @PostMapping(value = "/point-of-contact", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Employee createPointOfContact(@RequestBody @Valid EmployeeCreateDTO employeeCreateDTO) {
-        return employeeService.createPointOfContact(employeeCreateDTO);
+        Customer currentCustomer = customerService.getCurrentCustomerReference();
+        return employeeService.createPointOfContact(employeeCreateDTO, currentCustomer);
+    }
+
+    private Long getCurrentCustomerId() {
+        return customerService.getCurrentCustomerId();
+    }
+
+    private Long getCurrentUserId() {
+        return employeeService.getCurrentUser().getUserId();
     }
 }

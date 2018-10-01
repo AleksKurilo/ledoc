@@ -7,6 +7,7 @@ import dk.ledocsystem.ledoc.dto.equipment.EquipmentCreateDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentEditDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentLoanDTO;
 import dk.ledocsystem.ledoc.dto.projections.IdAndLocalizedName;
+import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.equipment.AuthenticationType;
 import dk.ledocsystem.ledoc.model.equipment.Equipment;
 import dk.ledocsystem.ledoc.model.equipment.EquipmentCategory;
@@ -15,15 +16,16 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
-public interface EquipmentService extends DomainService<Equipment> {
+public interface EquipmentService extends CustomerBasedDomainService<Equipment> {
 
     /**
      * Creates new {@link Equipment}, using the data from {@code equipmentCreateDTO}.
      *
      * @param equipmentCreateDTO Equipment properties
+     * @param customer           Customer - the owner of equipment
      * @return Newly created {@link Equipment}
      */
-    Equipment createEquipment(EquipmentCreateDTO equipmentCreateDTO);
+    Equipment createEquipment(EquipmentCreateDTO equipmentCreateDTO, Customer customer);
 
     /**
      * Updates the properties of the equipment with the given ID with properties of {@code equipmentCreateDTO}.
@@ -34,9 +36,9 @@ public interface EquipmentService extends DomainService<Equipment> {
      */
     Equipment updateEquipment(Long equipmentId, EquipmentEditDTO equipmentEditDTO);
 
-    Page<Equipment> getNewEquipment(Pageable pageable);
+    Page<Equipment> getNewEquipment(Long userId, Pageable pageable);
 
-    Page<Equipment> getNewEquipment(Pageable pageable, Predicate predicate);
+    Page<Equipment> getNewEquipment(Long userId, Pageable pageable, Predicate predicate);
 
     /**
      * @return All equipment eligible for review

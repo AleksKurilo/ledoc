@@ -8,9 +8,12 @@ import dk.ledocsystem.ledoc.dto.equipment.EquipmentEditDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentLoanDTO;
 import dk.ledocsystem.ledoc.dto.projections.IdAndLocalizedName;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
+import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.equipment.AuthenticationType;
 import dk.ledocsystem.ledoc.model.equipment.Equipment;
 import dk.ledocsystem.ledoc.model.equipment.EquipmentCategory;
+import dk.ledocsystem.ledoc.service.CustomerService;
+import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.EquipmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -29,27 +32,29 @@ import java.util.List;
 public class EquipmentController {
 
     private final EquipmentService equipmentService;
+    private final EmployeeService employeeService;
+    private final CustomerService customerService;
 
     @GetMapping
     public Iterable<Equipment> getAllEquipments(Pageable pageable) {
-        return equipmentService.getAll(pageable);
+        return equipmentService.getAllByCustomer(getCurrentCustomerId(), pageable);
     }
 
     @GetMapping("/filter")
     public Iterable<Equipment> getAllFilteredEquipments(@QuerydslPredicate(root = Equipment.class) Predicate predicate,
                                                         Pageable pageable) {
-        return equipmentService.getAll(predicate, pageable);
+        return equipmentService.getAllByCustomer(getCurrentCustomerId(), predicate, pageable);
     }
 
     @GetMapping("/new")
     public Iterable<Equipment> getNewEquipmentsForCurrentUser(Pageable pageable) {
-        return equipmentService.getNewEquipment(pageable);
+        return equipmentService.getNewEquipment(getCurrentUserId(), pageable);
     }
 
     @GetMapping("/new/filter")
     public Iterable<Equipment> getNewEquipmentsForCurrentUser(@QuerydslPredicate(root = Equipment.class) Predicate predicate,
                                                               Pageable pageable) {
-        return equipmentService.getNewEquipment(pageable, predicate);
+        return equipmentService.getNewEquipment(getCurrentUserId(), pageable, predicate);
     }
 
     @GetMapping("/{equipmentId}")
@@ -71,7 +76,8 @@ public class EquipmentController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public Equipment createEquipment(@RequestBody @Valid EquipmentCreateDTO equipmentCreateDTO) {
-        return equipmentService.createEquipment(equipmentCreateDTO);
+        Customer currentCustomer = customerService.getCurrentCustomerReference();
+        return equipmentService.createEquipment(equipmentCreateDTO, currentCustomer);
     }
 
     @PutMapping(value = "/{equipmentId}", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -102,9 +108,16 @@ public class EquipmentController {
     }
 
     @RolesAllowed("super_admin")
-    @PostMapping(value = "/category/create", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/categories", consumes = MediaType.APPLICATION_JSON_VALUE)
     public EquipmentCategory createNewEqCategory(@RequestBody @Valid EquipmentCategoryCreateDTO categoryCreateDTO) {
         return equipmentService.createNewCategory(categoryCreateDTO);
     }
 
+    private Long getCurrentCustomerId() {
+        return customerService.getCurrentCustomerId();
+    }
+
+    private Long getCurrentUserId() {
+        return employeeService.getCurrentUser().getUserId();
+}
 }

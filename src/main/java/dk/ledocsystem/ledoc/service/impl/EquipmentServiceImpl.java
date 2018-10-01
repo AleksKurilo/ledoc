@@ -6,6 +6,7 @@ import com.querydsl.core.types.dsl.Expressions;
 import dk.ledocsystem.ledoc.dto.equipment.*;
 import dk.ledocsystem.ledoc.dto.projections.IdAndLocalizedName;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
+import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.Location;
 import dk.ledocsystem.ledoc.model.email_notifications.EmailNotification;
 import dk.ledocsystem.ledoc.model.employee.Employee;
@@ -14,19 +15,18 @@ import dk.ledocsystem.ledoc.repository.AuthenticationTypeRepository;
 import dk.ledocsystem.ledoc.repository.EmailNotificationRepository;
 import dk.ledocsystem.ledoc.repository.EquipmentCategoryRepository;
 import dk.ledocsystem.ledoc.repository.EquipmentRepository;
-import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.EquipmentService;
 import dk.ledocsystem.ledoc.service.LocationService;
 import dk.ledocsystem.ledoc.util.BeanCopyUtils;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.IterableUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -41,41 +41,13 @@ class EquipmentServiceImpl implements EquipmentService {
     private final EquipmentRepository equipmentRepository;
     private final EquipmentCategoryRepository equipmentCategoryRepository;
     private final AuthenticationTypeRepository authenticationTypeRepository;
-    private final CustomerService customerService;
     private final EmployeeService employeeService;
     private final LocationService locationService;
     private final EmailNotificationRepository emailNotificationRepository;
 
     @Override
-    public List<Equipment> getAll() {
-        return getAll(Pageable.unpaged()).getContent();
-    }
-
-    @Override
-    public Page<Equipment> getAll(@NonNull Pageable pageable) {
-        return getAll(null, pageable);
-    }
-
-    @Override
-    public List<Equipment> getAll(@NonNull Predicate predicate) {
-        return getAll(predicate, Pageable.unpaged()).getContent();
-    }
-
-    @Override
-    public Page<Equipment> getAll(Predicate predicate, @NonNull Pageable pageable) {
-        Long currentCustomerId = customerService.getCurrentCustomerReference().getId();
-        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(currentCustomerId));
-        return equipmentRepository.findAll(combinePredicate, pageable);
-    }
-
-    @Override
-    public Optional<Equipment> getById(@NonNull Long id) {
-        return equipmentRepository.findById(id);
-    }
-
-    @Override
     @Transactional
-    public Equipment createEquipment(@NonNull EquipmentCreateDTO equipmentCreateDTO) {
+    public Equipment createEquipment(@NonNull EquipmentCreateDTO equipmentCreateDTO, Customer customer) {
         Equipment equipment = new Equipment();
         BeanCopyUtils.copyProperties(equipmentCreateDTO, equipment, false);
 
@@ -84,7 +56,7 @@ class EquipmentServiceImpl implements EquipmentService {
 
         equipment.setCreator(creator);
         equipment.setResponsible(responsible);
-        equipment.setCustomer(customerService.getCurrentCustomerReference());
+        equipment.setCustomer(customer);
         equipment.setCategory(resolveCategory(equipmentCreateDTO.getCategoryId()));
         equipment.setLocation(resolveLocation(equipmentCreateDTO.getLocationId()));
         equipment.setAuthenticationType(resolveAuthenticationType(equipmentCreateDTO.getAuthTypeId()));
@@ -132,18 +104,21 @@ class EquipmentServiceImpl implements EquipmentService {
     }
 
     @Override
-    public Page<Equipment> getNewEquipment(@NonNull Pageable pageable) {
-        return getNewEquipment(pageable, null);
+    public Page<Equipment> getNewEquipment(@NonNull Long userId, @NonNull Pageable pageable) {
+        return getNewEquipment(userId, pageable, null);
     }
 
     @Override
-    public Page<Equipment> getNewEquipment(@NonNull Pageable pageable, Predicate predicate) {
-        Employee currentUser = employeeService.getCurrentUserReference();
+    public Page<Equipment> getNewEquipment(@NonNull Long userId, @NonNull Pageable pageable, Predicate predicate) {
+        Customer customer = employeeService.getById(userId)
+                .orElseThrow(() -> new NotFoundException("employee.id.not.found", userId.toString()))
+                .getCustomer();
 
-        Predicate newEquipmentPredicate = ExpressionUtils.and(
+        Predicate newEquipmentPredicate = ExpressionUtils.allOf(
                 predicate,
-                ExpressionUtils.notIn(Expressions.constant(currentUser), QEquipment.equipment.visitedBy));
-        return getAll(newEquipmentPredicate, pageable);
+                QEquipment.equipment.archived.eq(Boolean.FALSE),
+                ExpressionUtils.notIn(Expressions.constant(userId), QEquipment.equipment.visitedBy));
+        return getAllByCustomer(customer.getId(), newEquipmentPredicate, pageable);
     }
 
     @Override
@@ -226,6 +201,59 @@ class EquipmentServiceImpl implements EquipmentService {
         return equipmentCategoryRepository.save(category);
     }
 
+    //region GET/DELETE standard API
+
+    @Override
+    public List<Equipment> getAll() {
+        return equipmentRepository.findAll();
+    }
+
+    @Override
+    public Page<Equipment> getAll(@NonNull Pageable pageable) {
+        return equipmentRepository.findAll(pageable);
+    }
+
+    @Override
+    public List<Equipment> getAll(@NonNull Predicate predicate) {
+        return IterableUtils.toList(equipmentRepository.findAll(predicate));
+    }
+
+    @Override
+    public Page<Equipment> getAll(@NonNull Predicate predicate, @NonNull Pageable pageable) {
+        return equipmentRepository.findAll(predicate, pageable);
+    }
+
+    @Override
+    public List<Equipment> getAllByCustomer(@NonNull Long customerId) {
+        return getAllByCustomer(customerId, Pageable.unpaged()).getContent();
+    }
+
+    @Override
+    public Page<Equipment> getAllByCustomer(@NonNull Long customerId, @NonNull Pageable pageable) {
+        return getAllByCustomer(customerId, null, pageable);
+    }
+
+    @Override
+    public List<Equipment> getAllByCustomer(@NonNull Long customerId, Predicate predicate) {
+        return getAllByCustomer(customerId, predicate, Pageable.unpaged()).getContent();
+    }
+
+    @Override
+    public Page<Equipment> getAllByCustomer(@NonNull Long customerId, Predicate predicate, @NonNull Pageable pageable) {
+        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
+        return equipmentRepository.findAll(combinePredicate, pageable);
+    }
+
+    @Override
+    public Optional<Equipment> getById(@NonNull Long id) {
+        return equipmentRepository.findById(id);
+    }
+
+    @Override
+    public List<Equipment> getAllById(@NonNull Iterable<Long> ids) {
+        return equipmentRepository.findAllById(ids);
+    }
+
     @Override
     public void deleteById(@NonNull Long id) {
         equipmentRepository.deleteById(id);
@@ -233,7 +261,9 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Transactional
     @Override
-    public void deleteByIds(@NonNull Collection<Long> employeeIds) {
-        equipmentRepository.deleteByIdIn(employeeIds);
+    public void deleteByIds(@NonNull Iterable<Long> equipmentIds) {
+        equipmentRepository.deleteByIdIn(equipmentIds);
     }
+
+    //endregion
 }

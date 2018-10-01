@@ -6,10 +6,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Implementors provide base API to interact with domain objects of type T.
+ *
+ * @param <T> Domain object type
+ */
 public interface DomainService<T> {
 
     List<T> getAll();
@@ -22,9 +26,11 @@ public interface DomainService<T> {
 
     Optional<T> getById(Long id);
 
+    List<T> getAllById(Iterable<Long> ids);
+
     void deleteById(Long id);
 
-    void deleteByIds(Collection<Long> ids);
+    void deleteByIds(Iterable<Long> ids);
 
     default UserPrincipal getCurrentUser() {
         return (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

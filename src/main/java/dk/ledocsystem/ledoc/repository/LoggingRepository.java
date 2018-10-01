@@ -18,15 +18,5 @@ public interface LoggingRepository<T extends Visitable, ID> extends Repository<T
      */
     @Modifying
     @Query(value = "INSERT INTO main.#{#entityName}_log VALUES(?1, ?2) ON CONFLICT DO NOTHING", nativeQuery = true)
-    void writeToVisitedLog(ID employeeId, ID visitedEntityId);
-
-    /**
-     * Counts the number of entities that were visited by {@link Employee}.
-     *
-     * @param employeeId ID of the employee
-     * @return Number of visited entities
-     */
-    @Query(value = "SELECT COUNT(ent) " +
-            "FROM #{#entityName} ent join ent.visitedBy emp where emp.id = ?1 and ent.archived = FALSE")
-    long countVisited(ID employeeId);
+    void writeToLog(ID employeeId, ID visitedEntityId);
 }

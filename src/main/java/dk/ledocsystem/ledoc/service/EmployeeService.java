@@ -10,35 +10,27 @@ import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.util.Collection;
 import java.util.List;
 
-public interface EmployeeService extends DomainService<Employee> {
+public interface EmployeeService extends CustomerBasedDomainService<Employee> {
 
     /**
      * Creates new {@link Employee}, using the data from {@code employeeCreateDTO}, and assigns {@code customer} to it.
      *
      * @param employeeCreateDTO Employee properties
-     * @param customer          Customer - the owner of {@link Employee}
+     * @param customer          Customer - the owner of employee
      * @return Newly created {@link Employee}
      */
     Employee createEmployee(EmployeeCreateDTO employeeCreateDTO, Customer customer);
 
     /**
-     * Creates new {@link Employee}, using the data from {@code employeeCreateDTO}.
-     *
-     * @param employeeCreateDTO Employee properties
-     * @return Newly created {@link Employee}
-     */
-    Employee createEmployee(EmployeeCreateDTO employeeCreateDTO);
-
-    /**
      * Creates new {@link Employee} point of contact, using the data from {@code employeeCreateDTO}.
      *
-     * @param employeeCreateDTO Employee properties
+     * @param employeeCreateDTO Point of contact properties
+     * @param customer          Customer - the owner of point of contact
      * @return Newly created {@link Employee}
      */
-    Employee createPointOfContact(EmployeeCreateDTO employeeCreateDTO);
+    Employee createPointOfContact(EmployeeCreateDTO employeeCreateDTO, Customer customer);
 
     /**
      * Updates the properties of the employee with the given ID with properties of {@code employeeCreateDTO}.
@@ -73,8 +65,6 @@ public interface EmployeeService extends DomainService<Employee> {
      */
     void revokeAuthorities(Long employeeId, UserAuthorities authorities);
 
-    List<Employee> findAllById(Collection<Long> ids);
-
     /**
      * @return All employees eligible for review
      */
@@ -82,11 +72,9 @@ public interface EmployeeService extends DomainService<Employee> {
 
     boolean existsByUsername(String username);
 
-    Page<Employee> getNewEmployees(Pageable pageable);
+    Page<Employee> getNewEmployees(Long userId, Pageable pageable);
 
-    Page<Employee> getNewEmployees(Pageable pageable, Predicate predicate);
-
-    long countNewEmployees(Long customerId, Long employeeId);
+    Page<Employee> getNewEmployees(Long userId, Pageable pageable, Predicate predicate);
 
     /**
      * @return A proxy, whose state can be lazily populated upon access until the end of current transaction.

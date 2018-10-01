@@ -9,7 +9,6 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 
-import java.util.Collection;
 import java.util.Optional;
 
 public interface CustomerRepository extends JpaRepository<Customer, Long>, QuerydslPredicateExecutor<Customer>,
@@ -34,7 +33,7 @@ public interface CustomerRepository extends JpaRepository<Customer, Long>, Query
 
     @Modifying
     @Query("delete from Customer c where c.id in ?1")
-    void deleteByIdIn(Collection<Long> ids);
+    void deleteById(Iterable<Long> ids);
 
     @Override
     default void customize(QuerydslBindings bindings, QCustomer root) {

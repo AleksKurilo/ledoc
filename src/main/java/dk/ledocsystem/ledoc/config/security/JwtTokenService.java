@@ -49,7 +49,7 @@ public class JwtTokenService {
     }
 
     @Transactional
-    public void invalidateByUserIds(Collection<Long> userIds) {
+    public void invalidateByUserIds(Iterable<Long> userIds) {
         tokenRepository.deleteByUserIdIn(userIds);
     }
 
