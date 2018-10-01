@@ -119,34 +119,6 @@ create table customers
 alter table customers
   owner to ledoc;
 
-create table customers_export_excel
-(
-  customer_id       bigint not null
-    constraint customers_export_excel_pkey
-    primary key,
-  active_empl       integer,
-  active_equipments integer,
-  active_suppliers  integer,
-  all_empl          integer,
-  all_equipments    integer,
-  all_suppliers     integer,
-  building_number   varchar(255),
-  city              varchar(255),
-  company_email     varchar(255),
-  name              varchar(255),
-  cvr               varchar(255),
-  date_of_creation  date,
-  district          varchar(255),
-  locations         integer,
-  contact_phone     varchar(255),
-  point_of_contact  varchar(255),
-  postal_code       varchar(255),
-  street            varchar(255)
-);
-
-alter table customers_export_excel
-  owner to ledoc;
-
 create table email_notifications
 (
   id        bigint             not null
@@ -507,4 +479,39 @@ create table equipment_log
 
 alter table equipment_log
   owner to ledoc;
+
+CREATE OR REPLACE VIEW main.customers_export_excel AS
+  SELECT customers.id AS customer_id,
+         customers.name,
+         customers.cvr,
+         customers.date_of_creation,
+         count(sup.id) AS active_suppliers,
+         count(sup1.id) AS all_suppliers,
+         count(em.id) AS active_empl,
+         count(em1.id) AS all_empl,
+         count(eq.id) AS active_equipments,
+         count(eq1.id) AS all_equipments,
+         count(loc.id) AS locations,
+         customers.contact_phone,
+         customers.company_email,
+         addr.city,
+         addr.postal_code,
+         addr.street,
+         addr.building_number,
+         addr.district,
+         (em.username::text || ' - '::text) || em.first_name::text AS point_of_contact
+  FROM main.customers
+         LEFT JOIN main.employees em ON customers.id = em.customer_id AND em.archived IS FALSE
+         LEFT JOIN main.employees em1 ON customers.id = em1.customer_id
+         LEFT JOIN main.locations loc ON customers.id = loc.customer_id AND loc.is_cust_first IS TRUE
+         LEFT JOIN main.suppliers sup ON customers.id = sup.id AND sup.archived IS FALSE
+         LEFT JOIN main.suppliers sup1 ON customers.id = sup1.id
+         LEFT JOIN main.equipment eq ON customers.id = eq.id AND eq.archived IS FALSE
+         LEFT JOIN main.equipment eq1 ON customers.id = eq1.id
+         LEFT JOIN main.addresses addr ON loc.id = addr.location_id
+  GROUP BY customers.id, customers.name, customers.cvr, customers.date_of_creation, customers.company_email, customers.contact_phone, addr.city, addr.postal_code, addr.street, addr.building_number, addr.district, em.username, em.first_name
+  ORDER BY customers.id;
+
+ALTER TABLE main.customers_export_excel
+  OWNER TO ledoc;
 
