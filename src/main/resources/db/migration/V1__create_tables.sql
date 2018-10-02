@@ -168,7 +168,8 @@ create table employees
   private_email            varchar(40),
   phone_number             varchar(40),
   title                    varchar(40),
-  username                 varchar(255)          not null
+  username                 varchar(255)          not null,
+  personal_comment         varchar(400)
     constraint uk_3gqbimdf7fckjbwt1kcud141m
     unique,
   customer_id              bigint                not null
