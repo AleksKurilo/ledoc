@@ -10,6 +10,7 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
+import java.util.Set;
 
 @Data
 public class EmployeeEditDTO {
@@ -50,6 +51,8 @@ public class EmployeeEditDTO {
     private String title;
 
     private Long responsibleId;
+
+    private Set<Long> locationIds;
 
     private Boolean canCreatePersonalLocation;
 

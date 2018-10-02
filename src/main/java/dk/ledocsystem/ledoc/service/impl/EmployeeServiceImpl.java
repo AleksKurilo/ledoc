@@ -12,6 +12,7 @@ import dk.ledocsystem.ledoc.dto.employee.EmployeeEditDTO;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
+import dk.ledocsystem.ledoc.model.Location;
 import dk.ledocsystem.ledoc.model.email_notifications.EmailNotification;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.model.employee.EmployeeDetails;
@@ -19,12 +20,14 @@ import dk.ledocsystem.ledoc.model.employee.QEmployee;
 import dk.ledocsystem.ledoc.repository.EmailNotificationRepository;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
 import dk.ledocsystem.ledoc.service.EmployeeService;
+import dk.ledocsystem.ledoc.service.LocationService;
 import dk.ledocsystem.ledoc.util.BeanCopyUtils;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,6 +36,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,13 +44,14 @@ import java.util.Set;
 import java.util.function.Function;
 
 @Service
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor_ = {@Lazy})
 class EmployeeServiceImpl implements EmployeeService {
 
     private static final Function<Long, Predicate> CUSTOMER_EQUALS_TO =
             customerId -> ExpressionUtils.eqConst(QEmployee.employee.customer.id, customerId);
 
     private final EmployeeRepository employeeRepository;
+    private final LocationService locationService;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenService tokenService;
     private final EmailNotificationRepository emailNotificationRepository;
@@ -61,6 +66,9 @@ class EmployeeServiceImpl implements EmployeeService {
 
         Employee responsible = resolveResponsible(employeeCreateDTO.getResponsibleId());
         employee.setResponsible(responsible);
+
+        Set<Location> locations = resolveLocations(employeeCreateDTO.getLocationIds());
+        employee.setLocations(locations);
 
         if (shouldEmployeeBeReviewed(employeeCreateDTO)) {
             Long skillResponsibleId = employeeCreateDTO.getDetails().getSkillResponsibleId();
@@ -107,6 +115,11 @@ class EmployeeServiceImpl implements EmployeeService {
             Employee responsible = resolveResponsible(responsibleId);
             employee.setResponsible(responsible);
             sendNotificationToResponsible(responsible);
+        }
+
+        Set<Long> locationIds = employeeEditDTO.getLocationIds();
+        if (locationIds != null) {
+            employee.setLocations(resolveLocations(locationIds));
         }
 
         if (employeeDetailsChanged(employeeEditDTO)) {
@@ -223,6 +236,10 @@ class EmployeeServiceImpl implements EmployeeService {
         return (responsibleId == null) ? null :
                 getById(responsibleId)
                         .orElseThrow(() -> new NotFoundException("employee.responsible.not.found", responsibleId.toString()));
+    }
+
+    private Set<Location> resolveLocations(Set<Long> locationIds) {
+        return new HashSet<>(locationService.getAllById(locationIds));
     }
 
     private void sendMessages(EmployeeCreateDTO employee, Employee responsible) {

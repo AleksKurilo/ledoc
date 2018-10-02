@@ -9,10 +9,12 @@ import lombok.Data;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
+import java.util.Set;
 
 @Data
 public class EmployeeCreateDTO {
@@ -57,6 +59,9 @@ public class EmployeeCreateDTO {
     private String title;
 
     private Long responsibleId;
+
+    @NotEmpty
+    private Set<Long> locationIds;
 
     private boolean welcomeMessage;
 
