@@ -35,10 +35,9 @@ public class Customer {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "point_of_contact")
-    //@JsonSerialize(as = NamedEntity.class)
     private Employee pointOfContact; //ok, only superadmin
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany
     @JoinTable(name = "trade_to_customer",
             joinColumns = {@JoinColumn(name = "customer_id")},
             inverseJoinColumns = {@JoinColumn(name = "trade_id")})

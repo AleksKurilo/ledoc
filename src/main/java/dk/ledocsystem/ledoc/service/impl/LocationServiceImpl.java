@@ -119,7 +119,7 @@ class LocationServiceImpl implements LocationService {
             location.setAddressLocation(null);
             createAndSetAddress(location, locationEditDTO.getAddress());
         } else {
-            location.setAddress(null);
+            location.removeAddress();
             Long addressLocationId = locationEditDTO.getAddressLocationId();
             Location owningAddressLocation = getById(addressLocationId)
                     .orElseThrow(() -> new NotFoundException("location.address.location.not.found", addressLocationId.toString()));
@@ -153,7 +153,6 @@ class LocationServiceImpl implements LocationService {
         Address address = new Address();
         BeanCopyUtils.copyProperties(addressDTO, address);
         owningLocation.setAddress(address);
-        address.setLocation(owningLocation);
     }
 
     //region GET/DELETE standard API

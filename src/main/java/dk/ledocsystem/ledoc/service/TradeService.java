@@ -10,4 +10,6 @@ public interface TradeService {
     List<Trade> getAll();
 
     Trade createNew(TradeCreateDTO tradeCreateDTO);
+
+    void deleteById(Long tradeId);
 }

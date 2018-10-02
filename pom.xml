@@ -152,7 +152,6 @@
 		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-core</artifactId>
-			<version>${flyway.version}</version>
 		</dependency>
 
 	</dependencies>
@@ -182,7 +181,6 @@
 			<plugin>
 				<groupId>org.flywaydb</groupId>
 				<artifactId>flyway-maven-plugin</artifactId>
-				<version>${flyway.version}</version>
 				<configuration>
 					<url>jdbc:postgresql://localhost:5433/ledocdb</url>
 					<user>ledoc</user>
@@ -198,7 +196,6 @@
 					<dependency>
 						<groupId>org.postgresql</groupId>
 						<artifactId>postgresql</artifactId>
-						<version>${postgresql.version}</version>
 					</dependency>
 				</dependencies>
 			</plugin>

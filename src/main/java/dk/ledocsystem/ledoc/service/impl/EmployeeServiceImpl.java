@@ -192,16 +192,16 @@ class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public Page<Employee> getNewEmployees(@NonNull Long userId, @NonNull Pageable pageable, Predicate predicate) {
-        Customer customer = getById(userId)
-                .orElseThrow(() -> new NotFoundException("employee.id.not.found", userId.toString()))
-                .getCustomer();
+        Employee employee = getById(userId)
+                .orElseThrow(() -> new NotFoundException("employee.id.not.found", userId.toString()));
+        Long customerId = employee.getCustomer().getId();
 
         Predicate newEmployeesPredicate = ExpressionUtils.allOf(
                 predicate,
                 QEmployee.employee.archived.eq(Boolean.FALSE),
                 ExpressionUtils.neConst(QEmployee.employee.id, userId),
-                ExpressionUtils.notIn(Expressions.constant(userId), QEmployee.employee.visitedBy));
-        return getAllByCustomer(customer.getId(), newEmployeesPredicate, pageable);
+                ExpressionUtils.notIn(Expressions.constant(employee), QEmployee.employee.visitedBy));
+        return getAllByCustomer(customerId, newEmployeesPredicate, pageable);
     }
 
     @Override

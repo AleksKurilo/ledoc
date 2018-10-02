@@ -1,9 +1,12 @@
 package dk.ledocsystem.ledoc.model;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.ColumnDefault;
@@ -22,6 +25,7 @@ import java.util.Set;
 @ToString(of = {"id", "name"})
 @DynamicInsert
 @DynamicUpdate
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Location {
 
     @EqualsAndHashCode.Include
@@ -47,10 +51,8 @@ public class Location {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Location addressLocation;
 
-    @ManyToMany
-    @JoinTable(name = "employee_location",
-            joinColumns = { @JoinColumn(name = "location_id")},
-            inverseJoinColumns = { @JoinColumn(name = "employee_id")})
+    @ManyToMany(mappedBy = "locations")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Employee> employees;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -68,5 +70,17 @@ public class Location {
 
     @Column(name = "archive_reason")
     private String archiveReason;
+
+    public void setAddress(@NonNull Address address) {
+        this.address = address;
+        address.setLocation(this);
+    }
+
+    public void removeAddress() {
+        if (this.address != null) {
+            this.address.setLocation(null);
+        }
+        this.address = null;
+    }
 }
 

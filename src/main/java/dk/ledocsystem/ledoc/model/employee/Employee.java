@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.model.employee;
 
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
@@ -23,7 +24,7 @@ import java.util.Set;
 @ToString(of = {"username", "firstName", "lastName"})
 @DynamicInsert
 @DynamicUpdate
-public class Employee implements Visitable, NamedEntity {
+public class Employee implements Visitable {
 
     @EqualsAndHashCode.Include
     @Id
@@ -66,9 +67,9 @@ public class Employee implements Visitable, NamedEntity {
 
     @ManyToMany
     @JoinTable(name = "employee_log",
-            joinColumns = { @JoinColumn(name = "visited_id")},
-            inverseJoinColumns = { @JoinColumn(name = "employee_id",
-                    foreignKey = @ForeignKey(foreignKeyDefinition = "foreign key (employee_id) references employees on delete cascade")) })
+            joinColumns = {@JoinColumn(name = "visited_id")},
+            inverseJoinColumns = {@JoinColumn(name = "employee_id",
+                    foreignKey = @ForeignKey(foreignKeyDefinition = "foreign key (employee_id) references employees on delete cascade"))})
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Employee> visitedBy;
 
@@ -96,8 +97,11 @@ public class Employee implements Visitable, NamedEntity {
     @JsonUnwrapped
     private Avatar avatar = new Avatar();
 
-    @ManyToMany(mappedBy = "employees")
-    @OnDelete(action = OnDeleteAction.CASCADE)
+    @ManyToMany
+    @JoinTable(name = "employee_location",
+            joinColumns = {@JoinColumn(name = "employee_id")},
+            inverseJoinColumns = {@JoinColumn(name = "location_id")})
+    @JsonIdentityReference(alwaysAsId = true)
     private Set<Location> locations;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -112,7 +116,6 @@ public class Employee implements Visitable, NamedEntity {
     @Column(name = "archive_reason")
     private String archiveReason;
 
-    @Override
     public String getName() {
         return firstName + " " + lastName;
     }

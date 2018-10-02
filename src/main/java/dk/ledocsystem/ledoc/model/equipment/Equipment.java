@@ -9,6 +9,7 @@ import org.hibernate.annotations.*;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.ForeignKey;
 import javax.persistence.Table;
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -60,7 +61,7 @@ public class Equipment implements Visitable {
 
     @Column(nullable = false, length = 10)
     @Enumerated(EnumType.STRING)
-    @ColumnDefault("OK")
+    @ColumnDefault("\'OK\'")
     private Status status;
 
     @Column(name = "purchase_date", nullable = false)
@@ -121,9 +122,22 @@ public class Equipment implements Visitable {
     @ManyToMany
     @JoinTable(name = "equipment_log",
             joinColumns = { @JoinColumn(name = "equipment_id")},
-            inverseJoinColumns = { @JoinColumn(name = "employee_id") })
+            inverseJoinColumns = { @JoinColumn(name = "employee_id",
+                    foreignKey = @ForeignKey(foreignKeyDefinition = "foreign key (employee_id) references employees on delete cascade")) })
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Employee> visitedBy;
+
+    public void setLoan(@NonNull EquipmentLoan equipmentLoan) {
+        this.loan = equipmentLoan;
+        equipmentLoan.setEquipment(this);
+    }
+
+    public void removeLoan() {
+        if (this.loan != null) {
+            loan.setEquipment(null);
+        }
+        this.loan = null;
+    }
 
     /**
      * Automatically adjusts {@link #nextReviewDate} to the new value of approval rate.

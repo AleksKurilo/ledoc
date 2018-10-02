@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -28,6 +30,7 @@ public class Trade {
     @Column(name = "name_da", nullable = false)
     private String nameDa;
 
-    @ManyToMany(mappedBy = "trades", cascade = CascadeType.ALL)
+    @ManyToMany(mappedBy = "trades")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Customer> customer = new HashSet<>();
 }

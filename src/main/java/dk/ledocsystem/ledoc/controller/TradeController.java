@@ -27,4 +27,9 @@ public class TradeController {
     public Trade createNew(@RequestBody @Valid TradeCreateDTO createDTO) {
         return tradeService.createNew(createDTO);
     }
+
+    @DeleteMapping("/{tradeId}")
+    public void deleteById(@PathVariable Long tradeId) {
+        tradeService.deleteById(tradeId);
+    }
 }

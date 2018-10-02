@@ -110,15 +110,15 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     public Page<Equipment> getNewEquipment(@NonNull Long userId, @NonNull Pageable pageable, Predicate predicate) {
-        Customer customer = employeeService.getById(userId)
-                .orElseThrow(() -> new NotFoundException("employee.id.not.found", userId.toString()))
-                .getCustomer();
+        Employee employee = employeeService.getById(userId)
+                .orElseThrow(() -> new NotFoundException("employee.id.not.found", userId.toString()));
+        Long customerId = employee.getCustomer().getId();
 
         Predicate newEquipmentPredicate = ExpressionUtils.allOf(
                 predicate,
                 QEquipment.equipment.archived.eq(Boolean.FALSE),
-                ExpressionUtils.notIn(Expressions.constant(userId), QEquipment.equipment.visitedBy));
-        return getAllByCustomer(customer.getId(), newEquipmentPredicate, pageable);
+                ExpressionUtils.notIn(Expressions.constant(employee), QEquipment.equipment.visitedBy));
+        return getAllByCustomer(customerId, newEquipmentPredicate, pageable);
     }
 
     @Override
@@ -137,7 +137,6 @@ class EquipmentServiceImpl implements EquipmentService {
 
         Equipment equipment = equipmentRepository.findById(equipmentId)
                 .orElseThrow(() -> new NotFoundException("equipment.id.not.found", equipmentId.toString()));
-        equipmentLoan.setEquipment(equipment);
         equipment.setLoan(equipmentLoan);
     }
 
@@ -146,7 +145,7 @@ class EquipmentServiceImpl implements EquipmentService {
     public void returnLoanedEquipment(Long equipmentId) {
         Equipment equipment = equipmentRepository.findById(equipmentId)
                 .orElseThrow(() -> new NotFoundException("equipment.id.not.found", equipmentId.toString()));
-        equipment.setLoan(null);
+        equipment.removeLoan();
     }
 
     private void sendMessages(Employee employee) {

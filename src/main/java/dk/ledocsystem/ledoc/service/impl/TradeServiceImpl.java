@@ -27,4 +27,9 @@ class TradeServiceImpl implements TradeService {
         trade.setNameDa(tradeCreateDTO.getNameDa());
         return tradeRepository.save(trade);
     }
+
+    @Override
+    public void deleteById(Long tradeId) {
+        tradeRepository.deleteById(tradeId);
+    }
 }
