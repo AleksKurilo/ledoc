@@ -192,12 +192,6 @@
 						<location>classpath:db/migration</location>
 					</locations>
 				</configuration>
-				<dependencies>
-					<dependency>
-						<groupId>org.postgresql</groupId>
-						<artifactId>postgresql</artifactId>
-					</dependency>
-				</dependencies>
 			</plugin>
 
 			<plugin>
