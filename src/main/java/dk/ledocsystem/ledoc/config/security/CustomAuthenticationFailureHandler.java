@@ -13,6 +13,7 @@ import org.springframework.web.servlet.LocaleResolver;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Locale;
 
 @RequiredArgsConstructor
@@ -35,7 +36,7 @@ public class CustomAuthenticationFailureHandler implements AuthenticationFailure
             message = messageSource.getMessage("username.password.invalid", null, locale);
         }
 
-        RestResponse restResponse = new RestResponse(message);
+        RestResponse restResponse = new RestResponse(Arrays.asList(message));
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         objectMapper.writeValue(response.getWriter(), restResponse);
     }

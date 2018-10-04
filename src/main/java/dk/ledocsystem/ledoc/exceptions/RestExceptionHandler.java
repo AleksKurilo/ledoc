@@ -6,17 +6,20 @@ import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.context.MessageSource;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.lang.reflect.Method;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @ControllerAdvice
@@ -29,28 +32,27 @@ class RestExceptionHandler implements AsyncUncaughtExceptionHandler {
     @ExceptionHandler(LedocException.class)
     public ResponseEntity<RestResponse> handleLedocException(LedocException ex, Locale locale) {
         String errorMessage = messageSource.getMessage(ex.getMessageKey(), ex.getParams(), locale);
-        return handleExceptionInternal(ex, new RestResponse(errorMessage));
+        return handleExceptionInternal(ex, new RestResponse(Arrays.asList(errorMessage)));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<RestResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, Locale locale) {
+    public ResponseEntity<?> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, Locale locale) {
         BindingResult result = ex.getBindingResult();
-        List<String> errorMessages = result.getAllErrors()
+        Map<String, String> errorMap = result.getFieldErrors()
                 .stream()
-                .map(objectError -> messageSource.getMessage(objectError, locale))
-                .collect(Collectors.toList());
-        return new ResponseEntity<>(new RestResponse(errorMessages), HttpStatus.BAD_REQUEST);
+                .collect(Collectors.toMap(FieldError::getField, (error) -> messageSource.getMessage(error, locale)));
+        return ResponseEntity.badRequest().contentType(MediaType.APPLICATION_JSON).body(errorMap);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<RestResponse> handleAccessDenied(AccessDeniedException ex) {
-        return handleExceptionInternal(ex, new RestResponse(ex.getMessage()));
+        return handleExceptionInternal(ex, new RestResponse(Arrays.asList(ex.getMessage())));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<RestResponse> handleException(Exception ex, Locale locale) {
         String errorMessage = messageSource.getMessage(UNEXPECTED_ERROR, null, locale);
-        return handleExceptionInternal(ex, new RestResponse(errorMessage));
+        return handleExceptionInternal(ex, new RestResponse(Arrays.asList(errorMessage)));
     }
 
     @Override
@@ -70,4 +72,5 @@ class RestExceptionHandler implements AsyncUncaughtExceptionHandler {
 		ResponseStatus annotation = AnnotatedElementUtils.findMergedAnnotation(exception.getClass(), ResponseStatus.class);
 		return (annotation != null) ? annotation.value() : HttpStatus.INTERNAL_SERVER_ERROR;
 	}
+
 }
