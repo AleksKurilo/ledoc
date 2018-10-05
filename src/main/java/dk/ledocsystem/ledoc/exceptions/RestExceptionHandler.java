@@ -52,8 +52,8 @@ class RestExceptionHandler implements AsyncUncaughtExceptionHandler {
 
         Map<String, Object> jsonErrors = new HashMap<>();
         fieldsWithErrors.entrySet().forEach(s -> {
-            Map<String, String> nestedObject = new HashMap<>();
             if (s.getKey().contains(".")) {
+                Map<String, String> nestedObject = new HashMap<>();
                 String[] fields = s.getKey().split("\\.");
                 nestedObject.put(fields[1], s.getValue());
                 jsonErrors.put(fields[0], nestedObject);
