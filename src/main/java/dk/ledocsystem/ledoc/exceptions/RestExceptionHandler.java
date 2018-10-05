@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
+
 
 @ControllerAdvice
 @RequiredArgsConstructor
@@ -36,40 +36,34 @@ class RestExceptionHandler implements AsyncUncaughtExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Map<String, String>>> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, Locale locale) {
+    public ResponseEntity<Map<String, Object>> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, Locale locale) {
         BindingResult result = ex.getBindingResult();
 
-        Map<String, String> errors = new HashMap<>();
-        result.getFieldErrors()
-                .stream()
-                .forEach(fieldError -> {
-                    String key = fieldError.getField();
-                    if (errors.containsKey(key)) {
-                        String val = errors.get(key) + "," + messageSource.getMessage(fieldError, locale);
-                        errors.put(key, val);
-                    } else {
-                        errors.put(key, messageSource.getMessage(fieldError, locale));
-                    }
-                });
+        Map<String, String> fieldsWithErrors = new HashMap<>();
+        result.getFieldErrors().forEach(fieldError -> {
+            String field = fieldError.getField();
+            if (fieldsWithErrors.containsKey(field)) {
+                String error = fieldsWithErrors.get(field) + "," + messageSource.getMessage(fieldError, locale);
+                fieldsWithErrors.put(field, error);
+            } else {
+                fieldsWithErrors.put(field, messageSource.getMessage(fieldError, locale));
+            }
+        });
 
-        Map<String, Map<String, String>> jsonErrors = new HashMap<>();
-        errors.entrySet().stream()
-                .map(s -> {
-                    Map<String, String> nestedObject = new HashMap<>();
-                    if (s.getKey().contains(".")) {
-                        String[] keys = s.getKey().split("\\.");
-                        nestedObject.put(keys[1], s.getValue());
-                        jsonErrors.put(keys[0], nestedObject);
-                        return null;
-                    } else {
-                        nestedObject.put("", s.getValue());
-                        jsonErrors.put(s.getKey(), nestedObject);
-                        return null;
-                    }
-                }).collect(Collectors.toList());
-
+        Map<String, Object> jsonErrors = new HashMap<>();
+        fieldsWithErrors.entrySet().forEach(s -> {
+            Map<String, String> nestedObject = new HashMap<>();
+            if (s.getKey().contains(".")) {
+                String[] fields = s.getKey().split("\\.");
+                nestedObject.put(fields[1], s.getValue());
+                jsonErrors.put(fields[0], nestedObject);
+            } else {
+                jsonErrors.put(s.getKey(), s.getValue());
+            }
+        });
         return ResponseEntity.badRequest().contentType(MediaType.APPLICATION_JSON).body(jsonErrors);
     }
+
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<RestResponse> handleAccessDenied(AccessDeniedException ex) {
