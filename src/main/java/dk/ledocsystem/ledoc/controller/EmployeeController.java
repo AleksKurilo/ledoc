@@ -3,7 +3,7 @@ package dk.ledocsystem.ledoc.controller;
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
-import dk.ledocsystem.ledoc.dto.employee.EmployeeEditDTO;
+import dk.ledocsystem.ledoc.dto.employee.EmployeeDTO;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
@@ -66,8 +66,8 @@ public class EmployeeController {
 
     @PutMapping(value = "/{employeeId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Employee updateEmployeeById(@PathVariable Long employeeId,
-                                       @RequestBody @Valid EmployeeEditDTO employeeEditDTO) {
-        return employeeService.updateEmployee(employeeId, employeeEditDTO);
+                                       @RequestBody @Valid EmployeeDTO employeeDTO) {
+        return employeeService.updateEmployee(employeeId, employeeDTO);
     }
 
     @DeleteMapping("/{employeeId}")

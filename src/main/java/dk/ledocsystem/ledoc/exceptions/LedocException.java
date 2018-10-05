@@ -8,8 +8,8 @@ import lombok.Getter;
 @Getter
 public class LedocException extends RuntimeException {
 
-    private String messageKey;
-    private Object[] params;
+    private final String messageKey;
+    private final Object[] params;
 
     public LedocException(String messageKey, Object... params) {
         this.messageKey = messageKey;

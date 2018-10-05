@@ -9,7 +9,7 @@ import java.time.Period;
 
 @Data
 @ReviewDetails
-public class EmployeeDetailsCreateDTO {
+public class EmployeeDetailsDTO {
 
     @OnlyAscii
     @Size(max = 400)

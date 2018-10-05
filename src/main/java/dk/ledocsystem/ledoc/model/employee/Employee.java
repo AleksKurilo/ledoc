@@ -119,4 +119,9 @@ public class Employee implements Visitable {
     public String getName() {
         return firstName + " " + lastName;
     }
+
+    @JsonIgnore
+    public UserAuthorities getRole() {
+        return (authorities.contains(UserAuthorities.ADMIN)) ? UserAuthorities.ADMIN : UserAuthorities.USER;
+    }
 }

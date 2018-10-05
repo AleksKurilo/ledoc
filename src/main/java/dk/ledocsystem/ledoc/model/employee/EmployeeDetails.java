@@ -27,12 +27,14 @@ public class EmployeeDetails {
 
     /**
      * Automatically adjusts {@link #nextReviewDate} to the new value of review frequency.
-     * To erase review frequency use {@link #eraseReviewDetails()}.
-     * Setters methods are usually called from {@link dk.ledocsystem.ledoc.util.BeanCopyUtils}.
      */
-    public void setReviewFrequency(@NonNull Period reviewFrequency) {
-        this.nextReviewDate = getPrevReviewDate().plus(reviewFrequency);
-        this.reviewFrequency = reviewFrequency;
+    public void setReviewFrequency(Period reviewFrequency) {
+        if (reviewFrequency == null) {
+            eraseReviewDetails();
+        } else {
+            this.nextReviewDate = getPrevReviewDate().plus(reviewFrequency);
+            this.reviewFrequency = reviewFrequency;
+        }
     }
 
     public void eraseReviewDetails() {

@@ -7,8 +7,8 @@ import com.querydsl.core.types.dsl.Expressions;
 import dk.ledocsystem.ledoc.config.security.JwtTokenService;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
-import dk.ledocsystem.ledoc.dto.employee.EmployeeDetailsEditDTO;
-import dk.ledocsystem.ledoc.dto.employee.EmployeeEditDTO;
+import dk.ledocsystem.ledoc.dto.employee.EmployeeDTO;
+import dk.ledocsystem.ledoc.dto.employee.EmployeeDetailsDTO;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
@@ -21,12 +21,12 @@ import dk.ledocsystem.ledoc.repository.EmailNotificationRepository;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.LocationService;
-import dk.ledocsystem.ledoc.util.BeanCopyUtils;
+import dk.ledocsystem.ledoc.service.exceptions.PropertyValidationException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.IterableUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -39,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -55,12 +56,14 @@ class EmployeeServiceImpl implements EmployeeService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenService tokenService;
     private final EmailNotificationRepository emailNotificationRepository;
+    private final ModelMapper modelMapper;
 
     @Transactional
     @Override
     public Employee createEmployee(@NonNull EmployeeCreateDTO employeeCreateDTO, @NonNull Customer customer) {
-        Employee employee = new Employee();
-        BeanCopyUtils.copyProperties(employeeCreateDTO, employee, false);
+        validateUniqueUsername(employeeCreateDTO.getUsername());
+
+        Employee employee = modelMapper.map(employeeCreateDTO, Employee.class);
         employee.setPassword(passwordEncoder.encode(employee.getPassword()));
         employee.setCustomer(customer);
 
@@ -70,9 +73,8 @@ class EmployeeServiceImpl implements EmployeeService {
         Set<Location> locations = resolveLocations(employeeCreateDTO.getLocationIds());
         employee.setLocations(locations);
 
-        if (shouldEmployeeBeReviewed(employeeCreateDTO)) {
-            Long skillResponsibleId = employeeCreateDTO.getDetails().getSkillResponsibleId();
-            employee.getDetails().setResponsibleOfSkills(resolveResponsibleOfSkills(skillResponsibleId));
+        if (employeeDetailsPresent(employeeCreateDTO)) {
+            updateReviewDetails(employeeCreateDTO.getDetails(), employee.getDetails());
         }
 
         employee = employeeRepository.save(employee);
@@ -80,10 +82,6 @@ class EmployeeServiceImpl implements EmployeeService {
         addAuthorities(employee, employeeCreateDTO);
         sendMessages(employeeCreateDTO, responsible);
         return employee;
-    }
-
-    private boolean shouldEmployeeBeReviewed(EmployeeCreateDTO employeeCreateDTO) {
-        return employeeCreateDTO.getDetails() != null && employeeCreateDTO.getDetails().isSkillAssessed();
     }
 
     private void addAuthorities(Employee employee, EmployeeCreateDTO employeeCreateDTO) {
@@ -105,59 +103,78 @@ class EmployeeServiceImpl implements EmployeeService {
 
     @Transactional
     @Override
-    public Employee updateEmployee(@NonNull Long employeeId, @NonNull EmployeeEditDTO employeeEditDTO) {
+    public Employee updateEmployee(@NonNull Long employeeId, @NonNull EmployeeDTO employeeDTO) {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new NotFoundException("employee.id.not.found", employeeId.toString()));
-        BeanCopyUtils.copyProperties(employeeEditDTO, employee, false);
+        if (!employee.getUsername().equals(employeeDTO.getUsername())) {
+            validateUniqueUsername(employeeDTO.getUsername());
+        }
 
-        Long responsibleId = employeeEditDTO.getResponsibleId();
-        if (responsibleId != null) {
+        modelMapper.map(employeeDTO, employee);
+
+        Long responsibleId = employeeDTO.getResponsibleId();
+        if (responsibleChanged(employee.getResponsible(), responsibleId)) {
             Employee responsible = resolveResponsible(responsibleId);
             employee.setResponsible(responsible);
-            sendNotificationToResponsible(responsible);
+            if (responsible != null) {
+                sendNotificationToResponsible(responsible);
+            }
         }
 
-        Set<Long> locationIds = employeeEditDTO.getLocationIds();
-        if (locationIds != null) {
-            employee.setLocations(resolveLocations(locationIds));
+        employee.setLocations(resolveLocations(employeeDTO.getLocationIds()));
+
+        if (employeeDetailsPresent(employeeDTO)) {
+            updateReviewDetails(employeeDTO.getDetails(), employee.getDetails());
         }
 
-        if (employeeDetailsChanged(employeeEditDTO)) {
-            updateReviewDetails(employeeEditDTO.getDetails(), employee.getDetails());
-        }
-
-        if (employeeEditDTO.getRole() != null) {
-            changeRole(employee, UserAuthorities.fromString(employeeEditDTO.getRole()));
-        }
-
+        updateAuthorities(employee, employeeDTO);
         return employeeRepository.save(employee);
     }
 
-    private boolean employeeDetailsChanged(EmployeeEditDTO employeeEditDTO) {
-        return employeeEditDTO.getDetails() != null;
+    private boolean employeeDetailsPresent(EmployeeDTO employeeDTO) {
+        return employeeDTO.getDetails() != null;
     }
 
-    private void updateReviewDetails(EmployeeDetailsEditDTO editDTO, EmployeeDetails employeeDetails) {
-        if (BooleanUtils.isFalse(editDTO.getSkillAssessed())) {
+    private void updateReviewDetails(EmployeeDetailsDTO detailsDTO, EmployeeDetails employeeDetails) {
+        if (detailsDTO.isSkillAssessed()) {
+            Long skillResponsibleId = detailsDTO.getSkillResponsibleId();
+            employeeDetails.setResponsibleOfSkills(resolveResponsibleOfSkills(skillResponsibleId));
+        } else {
             employeeDetails.eraseReviewDetails();
-        } else {
-            Long skillResponsibleId = editDTO.getSkillResponsibleId();
-            if (skillResponsibleId != null) {
-                employeeDetails.setResponsibleOfSkills(resolveResponsibleOfSkills(skillResponsibleId));
-            }
         }
     }
 
-    private void changeRole(Employee employee, UserAuthorities role) {
+    private boolean responsibleChanged(Employee oldResponsible, Long responsibleId) {
+        Long oldResponsibleId = (oldResponsible != null) ? oldResponsible.getId() : null;
+        return !Objects.equals(oldResponsibleId, responsibleId);
+    }
+
+    private void updateAuthorities(Employee employee, EmployeeDTO employeeDTO) {
         Set<UserAuthorities> authorities = employee.getAuthorities();
-        if (role == UserAuthorities.USER) {
-            authorities.remove(UserAuthorities.ADMIN);
-            authorities.add(UserAuthorities.USER);
-        } else {
-            authorities.remove(UserAuthorities.USER);
-            authorities.add(UserAuthorities.ADMIN);
+
+        String roleString = ObjectUtils.defaultIfNull(employeeDTO.getRole(), "user");
+        UserAuthorities newRole = UserAuthorities.fromString(roleString);
+        if (roleChanged(employee, newRole)) {
+            changeRole(authorities, newRole);
         }
-        tokenService.updateTokens(employee.getId(), employee.getAuthorities());
+
+        if (employeeDTO.isCanCreatePersonalLocation()) {
+            authorities.add(UserAuthorities.CAN_CREATE_PERSONAL_LOCATION);
+        } else {
+            authorities.remove(UserAuthorities.CAN_CREATE_PERSONAL_LOCATION);
+        }
+
+        tokenService.updateTokens(employee.getId(), authorities);
+    }
+
+    private boolean roleChanged(Employee employee, UserAuthorities newRole) {
+        return !employee.getRole().equals(newRole);
+    }
+
+    private void changeRole(Set<UserAuthorities> authorities, UserAuthorities role) {
+        authorities.remove(UserAuthorities.USER);
+        authorities.remove(UserAuthorities.ADMIN);
+        authorities.add(role);
     }
 
     @Override
@@ -265,6 +282,12 @@ class EmployeeServiceImpl implements EmployeeService {
         EmailNotification notification =
                 new EmailNotification(responsible.getUsername(), "employee_created");
         emailNotificationRepository.save(notification);
+    }
+
+    private void validateUniqueUsername(String username) {
+        if (existsByUsername(username)) {
+            throw new PropertyValidationException("username", "employee.username.already.in.use");
+        }
     }
 
     //region GET/DELETE standard API

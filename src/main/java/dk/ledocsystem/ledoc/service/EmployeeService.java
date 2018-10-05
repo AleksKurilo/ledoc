@@ -3,7 +3,7 @@ package dk.ledocsystem.ledoc.service;
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
-import dk.ledocsystem.ledoc.dto.employee.EmployeeEditDTO;
+import dk.ledocsystem.ledoc.dto.employee.EmployeeDTO;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
@@ -35,11 +35,11 @@ public interface EmployeeService extends CustomerBasedDomainService<Employee> {
     /**
      * Updates the properties of the employee with the given ID with properties of {@code employeeCreateDTO}.
      *
-     * @param employeeId      ID of the employee
-     * @param employeeEditDTO New properties of the employee
+     * @param employeeId  ID of the employee
+     * @param employeeDTO New properties of the employee
      * @return Updated {@link Employee}
      */
-    Employee updateEmployee(Long employeeId, EmployeeEditDTO employeeEditDTO);
+    Employee updateEmployee(Long employeeId, EmployeeDTO employeeDTO);
 
     /**
      * Changes password of the user with given email.

@@ -1,15 +1,14 @@
 package dk.ledocsystem.ledoc.annotations.validation.review;
 
-import dk.ledocsystem.ledoc.dto.employee.EmployeeDetailsCreateDTO;
+import dk.ledocsystem.ledoc.dto.employee.EmployeeDetailsDTO;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
-class ReviewDetailsValidatorForCreateEmployee
-        implements ConstraintValidator<ReviewDetails, EmployeeDetailsCreateDTO> {
+class ReviewDetailsValidatorForEmployee implements ConstraintValidator<ReviewDetails, EmployeeDetailsDTO> {
 
     @Override
-    public boolean isValid(EmployeeDetailsCreateDTO value, ConstraintValidatorContext context) {
+    public boolean isValid(EmployeeDetailsDTO value, ConstraintValidatorContext context) {
         if (value.isSkillAssessed()) {
             return value.getSkillResponsibleId() != null && value.getReviewFrequency() != null;
         }

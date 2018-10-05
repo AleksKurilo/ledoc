@@ -27,6 +27,6 @@ public class Avatar {
     }
 
     public void setAvatar(String avatar) {
-        this.avatar = Base64.getEncoder().encode(avatar.getBytes());
+        this.avatar = (avatar == null) ? null : Base64.getEncoder().encode(avatar.getBytes());
     }
 }
