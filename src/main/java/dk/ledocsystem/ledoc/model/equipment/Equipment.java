@@ -1,8 +1,10 @@
 package dk.ledocsystem.ledoc.model.equipment;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import dk.ledocsystem.ledoc.model.*;
+import dk.ledocsystem.ledoc.model.Customer;
+import dk.ledocsystem.ledoc.model.Location;
+import dk.ledocsystem.ledoc.model.Supplier;
+import dk.ledocsystem.ledoc.model.Visitable;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import lombok.*;
 import org.hibernate.annotations.*;
@@ -77,9 +79,8 @@ public class Equipment implements Visitable {
     @Column(name = "archive_reason")
     private String archiveReason;
 
-    @Embedded
-    @JsonUnwrapped
-    private Avatar avatar = new Avatar();
+    @Column(name = "avatar")
+    private String avatar;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "auth_type_id")
