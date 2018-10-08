@@ -7,10 +7,13 @@ import dk.ledocsystem.ledoc.dto.employee.EmployeeDTO;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
+import dk.ledocsystem.ledoc.service.dto.EmployeePreviewDTO;
+import dk.ledocsystem.ledoc.service.dto.GetEmployeeDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface EmployeeService extends CustomerBasedDomainService<Employee> {
 
@@ -75,6 +78,12 @@ public interface EmployeeService extends CustomerBasedDomainService<Employee> {
     Page<Employee> getNewEmployees(Long userId, Pageable pageable);
 
     Page<Employee> getNewEmployees(Long userId, Pageable pageable, Predicate predicate);
+
+    // TODO This is shit.
+    // TODO Replace it with getById during service layer separation process.
+    Optional<GetEmployeeDTO> getEmployeeDtoById(Long employeeId);
+
+    Optional<EmployeePreviewDTO> getPreviewDtoById(Long employeeId);
 
     /**
      * @return A proxy, whose state can be lazily populated upon access until the end of current transaction.

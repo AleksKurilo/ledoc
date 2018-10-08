@@ -10,6 +10,8 @@ import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
+import dk.ledocsystem.ledoc.service.dto.EmployeePreviewDTO;
+import dk.ledocsystem.ledoc.service.dto.GetEmployeeDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
@@ -52,8 +54,14 @@ public class EmployeeController {
     }
 
     @GetMapping("/{employeeId}")
-    public Employee getEmployeeById(@PathVariable Long employeeId) {
-        return employeeService.getById(employeeId)
+    public GetEmployeeDTO getEmployeeById(@PathVariable Long employeeId) {
+        return employeeService.getEmployeeDtoById(employeeId)
+                .orElseThrow(() -> new NotFoundException("employee.id.not.found", employeeId.toString()));
+    }
+
+    @GetMapping("/{employeeId}/preview")
+    public EmployeePreviewDTO getEmployeeByIdForPreview(@PathVariable Long employeeId) {
+        return employeeService.getPreviewDtoById(employeeId)
                 .orElseThrow(() -> new NotFoundException("employee.id.not.found", employeeId.toString()));
     }
 

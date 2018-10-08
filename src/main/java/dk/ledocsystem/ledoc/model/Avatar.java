@@ -29,4 +29,9 @@ public class Avatar {
     public void setAvatar(String avatar) {
         this.avatar = (avatar == null) ? null : Base64.getEncoder().encode(avatar.getBytes());
     }
+
+    @Override
+    public String toString() {
+        return getAvatar();
+    }
 }

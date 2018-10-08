@@ -21,6 +21,8 @@ import dk.ledocsystem.ledoc.repository.EmailNotificationRepository;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.LocationService;
+import dk.ledocsystem.ledoc.service.dto.EmployeePreviewDTO;
+import dk.ledocsystem.ledoc.service.dto.GetEmployeeDTO;
 import dk.ledocsystem.ledoc.service.exceptions.PropertyValidationException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +45,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
@@ -235,6 +238,18 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Optional<GetEmployeeDTO> getEmployeeDtoById(Long employeeId) {
+        return getById(employeeId).map(this::mapModelToDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<EmployeePreviewDTO> getPreviewDtoById(Long employeeId) {
+        return getById(employeeId).map(this::mapModelToPreviewDto);
+    }
+
+    @Override
     public Employee getCurrentUserReference() {
         Long currentUserId = getCurrentUser().getUserId();
         return employeeRepository.getOne(currentUserId);
@@ -288,6 +303,42 @@ class EmployeeServiceImpl implements EmployeeService {
         if (existsByUsername(username)) {
             throw new PropertyValidationException("username", "employee.username.already.in.use");
         }
+    }
+
+    //todo It'd be better to replace this with appropriate ModelMapper configuration
+    //#see ModelMapper.addMappings()
+    private GetEmployeeDTO mapModelToDto(Employee employee) {
+        GetEmployeeDTO dto = modelMapper.map(employee, GetEmployeeDTO.class);
+        if (employee.getResponsible() != null) {
+            dto.setResponsibleId(employee.getResponsible().getId());
+        }
+
+        Set<Long> locationIds = employee.getLocations().stream().map(Location::getId).collect(Collectors.toSet());
+        dto.setLocationIds(locationIds);
+
+        if (employee.getDetails().getResponsibleOfSkills() != null) {
+            dto.getDetails().setSkillResponsibleId(employee.getDetails().getResponsibleOfSkills().getId());
+        }
+
+        return dto;
+    }
+
+    //todo It'd be better to replace this with appropriate ModelMapper configuration
+    //#see ModelMapper.addMappings()
+    private EmployeePreviewDTO mapModelToPreviewDto(Employee employee) {
+        EmployeePreviewDTO dto = modelMapper.map(employee, EmployeePreviewDTO.class);
+        if (employee.getResponsible() != null) {
+            dto.setResponsibleName(employee.getResponsible().getName());
+        }
+
+        Set<String> locationNames = employee.getLocations().stream().map(Location::getName).collect(Collectors.toSet());
+        dto.setLocationNames(locationNames);
+
+        if (employee.getDetails().getResponsibleOfSkills() != null) {
+            dto.getDetails().setSkillResponsibleName(employee.getDetails().getResponsibleOfSkills().getName());
+        }
+
+        return dto;
     }
 
     //region GET/DELETE standard API

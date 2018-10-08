@@ -25,6 +25,10 @@ public class EmployeeDetails {
     @JoinColumn(name = "responsible_of_skills_id")
     private Employee responsibleOfSkills;
 
+    public boolean getSkillAssessed() {
+        return nextReviewDate != null;
+    }
+
     /**
      * Automatically adjusts {@link #nextReviewDate} to the new value of review frequency.
      */
