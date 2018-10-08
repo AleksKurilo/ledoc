@@ -7,8 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -18,8 +16,6 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Entity
 @Table(name = "documents")
-@DynamicInsert
-@DynamicUpdate
 public class Document {
 
     @EqualsAndHashCode.Include
@@ -46,8 +42,6 @@ public class Document {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Equipment equipment;
-    @Transient
-    private String fileBase64;
 
     @PreUpdate
     public void setLastUpdate() {

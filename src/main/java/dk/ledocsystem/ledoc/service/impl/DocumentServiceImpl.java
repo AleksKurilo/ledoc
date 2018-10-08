@@ -31,6 +31,12 @@ public class DocumentServiceImpl implements DocumentService {
     public Document createOrUpdate(DocumentDTO documentDTO) {
         Document document = modelMapper.map(documentDTO, Document.class);
 
+        Long documentId = documentDTO.getId();
+        if (documentId != null) {
+            documentRepository.findById(documentId)
+                    .orElseThrow(() -> new NotFoundException("document.id.not.found", documentId.toString()));
+        }
+
         Long employeeId = documentDTO.getEmployeeId();
         if (employeeId != null) {
             Employee employee = employeeService.getById(employeeId)
@@ -54,11 +60,13 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Set<Document> getByEmployeeId(long employeeId) {
         return documentRepository.findByEmployeeId(employeeId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Set<Document> getByEquipmentId(long equipmentId) {
         return documentRepository.findByEquipmentId(equipmentId);
     }
@@ -67,6 +75,4 @@ public class DocumentServiceImpl implements DocumentService {
     public void deleteById(long id) {
         documentRepository.deleteById(id);
     }
-
-
 }

@@ -9,6 +9,6 @@ public class DocumentValidator implements ConstraintValidator<ValidDocument, Doc
 
     @Override
     public boolean isValid(DocumentDTO documentDTO, ConstraintValidatorContext constraintValidatorContext) {
-        return (documentDTO.getEmployeeId() == null && documentDTO.getEquipmentId() == null) ? false : true;
+        return (documentDTO.getEmployeeId() != null || documentDTO.getEquipmentId() != null);
     }
 }
