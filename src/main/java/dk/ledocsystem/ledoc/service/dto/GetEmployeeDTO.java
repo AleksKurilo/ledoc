@@ -36,9 +36,9 @@ public class GetEmployeeDTO {
 
     private String avatar;
 
-    private EmployeeDetailsDTO details;
+    private EmployeeDetailsDTO details = new EmployeeDetailsDTO();
 
-    private EmployeePersonalInfoDTO personalInfo;
+    private EmployeePersonalInfoDTO personalInfo = new EmployeePersonalInfoDTO();
 
-    private EmployeeNearestRelativesDTO nearestRelative;
+    private EmployeeNearestRelativesDTO nearestRelative = new EmployeeNearestRelativesDTO();
 }
