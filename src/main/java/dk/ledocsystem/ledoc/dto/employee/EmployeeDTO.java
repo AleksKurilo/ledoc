@@ -1,17 +1,12 @@
 package dk.ledocsystem.ledoc.dto.employee;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import dk.ledocsystem.ledoc.annotations.validation.PhoneNumber;
+
 import dk.ledocsystem.ledoc.annotations.validation.OnlyAscii;
-import dk.ledocsystem.ledoc.model.Avatar;
+import dk.ledocsystem.ledoc.annotations.validation.PhoneNumber;
 import lombok.Data;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.time.LocalDate;
 import java.util.Set;
 
@@ -60,8 +55,7 @@ public class EmployeeDTO {
 
     private LocalDate expireOfIdCard;
 
-    @JsonUnwrapped
-    private Avatar avatar;
+    private String avatar;
 
     @Valid
     private EmployeeDetailsDTO details;

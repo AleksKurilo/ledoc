@@ -2,9 +2,10 @@ package dk.ledocsystem.ledoc.model.employee;
 
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
-import dk.ledocsystem.ledoc.model.*;
+import dk.ledocsystem.ledoc.model.Customer;
+import dk.ledocsystem.ledoc.model.Location;
+import dk.ledocsystem.ledoc.model.Visitable;
 import lombok.*;
 import org.hibernate.annotations.*;
 
@@ -60,6 +61,41 @@ public class Employee implements Visitable {
     @Column(length = 40)
     private String title;
 
+    @ColumnDefault("false")
+    @Column(nullable = false)
+    private Boolean archived;
+
+    @Column(name = "archive_reason")
+    private String archiveReason;
+
+    @Column(name = "expire_id_card")
+    private LocalDate expireOfIdCard;
+
+    @Column(name = "avatar")
+    private String avatar;
+
+    @Embedded
+    private EmployeeDetails details = new EmployeeDetails();
+
+    @Embedded
+    private EmployeePersonalInfo personalInfo = new EmployeePersonalInfo();
+
+    @Embedded
+    private EmployeeNearestRelative nearestRelative = new EmployeeNearestRelative();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "responsible_id")
+    private Employee responsible;
+
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "place_of_employment_id")
+    private Location placeOfEmployment;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Customer customer;
+
     @ElementCollection
     @CollectionTable(name = "employee_authorities")
     @Column(name = "authority", nullable = false)
@@ -73,48 +109,12 @@ public class Employee implements Visitable {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Employee> visitedBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "responsible_id")
-    private Employee responsible;
-
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "place_of_employment_id")
-    private Location placeOfEmployment;
-
-    @Column(name = "expire_id_card")
-    private LocalDate expireOfIdCard;
-
-    @Embedded
-    private EmployeeDetails details = new EmployeeDetails();
-
-    @Embedded
-    private EmployeePersonalInfo personalInfo = new EmployeePersonalInfo();
-
-    @Embedded
-    private EmployeeNearestRelative nearestRelative = new EmployeeNearestRelative();
-
-    @Embedded
-    @JsonUnwrapped
-    private Avatar avatar = new Avatar();
-
     @ManyToMany
     @JoinTable(name = "employee_location",
             joinColumns = {@JoinColumn(name = "employee_id")},
             inverseJoinColumns = {@JoinColumn(name = "location_id")})
     @JsonIdentityReference(alwaysAsId = true)
     private Set<Location> locations;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    private Customer customer;
-
-    @ColumnDefault("false")
-    @Column(nullable = false)
-    private Boolean archived;
-
-    @Column(name = "archive_reason")
-    private String archiveReason;
 
     public String getName() {
         return firstName + " " + lastName;

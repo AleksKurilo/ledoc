@@ -1,10 +1,8 @@
 package dk.ledocsystem.ledoc.dto.equipment;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import dk.ledocsystem.ledoc.annotations.validation.OnlyAscii;
 import dk.ledocsystem.ledoc.annotations.validation.equipment.UniqueName;
 import dk.ledocsystem.ledoc.annotations.validation.review.ReviewDetails;
-import dk.ledocsystem.ledoc.model.Avatar;
 import dk.ledocsystem.ledoc.model.equipment.ApprovalType;
 import dk.ledocsystem.ledoc.model.equipment.Status;
 import lombok.Getter;
@@ -71,6 +69,5 @@ public class EquipmentEditDTO {
     @OnlyAscii
     private String remark;
 
-    @JsonUnwrapped
-    private Avatar avatar;
+    private String avatar;
 }
