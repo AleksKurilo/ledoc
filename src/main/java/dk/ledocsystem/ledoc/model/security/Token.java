@@ -20,15 +20,18 @@ public class Token {
     @SequenceGenerator(name = "access_tokens_seq", sequenceName = "access_tokens_seq")
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 4000)
     private String token;
+
+    @Column(length = 4000)
+    private String newToken;
 
     @ColumnDefault("CURRENT_DATE")
     @Column(name = "expiration_date", nullable = false)
     private LocalDateTime expDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 10)
     private State state = State.ONLINE;
 
     @Column(name = "user_id", nullable = false)

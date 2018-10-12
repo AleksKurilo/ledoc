@@ -24,7 +24,7 @@ public class Trade {
     @SequenceGenerator(name = "trades_seq", sequenceName = "trades_seq")
     private Long id;
 
-    @Column(name = "name_en", nullable = false)
+    @Column(name = "name_en", nullable = false, unique = true)
     private String nameEn;
 
     @Column(name = "name_da", nullable = false)

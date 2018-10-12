@@ -1,6 +1,7 @@
 package dk.ledocsystem.ledoc.service.impl;
 
 import com.querydsl.core.types.Predicate;
+import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.location.LocationCreateDTO;
 import dk.ledocsystem.ledoc.dto.customer.CustomerCreateDTO;
 import dk.ledocsystem.ledoc.dto.customer.CustomerEditDTO;
@@ -49,7 +50,9 @@ class CustomerServiceImpl implements CustomerService {
 
         customer = customerRepository.save(customer);
 
-        Employee admin = employeeService.createEmployee(customerCreateDTO.getEmployeeCreateDTO(), customer);
+        EmployeeCreateDTO employeeCreateDTO = customerCreateDTO.getEmployeeCreateDTO();
+        employeeCreateDTO.setRole("admin");
+        Employee admin = employeeService.createEmployee(employeeCreateDTO, customer);
 
         LocationCreateDTO locationCreateDTO = LocationCreateDTO.builder()
                 .type(LocationType.ADDRESS)
@@ -59,7 +62,9 @@ class CustomerServiceImpl implements CustomerService {
         Location location = locationService.createLocation(locationCreateDTO, customer, admin, true);
 
         admin.setPlaceOfEmployment(location);
-        sendNotificationToPointOfContact(pointOfContact);
+        if (pointOfContact != null) {
+            sendNotificationToPointOfContact(pointOfContact);
+        }
 
         return customer;
     }
