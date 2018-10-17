@@ -53,5 +53,7 @@ public interface EquipmentService extends CustomerBasedDomainService<Equipment> 
 
     AuthenticationType createAuthType(AuthenticationTypeDTO authenticationTypeDTO);
 
+    List<IdAndLocalizedName> getCategories();
+
     EquipmentCategory createNewCategory(EquipmentCategoryCreateDTO categoryCreateDTO);
 }

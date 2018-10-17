@@ -74,6 +74,17 @@ public class EquipmentController {
         return equipmentService.createAuthType(authenticationTypeDTO);
     }
 
+    @GetMapping("/categories")
+    public List<IdAndLocalizedName> getCategories() {
+        return equipmentService.getCategories();
+    }
+
+    @RolesAllowed("super_admin")
+    @PostMapping(value = "/categories", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public EquipmentCategory createNewEqCategory(@RequestBody @Valid EquipmentCategoryCreateDTO categoryCreateDTO) {
+        return equipmentService.createNewCategory(categoryCreateDTO);
+    }
+
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public Equipment createEquipment(@RequestBody @Valid EquipmentCreateDTO equipmentCreateDTO) {
         Customer currentCustomer = customerService.getCurrentCustomerReference();
@@ -105,12 +116,6 @@ public class EquipmentController {
     @DeleteMapping
     public void deleteByIds(@RequestParam("ids") Collection<Long> ids) {
         equipmentService.deleteByIds(ids);
-    }
-
-    @RolesAllowed("super_admin")
-    @PostMapping(value = "/categories", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public EquipmentCategory createNewEqCategory(@RequestBody @Valid EquipmentCategoryCreateDTO categoryCreateDTO) {
-        return equipmentService.createNewCategory(categoryCreateDTO);
     }
 
     private Long getCurrentCustomerId() {

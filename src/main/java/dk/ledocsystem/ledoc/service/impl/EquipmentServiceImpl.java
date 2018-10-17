@@ -193,6 +193,11 @@ class EquipmentServiceImpl implements EquipmentService {
     }
 
     @Override
+    public List<IdAndLocalizedName> getCategories() {
+        return equipmentCategoryRepository.getAllBy();
+    }
+
+    @Override
     public EquipmentCategory createNewCategory(EquipmentCategoryCreateDTO categoryCreateDTO) {
         EquipmentCategory category = new EquipmentCategory();
         BeanCopyUtils.copyProperties(categoryCreateDTO, category);
