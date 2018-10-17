@@ -25,6 +25,10 @@ public class EmployeeDetails {
     @JoinColumn(name = "responsible_of_skills_id")
     private Employee responsibleOfSkills;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "review_template_id")
+    private ReviewTemplate reviewTemplate;
+
     public boolean getSkillAssessed() {
         return nextReviewDate != null;
     }

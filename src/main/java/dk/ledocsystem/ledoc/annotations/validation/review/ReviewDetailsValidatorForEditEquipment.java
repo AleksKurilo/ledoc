@@ -11,6 +11,7 @@ class ReviewDetailsValidatorForEditEquipment
 
     @Override
     public boolean isValid(EquipmentEditDTO value, ConstraintValidatorContext context) {
-        return value.getApprovalType() != ApprovalType.ALL_TIME || value.getApprovalRate() != null;
+        return value.getApprovalType() != ApprovalType.ALL_TIME
+                || (value.getApprovalRate() != null && value.getReviewTemplateId() != null);
     }
 }

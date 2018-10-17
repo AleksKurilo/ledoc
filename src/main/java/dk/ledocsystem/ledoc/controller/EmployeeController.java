@@ -4,7 +4,7 @@ import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeDTO;
-import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
+import dk.ledocsystem.ledoc.dto.review.ReviewDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.employee.Employee;
@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import java.util.Collection;
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -88,15 +87,15 @@ public class EmployeeController {
         employeeService.deleteByIds(ids);
     }
 
-    @GetMapping("/role/{roleName}")
-    public List<EmployeeNames> getAllByRole(@PathVariable String roleName) {
-        return employeeService.getAllByRole(UserAuthorities.fromString(roleName));
-    }
-
     @RolesAllowed({"admin", "super_admin"})
     @PutMapping("/{employeeId}/roles")
     public void updateAuthorities(@PathVariable Long employeeId, @RequestParam String role) {
         employeeService.grantAuthorities(employeeId, UserAuthorities.fromString(role));
+    }
+
+    @PostMapping("/{employeeId}/review")
+    public void performReview(@PathVariable Long employeeId, @RequestBody @Valid ReviewDTO reviewDTO) {
+        employeeService.performReview(employeeId, reviewDTO);
     }
 
     @RolesAllowed("can_create_point_of_contact")

@@ -19,7 +19,7 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
-public class DocumentServiceImpl implements DocumentService {
+class DocumentServiceImpl implements DocumentService {
 
     private final DocumentRepository documentRepository;
     private final EmployeeService employeeService;

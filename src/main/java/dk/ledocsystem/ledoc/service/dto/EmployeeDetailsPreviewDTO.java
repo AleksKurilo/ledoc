@@ -18,4 +18,6 @@ public class EmployeeDetailsPreviewDTO {
 
     private String skillResponsibleName;
 
+    private String reviewTemplateName;
+
 }

@@ -1,6 +1,7 @@
 package dk.ledocsystem.ledoc.annotations.validation.review;
 
 import dk.ledocsystem.ledoc.dto.employee.EmployeeDetailsDTO;
+import org.apache.commons.lang3.ObjectUtils;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
@@ -10,7 +11,7 @@ class ReviewDetailsValidatorForEmployee implements ConstraintValidator<ReviewDet
     @Override
     public boolean isValid(EmployeeDetailsDTO value, ConstraintValidatorContext context) {
         if (value.isSkillAssessed()) {
-            return value.getSkillResponsibleId() != null && value.getReviewFrequency() != null;
+            return ObjectUtils.allNotNull(value.getSkillResponsibleId(), value.getReviewFrequency(), value.getReviewTemplateId());
         }
         return true;
     }

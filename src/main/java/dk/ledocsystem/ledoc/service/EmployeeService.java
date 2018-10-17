@@ -4,9 +4,9 @@ import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeDTO;
+import dk.ledocsystem.ledoc.dto.review.ReviewDTO;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.employee.Employee;
-import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import dk.ledocsystem.ledoc.service.dto.EmployeePreviewDTO;
 import dk.ledocsystem.ledoc.service.dto.GetEmployeeDTO;
 import org.springframework.data.domain.Page;
@@ -69,6 +69,14 @@ public interface EmployeeService extends CustomerBasedDomainService<Employee> {
     void revokeAuthorities(Long employeeId, UserAuthorities authorities);
 
     /**
+     * Performs review of the given employee.
+     *
+     * @param employeeId ID of the employee
+     * @param reviewDTO  Information about performed review
+     */
+    void performReview(Long employeeId, ReviewDTO reviewDTO);
+
+    /**
      * @return All employees eligible for review
      */
     List<Employee> getAllForReview();
@@ -90,6 +98,4 @@ public interface EmployeeService extends CustomerBasedDomainService<Employee> {
      * @see javax.persistence.EntityManager#getReference(Class, Object)
      */
     Employee getCurrentUserReference();
-
-    List<EmployeeNames> getAllByRole(UserAuthorities authorities);
 }

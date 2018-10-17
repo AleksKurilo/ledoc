@@ -11,6 +11,7 @@ class ReviewDetailsValidatorForCreateEquipment
 
     @Override
     public boolean isValid(EquipmentCreateDTO value, ConstraintValidatorContext context) {
-        return value.getApprovalType() != ApprovalType.ALL_TIME || value.getApprovalRate() != null;
+        return value.getApprovalType() != ApprovalType.ALL_TIME
+                || (value.getApprovalRate() != null && value.getReviewTemplateId() != null);
     }
 }
