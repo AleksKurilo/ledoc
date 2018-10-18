@@ -42,6 +42,8 @@ public class EquipmentEditDTO {
 
     private Period approvalRate;
 
+    private Long reviewTemplateId;
+
     private Status status;
 
     @Size(min = 3, max = 40)

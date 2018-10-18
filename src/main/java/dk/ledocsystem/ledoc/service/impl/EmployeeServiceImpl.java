@@ -9,7 +9,8 @@ import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeDetailsDTO;
-import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
+import dk.ledocsystem.ledoc.dto.review.ReviewDTO;
+import dk.ledocsystem.ledoc.dto.review.ReviewQuestionAnswerDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.Location;
@@ -17,13 +18,18 @@ import dk.ledocsystem.ledoc.model.email_notifications.EmailNotification;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.model.employee.EmployeeDetails;
 import dk.ledocsystem.ledoc.model.employee.QEmployee;
+import dk.ledocsystem.ledoc.model.review.*;
 import dk.ledocsystem.ledoc.repository.EmailNotificationRepository;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
+import dk.ledocsystem.ledoc.repository.EmployeeReviewRepository;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.LocationService;
+import dk.ledocsystem.ledoc.service.ReviewQuestionService;
+import dk.ledocsystem.ledoc.service.ReviewTemplateService;
 import dk.ledocsystem.ledoc.service.dto.EmployeePreviewDTO;
 import dk.ledocsystem.ledoc.service.dto.GetEmployeeDTO;
 import dk.ledocsystem.ledoc.service.exceptions.PropertyValidationException;
+import dk.ledocsystem.ledoc.service.exceptions.ReviewNotApplicableException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.IterableUtils;
@@ -34,16 +40,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.*;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -56,9 +55,12 @@ class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final LocationService locationService;
+    private final ReviewTemplateService reviewTemplateService;
+    private final ReviewQuestionService reviewQuestionService;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenService tokenService;
     private final EmailNotificationRepository emailNotificationRepository;
+    private final EmployeeReviewRepository employeeReviewRepository;
     private final ModelMapper modelMapper;
 
     @Transactional
@@ -142,6 +144,9 @@ class EmployeeServiceImpl implements EmployeeService {
         if (detailsDTO.isSkillAssessed()) {
             Long skillResponsibleId = detailsDTO.getSkillResponsibleId();
             employeeDetails.setResponsibleOfSkills(resolveResponsibleOfSkills(skillResponsibleId));
+
+            Long reviewTemplateId = detailsDTO.getReviewTemplateId();
+            employeeDetails.setReviewTemplate(resolveReviewTemplate(reviewTemplateId));
         } else {
             employeeDetails.eraseReviewDetails();
         }
@@ -203,6 +208,42 @@ class EmployeeServiceImpl implements EmployeeService {
         tokenService.updateTokens(employeeId, employee.getAuthorities());
     }
 
+    @Transactional
+    @Override
+    public void performReview(Long employeeId, ReviewDTO reviewDTO) {
+        Employee employee = getById(employeeId)
+                .orElseThrow(() -> new NotFoundException("employee.id.not.found", employeeId.toString()));
+        EmployeeReview employeeReview = mapEmployeeReview(reviewDTO, employee);
+
+        ReviewTemplate reviewTemplate = employee.getDetails().getReviewTemplate();
+        if (reviewTemplate == null) {
+            throw new ReviewNotApplicableException("employee.review.not.applicable", employee.getId());
+        }
+        employeeReview.setReviewTemplate(reviewTemplate);
+
+        employeeReviewRepository.save(employeeReview);
+    }
+
+    private EmployeeReview mapEmployeeReview(ReviewDTO reviewDTO, Employee subject) {
+        EmployeeReview employeeReview = new EmployeeReview();
+        employeeReview.setSubject(subject);
+        employeeReview.setReviewer(subject.getDetails().getResponsibleOfSkills());
+
+        List<EmployeeReviewQuestionAnswer> questionAnswers = new ArrayList<>();
+        for (ReviewQuestionAnswerDTO answer : reviewDTO.getAnswers()) {
+            ReviewQuestion reviewQuestion = reviewQuestionService.getById(answer.getQuestionId())
+                    .orElseThrow(() -> new NotFoundException("review.question.id.not.found", answer.getQuestionId().toString()));
+            EmployeeReviewQuestionAnswer questionAnswer = new EmployeeReviewQuestionAnswer();
+            questionAnswer.setReviewQuestion(reviewQuestion);
+            questionAnswer.setReview(employeeReview);
+            questionAnswer.setAnswer(answer.getAnswer());
+            questionAnswer.setComment(answer.getComment());
+            questionAnswers.add(questionAnswer);
+        }
+        employeeReview.setAnswers(questionAnswers);
+        return employeeReview;
+    }
+
     @Override
     public boolean existsByUsername(@NonNull String username) {
         return employeeRepository.existsByUsername(username);
@@ -211,11 +252,6 @@ class EmployeeServiceImpl implements EmployeeService {
     @Override
     public List<Employee> getAllForReview() {
         return employeeRepository.findAllForReview();
-    }
-
-    @Override
-    public List<EmployeeNames> getAllByRole(@NonNull UserAuthorities authorities) {
-        return employeeRepository.findAllByAuthoritiesContains(authorities);
     }
 
     @Override
@@ -262,6 +298,11 @@ class EmployeeServiceImpl implements EmployeeService {
     private Employee resolveResponsibleOfSkills(Long responsibleId) {
         return getById(responsibleId)
                 .orElseThrow(() -> new NotFoundException("employee.responsible.of.skills.not.found", responsibleId.toString()));
+    }
+
+    private ReviewTemplate resolveReviewTemplate(Long reviewTemplateId) {
+        return reviewTemplateService.getById(reviewTemplateId)
+                .orElseThrow(() -> new NotFoundException("review.template.id.not.found", reviewTemplateId.toString()));
     }
 
     private Employee resolveResponsible(Long responsibleId) {
@@ -320,6 +361,10 @@ class EmployeeServiceImpl implements EmployeeService {
             dto.getDetails().setSkillResponsibleId(employee.getDetails().getResponsibleOfSkills().getId());
         }
 
+        if (employee.getDetails().getReviewTemplate() != null) {
+            dto.getDetails().setReviewTemplateId(employee.getDetails().getReviewTemplate().getId());
+        }
+
         return dto;
     }
 
@@ -336,6 +381,10 @@ class EmployeeServiceImpl implements EmployeeService {
 
         if (employee.getDetails().getResponsibleOfSkills() != null) {
             dto.getDetails().setSkillResponsibleName(employee.getDetails().getResponsibleOfSkills().getName());
+        }
+
+        if (employee.getDetails().getReviewTemplate() != null) {
+            dto.getDetails().setReviewTemplateName(employee.getDetails().getReviewTemplate().getName());
         }
 
         return dto;

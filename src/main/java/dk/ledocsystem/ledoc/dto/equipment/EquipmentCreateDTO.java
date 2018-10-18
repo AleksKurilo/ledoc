@@ -43,6 +43,8 @@ public class EquipmentCreateDTO {
 
     private Period approvalRate;
 
+    private Long reviewTemplateId;
+
     @Size(min = 3, max = 40)
     @OnlyAscii
     private String manufacturer;

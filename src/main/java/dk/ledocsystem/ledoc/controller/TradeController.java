@@ -17,13 +17,13 @@ public class TradeController {
 
     private final TradeService tradeService;
 
-    @GetMapping("/all")
-    public List<Trade> getAlltrades() {
+    @GetMapping
+    public List<Trade> getAllTrades() {
         return tradeService.getAll();
     }
 
     @RolesAllowed("super_admin")
-    @PostMapping("/new")
+    @PostMapping
     public Trade createNew(@RequestBody @Valid TradeCreateDTO createDTO) {
         return tradeService.createNew(createDTO);
     }

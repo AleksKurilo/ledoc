@@ -18,6 +18,7 @@ import dk.ledocsystem.ledoc.repository.EquipmentRepository;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.EquipmentService;
 import dk.ledocsystem.ledoc.service.LocationService;
+import dk.ledocsystem.ledoc.service.ReviewTemplateService;
 import dk.ledocsystem.ledoc.util.BeanCopyUtils;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,7 @@ class EquipmentServiceImpl implements EquipmentService {
     private final AuthenticationTypeRepository authenticationTypeRepository;
     private final EmployeeService employeeService;
     private final LocationService locationService;
+    private final ReviewTemplateService reviewTemplateService;
     private final EmailNotificationRepository emailNotificationRepository;
 
     @Override
@@ -59,6 +61,7 @@ class EquipmentServiceImpl implements EquipmentService {
         equipment.setCustomer(customer);
         equipment.setCategory(resolveCategory(equipmentCreateDTO.getCategoryId()));
         equipment.setLocation(resolveLocation(equipmentCreateDTO.getLocationId()));
+        equipment.setReviewTemplate(resolveReviewTemplate(equipmentCreateDTO.getReviewTemplateId()));
         equipment.setAuthenticationType(resolveAuthenticationType(equipmentCreateDTO.getAuthTypeId()));
 
         sendMessages(creator);
@@ -82,6 +85,11 @@ class EquipmentServiceImpl implements EquipmentService {
         Long locationId = equipmentEditDTO.getLocationId();
         if (locationId != null) {
             equipment.setLocation(resolveLocation(locationId));
+        }
+
+        Long reviewTemplateId = equipmentEditDTO.getReviewTemplateId();
+        if (reviewTemplateId != null) {
+            equipment.setReviewTemplate(resolveReviewTemplate(reviewTemplateId));
         }
 
         Long responsibleId = equipmentEditDTO.getResponsibleId();
@@ -161,6 +169,12 @@ class EquipmentServiceImpl implements EquipmentService {
     private Location resolveLocation(Long locationId) {
         return locationService.getById(locationId)
                 .orElseThrow(() -> new NotFoundException("location.id.not.found", locationId.toString()));
+    }
+
+    private ReviewTemplate resolveReviewTemplate(Long reviewTemplateId) {
+        return (reviewTemplateId == null) ? null :
+                reviewTemplateService.getById(reviewTemplateId)
+                        .orElseThrow(() -> new NotFoundException("review.template.id.not.found", reviewTemplateId.toString()));
     }
 
     private Employee resolveResponsible(Long responsibleId) {

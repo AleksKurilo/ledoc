@@ -21,4 +21,6 @@ public class EmployeeDetailsDTO {
 
     private Long skillResponsibleId;
 
+    private Long reviewTemplateId;
+
 }

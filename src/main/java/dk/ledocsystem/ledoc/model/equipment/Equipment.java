@@ -103,6 +103,10 @@ public class Equipment implements Visitable {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Customer customer;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "review_template_id")
+    private ReviewTemplate reviewTemplate;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "approval_type", nullable = false)
     private ApprovalType approvalType;
@@ -142,12 +146,14 @@ public class Equipment implements Visitable {
 
     /**
      * Automatically adjusts {@link #nextReviewDate} to the new value of approval rate.
-     * To erase approval rate use {@link #eraseReviewDetails()}.
-     * Setters methods are usually called from {@link dk.ledocsystem.ledoc.util.BeanCopyUtils}.
      */
-    public void setApprovalRate(@NonNull Period approvalRate) {
-        this.nextReviewDate = getPrevReviewDate().plus(approvalRate);
-        this.approvalRate = approvalRate;
+    public void setApprovalRate(Period approvalRate) {
+        if (approvalRate == null) {
+            eraseReviewDetails();
+        } else {
+            this.nextReviewDate = getPrevReviewDate().plus(approvalRate);
+            this.approvalRate = approvalRate;
+        }
     }
 
     public void eraseReviewDetails() {
