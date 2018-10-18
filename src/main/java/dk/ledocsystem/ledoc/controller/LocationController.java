@@ -1,6 +1,7 @@
 package dk.ledocsystem.ledoc.controller;
 
 import com.querydsl.core.types.Predicate;
+import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
 import dk.ledocsystem.ledoc.dto.location.LocationCreateDTO;
 import dk.ledocsystem.ledoc.dto.location.LocationEditDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
@@ -52,6 +53,11 @@ public class LocationController {
     public Location updateLocationById(@PathVariable Long locationId,
                                        @RequestBody @Valid LocationEditDTO locationEditDTO) {
         return locationService.updateLocation(locationId, locationEditDTO);
+    }
+
+    @PostMapping("/{locationId}/archive")
+    public void changeArchivedStatus(@PathVariable Long locationId, @RequestBody ArchivedStatusDTO archivedStatusDTO) {
+        locationService.changeArchivedStatus(locationId, archivedStatusDTO);
     }
 
     @DeleteMapping("/{locationId}")

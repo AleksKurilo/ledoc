@@ -92,6 +92,16 @@ class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    @Transactional
+    public void changeArchivedStatus(@NonNull Long customerId, @NonNull Boolean archived) {
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new NotFoundException("customer.id.not.found", customerId.toString()));
+
+        customer.setArchived(archived);
+        customerRepository.save(customer);
+    }
+
+    @Override
     public Long getCurrentCustomerId() {
         return getCurrentUser().getCustomerId();
     }

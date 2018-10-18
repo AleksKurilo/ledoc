@@ -45,6 +45,4 @@ public class CustomerEditDTO {
     @Email
     @Size(min = 8, max = 40)
     private String mailbox;
-
-    private Boolean archived;
 }

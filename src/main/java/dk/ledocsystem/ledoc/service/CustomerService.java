@@ -26,6 +26,11 @@ public interface CustomerService extends DomainService<Customer> {
     Customer updateCustomer(Long customerId, CustomerEditDTO customerEditDTO);
 
     /**
+     * Changes the archived status according to {@code archived}.
+     */
+    void changeArchivedStatus(Long customerId, Boolean archived);
+
+    /**
      * @return Current customer id
      */
     Long getCurrentCustomerId();

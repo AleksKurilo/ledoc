@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.service.impl;
 
+import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
 import dk.ledocsystem.ledoc.dto.DocumentDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Document;
@@ -9,6 +10,7 @@ import dk.ledocsystem.ledoc.repository.DocumentRepository;
 import dk.ledocsystem.ledoc.service.DocumentService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.EquipmentService;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -51,6 +53,17 @@ class DocumentServiceImpl implements DocumentService {
             document.setEquipment(equipment);
         }
         return documentRepository.save(document);
+    }
+
+    @Override
+    @Transactional
+    public void changeArchivedStatus(@NonNull Long documentId, @NonNull ArchivedStatusDTO archivedStatusDTO) {
+        Document document = getById(documentId)
+                .orElseThrow(() -> new NotFoundException("document.id.not.found", documentId.toString()));
+
+        document.setArchived(archivedStatusDTO.isArchived());
+        //TODO document.setArchiveReason(archivedStatusDTO.getArchiveReason());
+        documentRepository.save(document);
     }
 
     @Override

@@ -6,6 +6,7 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.Expressions;
 import dk.ledocsystem.ledoc.config.security.JwtTokenService;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
+import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeDetailsDTO;
@@ -188,6 +189,17 @@ class EmployeeServiceImpl implements EmployeeService {
     @Override
     public void changePassword(@NonNull String username, @NonNull String newPassword) {
         employeeRepository.changePassword(username, newPassword);
+    }
+
+    @Override
+    @Transactional
+    public void changeArchivedStatus(@NonNull Long employeeId, @NonNull ArchivedStatusDTO archivedStatusDTO) {
+        Employee employee = getById(employeeId)
+                .orElseThrow(() -> new NotFoundException("employee.id.not.found", employeeId.toString()));
+
+        employee.setArchived(archivedStatusDTO.isArchived());
+        employee.setArchiveReason(archivedStatusDTO.getArchiveReason());
+        employeeRepository.save(employee);
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)

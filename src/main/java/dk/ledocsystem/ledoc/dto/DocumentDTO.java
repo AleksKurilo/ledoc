@@ -21,8 +21,6 @@ public class DocumentDTO {
     @NotNull
     private String file;
 
-    private boolean archived;
-
     private LocalDate createOn;
 
     private LocalDate lastUpdate;

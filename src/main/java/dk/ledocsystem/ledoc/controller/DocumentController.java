@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.controller;
 
+import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
 import dk.ledocsystem.ledoc.dto.DocumentDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Document;
@@ -28,6 +29,11 @@ public class DocumentController {
     public Document update(@RequestBody @Valid DocumentDTO documentDTO, @PathVariable long id) {
         documentDTO.setId(id);
         return documentService.createOrUpdate(documentDTO);
+    }
+
+    @PostMapping("/{documentId}/archive")
+    public void changeArchivedStatus(@PathVariable Long documentId, @RequestBody ArchivedStatusDTO archivedStatusDTO) {
+        documentService.changeArchivedStatus(documentId, archivedStatusDTO);
     }
 
     @GetMapping(path = "/{id}")

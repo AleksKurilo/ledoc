@@ -3,6 +3,7 @@ package dk.ledocsystem.ledoc.service.impl;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.Expressions;
+import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
 import dk.ledocsystem.ledoc.dto.equipment.*;
 import dk.ledocsystem.ledoc.dto.projections.IdAndLocalizedName;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
@@ -27,8 +28,8 @@ import org.apache.commons.collections4.IterableUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -110,6 +111,17 @@ class EquipmentServiceImpl implements EquipmentService {
             equipment.eraseReviewDetails();
         }
         return equipmentRepository.save(equipment);
+    }
+
+    @Override
+    @Transactional
+    public void changeArchivedStatus(@NonNull Long equipmentId, @NonNull ArchivedStatusDTO archivedStatusDTO) {
+        Equipment equipment = getById(equipmentId)
+                .orElseThrow(() -> new NotFoundException("equipment.id.not.found", equipmentId.toString()));
+
+        equipment.setArchived(archivedStatusDTO.isArchived());
+        equipment.setArchiveReason(archivedStatusDTO.getArchiveReason());
+        equipmentRepository.save(equipment);
     }
 
     @Override
@@ -200,11 +212,21 @@ class EquipmentServiceImpl implements EquipmentService {
     }
 
     @Override
+    public Page<IdAndLocalizedName> getAuthTypes(Pageable pageable) {
+        return authenticationTypeRepository.getAllBy(pageable);
+    }
+
+    @Override
     public AuthenticationType createAuthType(AuthenticationTypeDTO authenticationTypeDTO) {
         AuthenticationType authenticationType = new AuthenticationType();
         BeanCopyUtils.copyProperties(authenticationTypeDTO, authenticationType);
 
         return authenticationTypeRepository.save(authenticationType);
+    }
+
+    @Override
+    public Page<IdAndLocalizedName> getCategories(Pageable pageable) {
+        return equipmentCategoryRepository.getAllBy(pageable);
     }
 
     @Override

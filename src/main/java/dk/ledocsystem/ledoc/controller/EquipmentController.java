@@ -1,11 +1,8 @@
 package dk.ledocsystem.ledoc.controller;
 
 import com.querydsl.core.types.Predicate;
-import dk.ledocsystem.ledoc.dto.equipment.AuthenticationTypeDTO;
-import dk.ledocsystem.ledoc.dto.equipment.EquipmentCategoryCreateDTO;
-import dk.ledocsystem.ledoc.dto.equipment.EquipmentCreateDTO;
-import dk.ledocsystem.ledoc.dto.equipment.EquipmentEditDTO;
-import dk.ledocsystem.ledoc.dto.equipment.EquipmentLoanDTO;
+import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
+import dk.ledocsystem.ledoc.dto.equipment.*;
 import dk.ledocsystem.ledoc.dto.projections.IdAndLocalizedName;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
@@ -24,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import java.util.Collection;
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -64,8 +60,8 @@ public class EquipmentController {
     }
 
     @GetMapping("/auth-types")
-    public List<IdAndLocalizedName> getAuthenticationTypes() {
-        return equipmentService.getAuthTypes();
+    public Iterable<IdAndLocalizedName> getAuthenticationTypes(Pageable pageable) {
+        return equipmentService.getAuthTypes(pageable);
     }
 
     @RolesAllowed("ROLE_super_admin")
@@ -75,8 +71,8 @@ public class EquipmentController {
     }
 
     @GetMapping("/categories")
-    public List<IdAndLocalizedName> getCategories() {
-        return equipmentService.getCategories();
+    public Iterable<IdAndLocalizedName> getCategories(Pageable pageable) {
+        return equipmentService.getCategories(pageable);
     }
 
     @RolesAllowed("super_admin")
@@ -95,6 +91,11 @@ public class EquipmentController {
     public Equipment updateEquipmentById(@PathVariable Long equipmentId,
                                          @RequestBody @Valid EquipmentEditDTO equipmentEditDTO) {
         return equipmentService.updateEquipment(equipmentId, equipmentEditDTO);
+    }
+
+    @PostMapping("/{equipmentId}/archive")
+    public void changeArchivedStatus(@PathVariable Long equipmentId, @RequestBody ArchivedStatusDTO archivedStatusDTO) {
+        equipmentService.changeArchivedStatus(equipmentId, archivedStatusDTO);
     }
 
     @PostMapping(value = "/loan/{equipmentId}", consumes = MediaType.APPLICATION_JSON_VALUE)
