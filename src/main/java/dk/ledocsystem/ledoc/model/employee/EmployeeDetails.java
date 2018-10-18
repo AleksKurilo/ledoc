@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.model.employee;
 
+import dk.ledocsystem.ledoc.model.review.ReviewTemplate;
 import lombok.*;
 
 import javax.persistence.*;

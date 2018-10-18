@@ -47,7 +47,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor(onConstructor_ = {@Lazy})
+@RequiredArgsConstructor
+@Lazy
 class EmployeeServiceImpl implements EmployeeService {
 
     private static final Function<Long, Predicate> CUSTOMER_EQUALS_TO =

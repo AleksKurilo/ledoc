@@ -11,6 +11,7 @@ import dk.ledocsystem.ledoc.model.Location;
 import dk.ledocsystem.ledoc.model.email_notifications.EmailNotification;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.model.equipment.*;
+import dk.ledocsystem.ledoc.model.review.ReviewTemplate;
 import dk.ledocsystem.ledoc.repository.AuthenticationTypeRepository;
 import dk.ledocsystem.ledoc.repository.EmailNotificationRepository;
 import dk.ledocsystem.ledoc.repository.EquipmentCategoryRepository;

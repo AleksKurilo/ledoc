@@ -6,6 +6,7 @@ import dk.ledocsystem.ledoc.model.Location;
 import dk.ledocsystem.ledoc.model.Supplier;
 import dk.ledocsystem.ledoc.model.Visitable;
 import dk.ledocsystem.ledoc.model.employee.Employee;
+import dk.ledocsystem.ledoc.model.review.ReviewTemplate;
 import lombok.*;
 import org.hibernate.annotations.*;
 
