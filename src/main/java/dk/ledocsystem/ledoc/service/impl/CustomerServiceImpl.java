@@ -1,12 +1,15 @@
 package dk.ledocsystem.ledoc.service.impl;
 
 import com.querydsl.core.types.Predicate;
-import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
-import dk.ledocsystem.ledoc.dto.location.LocationCreateDTO;
 import dk.ledocsystem.ledoc.dto.customer.CustomerCreateDTO;
 import dk.ledocsystem.ledoc.dto.customer.CustomerEditDTO;
+import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
+import dk.ledocsystem.ledoc.dto.location.LocationCreateDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
-import dk.ledocsystem.ledoc.model.*;
+import dk.ledocsystem.ledoc.model.Customer;
+import dk.ledocsystem.ledoc.model.Location;
+import dk.ledocsystem.ledoc.model.LocationType;
+import dk.ledocsystem.ledoc.model.Trade;
 import dk.ledocsystem.ledoc.model.email_notifications.EmailNotification;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.repository.CustomerRepository;
@@ -24,7 +27,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.CUSTOMER_ID_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -73,7 +81,7 @@ class CustomerServiceImpl implements CustomerService {
     @Override
     public Customer updateCustomer(@NonNull Long customerId, @NonNull CustomerEditDTO customerEditDTO) {
         Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new NotFoundException("customer.id.not.found", customerId.toString()));
+                .orElseThrow(() -> new NotFoundException(CUSTOMER_ID_NOT_FOUND, customerId.toString()));
         BeanCopyUtils.copyProperties(customerEditDTO, customer, false);
 
         Set<Long> tradeIds = customerEditDTO.getTradeIds();

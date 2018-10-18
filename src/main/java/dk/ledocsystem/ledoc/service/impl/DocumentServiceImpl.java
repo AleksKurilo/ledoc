@@ -17,6 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 import java.util.Set;
 
+import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.DOCUMENT_ID_NOT_FOUND;
+import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.EMPLOYEE_ID_NOT_FOUND;
+
 @Service
 @RequiredArgsConstructor
 class DocumentServiceImpl implements DocumentService {
@@ -34,20 +37,20 @@ class DocumentServiceImpl implements DocumentService {
         Long documentId = documentDTO.getId();
         if (documentId != null) {
             documentRepository.findById(documentId)
-                    .orElseThrow(() -> new NotFoundException("document.id.not.found", documentId.toString()));
+                    .orElseThrow(() -> new NotFoundException(DOCUMENT_ID_NOT_FOUND, documentId.toString()));
         }
 
         Long employeeId = documentDTO.getEmployeeId();
         if (employeeId != null) {
             Employee employee = employeeService.getById(employeeId)
-                    .orElseThrow(() -> new NotFoundException("employee.id.not.found", employeeId.toString()));
+                    .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
             document.setEmployee(employee);
         }
 
         Long equipmentId = documentDTO.getEquipmentId();
         if (equipmentId != null) {
             Equipment equipment = equipmentService.getById(equipmentId)
-                    .orElseThrow(() -> new NotFoundException("equipment.id.not.found", equipmentId.toString()));
+                    .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, equipmentId.toString()));
             document.setEquipment(equipment);
         }
         return documentRepository.save(document);

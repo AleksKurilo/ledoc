@@ -16,6 +16,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Locale;
 
+import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.USER_NAME_NOT_FOUND;
+import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.USER_PASSWORD_INVALID;
+
 @RequiredArgsConstructor
 public class CustomAuthenticationFailureHandler implements AuthenticationFailureHandler {
 
@@ -31,9 +34,9 @@ public class CustomAuthenticationFailureHandler implements AuthenticationFailure
         String message;
 
         if (exception instanceof UsernameNotFoundException) {
-            message = messageSource.getMessage("username.not.found", null, locale);
+            message = messageSource.getMessage(USER_NAME_NOT_FOUND, null, locale);
         } else {
-            message = messageSource.getMessage("username.password.invalid", null, locale);
+            message = messageSource.getMessage(USER_PASSWORD_INVALID, null, locale);
         }
 
         RestResponse restResponse = new RestResponse(Arrays.asList(message));

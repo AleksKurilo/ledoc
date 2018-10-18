@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.Set;
 
+import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.DOCUMENT_ID_NOT_FOUND;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -33,7 +35,7 @@ public class DocumentController {
     @GetMapping(path = "/{id}")
     public Document getById(@PathVariable long id) {
         return documentService.getById(id)
-                .orElseThrow(() -> new NotFoundException("document.id.not.found", id));
+                .orElseThrow(() -> new NotFoundException(DOCUMENT_ID_NOT_FOUND, id));
     }
 
     @GetMapping(path = "/employeeId/{employeeId}")

@@ -1,11 +1,7 @@
 package dk.ledocsystem.ledoc.controller;
 
 import com.querydsl.core.types.Predicate;
-import dk.ledocsystem.ledoc.dto.equipment.AuthenticationTypeDTO;
-import dk.ledocsystem.ledoc.dto.equipment.EquipmentCategoryCreateDTO;
-import dk.ledocsystem.ledoc.dto.equipment.EquipmentCreateDTO;
-import dk.ledocsystem.ledoc.dto.equipment.EquipmentEditDTO;
-import dk.ledocsystem.ledoc.dto.equipment.EquipmentLoanDTO;
+import dk.ledocsystem.ledoc.dto.equipment.*;
 import dk.ledocsystem.ledoc.dto.projections.IdAndLocalizedName;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
@@ -25,6 +21,8 @@ import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import java.util.Collection;
 import java.util.List;
+
+import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.EQUIPMENT_ID_NOT_FOUND;
 
 @RestController
 @RequiredArgsConstructor
@@ -60,7 +58,7 @@ public class EquipmentController {
     @GetMapping("/{equipmentId}")
     public Equipment getEquipmentById(@PathVariable Long equipmentId) {
         return equipmentService.getById(equipmentId)
-                .orElseThrow(() -> new NotFoundException("equipment.id.not.found", equipmentId.toString()));
+                .orElseThrow(() -> new NotFoundException(EQUIPMENT_ID_NOT_FOUND, equipmentId.toString()));
     }
 
     @GetMapping("/auth-types")

@@ -8,14 +8,11 @@ import dk.ledocsystem.ledoc.service.ReviewQuestionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
+
+import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.REVIEW_QUESTION_ID_NOT_FOUND;
 
 @RestController
 @RequiredArgsConstructor
@@ -39,7 +36,7 @@ public class ReviewQuestionController {
     @GetMapping("/{reviewQuestionId}")
     public ReviewQuestion getReviewQuestionById(@PathVariable Long reviewQuestionId) {
         return reviewQuestionService.getById(reviewQuestionId)
-                .orElseThrow(() -> new NotFoundException("review.question.id.not.found", reviewQuestionId.toString()));
+                .orElseThrow(() -> new NotFoundException(REVIEW_QUESTION_ID_NOT_FOUND, reviewQuestionId.toString()));
     }
 
     @DeleteMapping("/{reviewQuestionId}")

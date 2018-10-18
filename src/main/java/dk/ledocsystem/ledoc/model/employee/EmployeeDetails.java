@@ -1,6 +1,9 @@
 package dk.ledocsystem.ledoc.model.employee;
 
-import lombok.*;
+import dk.ledocsystem.ledoc.model.review.ReviewTemplate;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.time.LocalDate;

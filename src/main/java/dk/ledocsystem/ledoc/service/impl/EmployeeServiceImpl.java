@@ -18,7 +18,10 @@ import dk.ledocsystem.ledoc.model.email_notifications.EmailNotification;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.model.employee.EmployeeDetails;
 import dk.ledocsystem.ledoc.model.employee.QEmployee;
-import dk.ledocsystem.ledoc.model.review.*;
+import dk.ledocsystem.ledoc.model.review.EmployeeReview;
+import dk.ledocsystem.ledoc.model.review.EmployeeReviewQuestionAnswer;
+import dk.ledocsystem.ledoc.model.review.ReviewQuestion;
+import dk.ledocsystem.ledoc.model.review.ReviewTemplate;
 import dk.ledocsystem.ledoc.repository.EmailNotificationRepository;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
 import dk.ledocsystem.ledoc.repository.EmployeeReviewRepository;
@@ -28,8 +31,9 @@ import dk.ledocsystem.ledoc.service.ReviewQuestionService;
 import dk.ledocsystem.ledoc.service.ReviewTemplateService;
 import dk.ledocsystem.ledoc.service.dto.EmployeePreviewDTO;
 import dk.ledocsystem.ledoc.service.dto.GetEmployeeDTO;
-import dk.ledocsystem.ledoc.service.exceptions.PropertyValidationException;
 import dk.ledocsystem.ledoc.service.exceptions.ReviewNotApplicableException;
+import dk.ledocsystem.ledoc.validator.EmployeeValidator;
+import dk.ledocsystem.ledoc.validator.ReviewValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.IterableUtils;
@@ -40,11 +44,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.*;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.*;
 
 @Service
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
@@ -62,11 +70,13 @@ class EmployeeServiceImpl implements EmployeeService {
     private final EmailNotificationRepository emailNotificationRepository;
     private final EmployeeReviewRepository employeeReviewRepository;
     private final ModelMapper modelMapper;
+    private final EmployeeValidator<EmployeeDTO> employeeValidator;
+    private final ReviewValidator reviewValidator;
 
     @Transactional
     @Override
     public Employee createEmployee(@NonNull EmployeeCreateDTO employeeCreateDTO, @NonNull Customer customer) {
-        validateUniqueUsername(employeeCreateDTO.getUsername());
+        employeeValidator.validate(employeeCreateDTO);
 
         Employee employee = modelMapper.map(employeeCreateDTO, Employee.class);
         employee.setPassword(passwordEncoder.encode(employee.getPassword()));
@@ -90,6 +100,8 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     private void addAuthorities(Employee employee, EmployeeCreateDTO employeeCreateDTO) {
+        employeeValidator.validate(employeeCreateDTO);
+
         String roleString = ObjectUtils.defaultIfNull(employeeCreateDTO.getRole(), "user");
         addAuthorities(employee, UserAuthorities.fromString(roleString));
 
@@ -101,6 +113,8 @@ class EmployeeServiceImpl implements EmployeeService {
     @Transactional
     @Override
     public Employee createPointOfContact(@NonNull EmployeeCreateDTO employeeCreateDTO, Customer customer) {
+        employeeValidator.validate(employeeCreateDTO);
+
         Employee poc = createEmployee(employeeCreateDTO, customer);
         addAuthorities(poc, UserAuthorities.SUPER_ADMIN);
         return poc;
@@ -110,11 +124,9 @@ class EmployeeServiceImpl implements EmployeeService {
     @Override
     public Employee updateEmployee(@NonNull Long employeeId, @NonNull EmployeeDTO employeeDTO) {
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new NotFoundException("employee.id.not.found", employeeId.toString()));
-        if (!employee.getUsername().equals(employeeDTO.getUsername())) {
-            validateUniqueUsername(employeeDTO.getUsername());
-        }
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
 
+        employeeValidator.validateWhenUpdate(employee, employeeDTO);
         modelMapper.map(employeeDTO, employee);
 
         Long responsibleId = employeeDTO.getResponsibleId();
@@ -137,6 +149,7 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     private boolean employeeDetailsPresent(EmployeeDTO employeeDTO) {
+        employeeValidator.validate(employeeDTO);
         return employeeDTO.getDetails() != null;
     }
 
@@ -158,8 +171,9 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     private void updateAuthorities(Employee employee, EmployeeDTO employeeDTO) {
-        Set<UserAuthorities> authorities = employee.getAuthorities();
+        employeeValidator.validate(employeeDTO);
 
+        Set<UserAuthorities> authorities = employee.getAuthorities();
         String roleString = ObjectUtils.defaultIfNull(employeeDTO.getRole(), "user");
         UserAuthorities newRole = UserAuthorities.fromString(roleString);
         if (roleChanged(employee, newRole)) {
@@ -194,7 +208,7 @@ class EmployeeServiceImpl implements EmployeeService {
     @Override
     public void grantAuthorities(@NonNull Long employeeId, @NonNull UserAuthorities authorities) {
         Employee employee = getById(employeeId)
-                .orElseThrow(() -> new NotFoundException("employee.id.not.found", employeeId.toString()));
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
         employee.getAuthorities().add(authorities);
         tokenService.updateTokens(employeeId, employee.getAuthorities());
     }
@@ -203,7 +217,7 @@ class EmployeeServiceImpl implements EmployeeService {
     @Override
     public void revokeAuthorities(@NonNull Long employeeId, @NonNull UserAuthorities authorities) {
         Employee employee = getById(employeeId)
-                .orElseThrow(() -> new NotFoundException("employee.id.not.found", employeeId.toString()));
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
         employee.getAuthorities().remove(authorities);
         tokenService.updateTokens(employeeId, employee.getAuthorities());
     }
@@ -211,13 +225,15 @@ class EmployeeServiceImpl implements EmployeeService {
     @Transactional
     @Override
     public void performReview(Long employeeId, ReviewDTO reviewDTO) {
+        reviewValidator.validate(reviewDTO);
+
         Employee employee = getById(employeeId)
-                .orElseThrow(() -> new NotFoundException("employee.id.not.found", employeeId.toString()));
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
         EmployeeReview employeeReview = mapEmployeeReview(reviewDTO, employee);
 
         ReviewTemplate reviewTemplate = employee.getDetails().getReviewTemplate();
         if (reviewTemplate == null) {
-            throw new ReviewNotApplicableException("employee.review.not.applicable", employee.getId());
+            throw new ReviewNotApplicableException(EMPLOYEE_REVIEW_NOT_APPLICABLE, employee.getId());
         }
         employeeReview.setReviewTemplate(reviewTemplate);
 
@@ -225,6 +241,8 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     private EmployeeReview mapEmployeeReview(ReviewDTO reviewDTO, Employee subject) {
+        reviewValidator.validate(reviewDTO);
+
         EmployeeReview employeeReview = new EmployeeReview();
         employeeReview.setSubject(subject);
         employeeReview.setReviewer(subject.getDetails().getResponsibleOfSkills());
@@ -232,7 +250,7 @@ class EmployeeServiceImpl implements EmployeeService {
         List<EmployeeReviewQuestionAnswer> questionAnswers = new ArrayList<>();
         for (ReviewQuestionAnswerDTO answer : reviewDTO.getAnswers()) {
             ReviewQuestion reviewQuestion = reviewQuestionService.getById(answer.getQuestionId())
-                    .orElseThrow(() -> new NotFoundException("review.question.id.not.found", answer.getQuestionId().toString()));
+                    .orElseThrow(() -> new NotFoundException(REVIEW_QUESTION_ID_NOT_FOUND, answer.getQuestionId().toString()));
             EmployeeReviewQuestionAnswer questionAnswer = new EmployeeReviewQuestionAnswer();
             questionAnswer.setReviewQuestion(reviewQuestion);
             questionAnswer.setReview(employeeReview);
@@ -262,7 +280,7 @@ class EmployeeServiceImpl implements EmployeeService {
     @Override
     public Page<Employee> getNewEmployees(@NonNull Long userId, @NonNull Pageable pageable, Predicate predicate) {
         Employee employee = getById(userId)
-                .orElseThrow(() -> new NotFoundException("employee.id.not.found", userId.toString()));
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, userId.toString()));
         Long customerId = employee.getCustomer().getId();
 
         Predicate newEmployeesPredicate = ExpressionUtils.allOf(
@@ -297,7 +315,7 @@ class EmployeeServiceImpl implements EmployeeService {
 
     private Employee resolveResponsibleOfSkills(Long responsibleId) {
         return getById(responsibleId)
-                .orElseThrow(() -> new NotFoundException("employee.responsible.of.skills.not.found", responsibleId.toString()));
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_RESPONSIBLE_OF_SKILL_NOT_FOUND, responsibleId.toString()));
     }
 
     private ReviewTemplate resolveReviewTemplate(Long reviewTemplateId) {
@@ -308,7 +326,7 @@ class EmployeeServiceImpl implements EmployeeService {
     private Employee resolveResponsible(Long responsibleId) {
         return (responsibleId == null) ? null :
                 getById(responsibleId)
-                        .orElseThrow(() -> new NotFoundException("employee.responsible.not.found", responsibleId.toString()));
+                        .orElseThrow(() -> new NotFoundException(EMPLOYEE_RESPONSIBLE_NOT_FOUND, responsibleId.toString()));
     }
 
     private Set<Location> resolveLocations(Set<Long> locationIds) {
@@ -338,12 +356,6 @@ class EmployeeServiceImpl implements EmployeeService {
         EmailNotification notification =
                 new EmailNotification(responsible.getUsername(), "employee_created");
         emailNotificationRepository.save(notification);
-    }
-
-    private void validateUniqueUsername(String username) {
-        if (existsByUsername(username)) {
-            throw new PropertyValidationException("username", "employee.username.already.in.use");
-        }
     }
 
     //todo It'd be better to replace this with appropriate ModelMapper configuration

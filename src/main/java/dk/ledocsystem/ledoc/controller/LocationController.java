@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.Collection;
 
+import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.LOCATION_ID_NOT_FOUND;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/locations")
@@ -39,7 +41,7 @@ public class LocationController {
     @GetMapping("/{locationId}")
     public Location getLocationById(@PathVariable Long locationId) {
         return locationService.getById(locationId)
-                .orElseThrow(() -> new NotFoundException("location.id.not.found", locationId.toString()));
+                .orElseThrow(() -> new NotFoundException(LOCATION_ID_NOT_FOUND, locationId.toString()));
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)

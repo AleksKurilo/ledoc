@@ -19,6 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Map;
 import java.util.UUID;
 
+import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.RESET_TOKEN_NOT_FOUND;
+import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.USER_NAME_NOT_FOUND;
+
 @Service
 @RequiredArgsConstructor
 class ForgotPasswordServiceImpl implements ForgotPasswordService {
@@ -32,7 +35,7 @@ class ForgotPasswordServiceImpl implements ForgotPasswordService {
     public void forgotPassword(ForgotPasswordDTO forgotPasswordDTO) {
         String email = forgotPasswordDTO.getEmail();
         if (!employeeService.existsByUsername(email)) {
-            throw new InvalidCredentialsException("username.not.found");
+            throw new InvalidCredentialsException(USER_NAME_NOT_FOUND);
         }
 
         String token = UUID.randomUUID().toString();
@@ -49,7 +52,7 @@ class ForgotPasswordServiceImpl implements ForgotPasswordService {
     public void resetPassword(ResetPasswordDTO resetPasswordDTO) {
         String token = resetPasswordDTO.getToken();
         ResetToken resetToken = resetTokenRepository.findByToken(token)
-                .orElseThrow(() -> new NotFoundException("reset.token.not.found", token));
+                .orElseThrow(() -> new NotFoundException(RESET_TOKEN_NOT_FOUND, token));
 
         String encodedPassword = passwordEncoder.encode(resetPasswordDTO.getPassword());
 

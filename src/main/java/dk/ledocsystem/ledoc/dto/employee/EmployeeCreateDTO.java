@@ -17,5 +17,4 @@ public class EmployeeCreateDTO extends EmployeeDTO {
     private String password;
 
     private boolean welcomeMessage;
-
 }

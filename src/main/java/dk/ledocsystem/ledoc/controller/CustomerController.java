@@ -16,6 +16,8 @@ import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import java.util.Collection;
 
+import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.CUSTOMER_ID_NOT_FOUND;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = "/customers")
@@ -37,7 +39,7 @@ public class CustomerController {
     @GetMapping("/{customerId}")
     public Customer getById(@PathVariable Long customerId) {
         return customerService.getById(customerId)
-                .orElseThrow(() -> new NotFoundException("customer.id.not.found", customerId.toString()));
+                .orElseThrow(() -> new NotFoundException(CUSTOMER_ID_NOT_FOUND, customerId.toString()));
     }
 
     @RolesAllowed("super_admin")
