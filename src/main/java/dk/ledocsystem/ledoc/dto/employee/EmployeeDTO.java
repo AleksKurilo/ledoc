@@ -13,7 +13,6 @@ import java.util.Set;
 @Data
 public class EmployeeDTO {
 
-    @NotNull
     private Long id;
 
     @NotNull
