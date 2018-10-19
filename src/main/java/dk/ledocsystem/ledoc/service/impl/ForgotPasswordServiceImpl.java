@@ -11,6 +11,7 @@ import dk.ledocsystem.ledoc.repository.EmailNotificationRepository;
 import dk.ledocsystem.ledoc.repository.ResetTokenRepository;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.ForgotPasswordService;
+import dk.ledocsystem.ledoc.validator.BaseValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,10 +30,14 @@ class ForgotPasswordServiceImpl implements ForgotPasswordService {
     private final ResetTokenRepository resetTokenRepository;
     private final EmailNotificationRepository emailNotificationRepository;
     private final PasswordEncoder passwordEncoder;
+    private final BaseValidator<ForgotPasswordDTO> forgotPasswordDtoValidator;
+    private final BaseValidator<ResetPasswordDTO> resetPasswordDtoValidator;
 
     @Override
     @Transactional
     public void forgotPassword(ForgotPasswordDTO forgotPasswordDTO) {
+        forgotPasswordDtoValidator.validate(forgotPasswordDTO);
+
         String email = forgotPasswordDTO.getEmail();
         if (!employeeService.existsByUsername(email)) {
             throw new InvalidCredentialsException(USER_NAME_NOT_FOUND);
@@ -50,6 +55,8 @@ class ForgotPasswordServiceImpl implements ForgotPasswordService {
     @Override
     @Transactional
     public void resetPassword(ResetPasswordDTO resetPasswordDTO) {
+        resetPasswordDtoValidator.validate(resetPasswordDTO);
+
         String token = resetPasswordDTO.getToken();
         ResetToken resetToken = resetTokenRepository.findByToken(token)
                 .orElseThrow(() -> new NotFoundException(RESET_TOKEN_NOT_FOUND, token));

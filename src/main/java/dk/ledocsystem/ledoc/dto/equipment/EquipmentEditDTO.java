@@ -1,17 +1,13 @@
 package dk.ledocsystem.ledoc.dto.equipment;
 
 import dk.ledocsystem.ledoc.annotations.validation.OnlyAscii;
-import dk.ledocsystem.ledoc.annotations.validation.equipment.UniqueName;
 import dk.ledocsystem.ledoc.annotations.validation.review.ReviewDetails;
 import dk.ledocsystem.ledoc.model.equipment.ApprovalType;
 import dk.ledocsystem.ledoc.model.equipment.Status;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.validation.constraints.FutureOrPresent;
-import javax.validation.constraints.PastOrPresent;
-import javax.validation.constraints.PositiveOrZero;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Period;
@@ -21,9 +17,11 @@ import java.time.Period;
 @ReviewDetails
 public class EquipmentEditDTO {
 
+    @NotNull
+    private Long id;
+
     @Size(min = 3, max = 40)
     @OnlyAscii
-    @UniqueName
     private String name;
 
     @Size(min = 3, max = 40)

@@ -1,9 +1,8 @@
 package dk.ledocsystem.ledoc.validator;
 
-import lombok.RequiredArgsConstructor;
+import dk.ledocsystem.ledoc.exceptions.ValidationDtoException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BeanPropertyBindingResult;
@@ -16,26 +15,31 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
-@RequiredArgsConstructor(onConstructor_ = {@Lazy})
-public abstract class BaseValidator<T> {
+public class BaseValidator<T> {
 
     @Autowired
     protected MessageSource messageSource;
     @Autowired
     private SmartValidator smartValidator;
 
-    public abstract void validate(T target);
-
-    protected Map<String, List<String>> getBasicValidation(T target) {
+    public void validate(T target) {
         Errors errors = new BeanPropertyBindingResult(target, target.getClass().getName());
         smartValidator.validate(target, errors);
-        return errors.getFieldErrors()
+
+        Map<String, List<String>> messages = errors.getFieldErrors()
                 .stream()
                 .collect(Collectors.groupingBy(FieldError::getField,
                         Collectors.mapping(
                                 fieldError -> messageSource.getMessage(fieldError, LocaleContextHolder.getLocale()), Collectors.toList()
                         )));
+        validateUniqueProperty(target, messages);
+        if (!messages.isEmpty()) {
+            throw new ValidationDtoException(messages);
+        }
     }
 
+    protected void validateUniqueProperty(T target, Map<String, List<String>> messages) {
+        //used for validate unique properties dto
+    }
 
 }

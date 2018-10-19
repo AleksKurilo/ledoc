@@ -14,6 +14,8 @@ import dk.ledocsystem.ledoc.repository.LocationRepository;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.LocationService;
 import dk.ledocsystem.ledoc.util.BeanCopyUtils;
+import dk.ledocsystem.ledoc.validator.BaseValidator;
+import dk.ledocsystem.ledoc.validator.LocationEditDtoValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.IterableUtils;
@@ -32,15 +34,19 @@ import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.*;
 class LocationServiceImpl implements LocationService {
 
     private static final Function<Long, Predicate> CUSTOMER_EQUALS_TO =
-            (customerId) -> ExpressionUtils.eqConst(QLocation.location.customer.id, customerId);
+            customerId -> ExpressionUtils.eqConst(QLocation.location.customer.id, customerId);
 
     private final LocationRepository locationRepository;
     private final EmployeeService employeeService;
     private final EmailNotificationRepository emailNotificationRepository;
+    private final BaseValidator<LocationCreateDTO> locationCreateDtoValidator;
+    private final LocationEditDtoValidator locationEditDtoValidator;
 
     @Transactional
     @Override
     public Location createLocation(@NonNull LocationCreateDTO locationDTO, @NonNull Customer customer) {
+        locationCreateDtoValidator.validate(locationDTO);
+
         Long responsibleId = locationDTO.getResponsibleId();
         Employee responsible = employeeService.getById(responsibleId)
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_RESPONSIBLE_NOT_FOUND, responsibleId.toString()));
@@ -52,6 +58,8 @@ class LocationServiceImpl implements LocationService {
     @Override
     public Location createLocation(@NonNull LocationCreateDTO locationDTO, @NonNull Customer customer,
                                    @NonNull Employee responsible, boolean isFirstForCustomer) {
+        locationCreateDtoValidator.validate(locationDTO);
+
         Location location = (locationDTO.getType() == LocationType.ADDRESS)
                 ? createAddressLocation(locationDTO)
                 : createPhysicalLocation(locationDTO);
@@ -86,6 +94,8 @@ class LocationServiceImpl implements LocationService {
     @Transactional
     @Override
     public Location updateLocation(@NonNull Long locationId, @NonNull LocationEditDTO locationEditDTO) {
+        locationEditDtoValidator.validate(locationEditDTO);
+
         Location location = locationRepository.findById(locationId)
                 .orElseThrow(() -> new NotFoundException(LOCATION_ID_NOT_FOUND, locationId.toString()));
 

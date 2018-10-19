@@ -32,8 +32,9 @@ import dk.ledocsystem.ledoc.service.ReviewTemplateService;
 import dk.ledocsystem.ledoc.service.dto.EmployeePreviewDTO;
 import dk.ledocsystem.ledoc.service.dto.GetEmployeeDTO;
 import dk.ledocsystem.ledoc.service.exceptions.ReviewNotApplicableException;
-import dk.ledocsystem.ledoc.validator.EmployeeValidator;
-import dk.ledocsystem.ledoc.validator.ReviewValidator;
+import dk.ledocsystem.ledoc.validator.BaseValidator;
+import dk.ledocsystem.ledoc.validator.EmployeeCreateDtoValidator;
+import dk.ledocsystem.ledoc.validator.EmployeeDtoValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.IterableUtils;
@@ -70,13 +71,15 @@ class EmployeeServiceImpl implements EmployeeService {
     private final EmailNotificationRepository emailNotificationRepository;
     private final EmployeeReviewRepository employeeReviewRepository;
     private final ModelMapper modelMapper;
-    private final EmployeeValidator<EmployeeDTO> employeeValidator;
-    private final ReviewValidator reviewValidator;
+    private final EmployeeDtoValidator employeeDtoValidator;
+    private final EmployeeCreateDtoValidator employeeCreateDtoValidator;
+    private final BaseValidator<ReviewDTO> reviewDtoBaseValidator;
+
 
     @Transactional
     @Override
     public Employee createEmployee(@NonNull EmployeeCreateDTO employeeCreateDTO, @NonNull Customer customer) {
-        employeeValidator.validate(employeeCreateDTO);
+        employeeCreateDtoValidator.validate(employeeCreateDTO);
 
         Employee employee = modelMapper.map(employeeCreateDTO, Employee.class);
         employee.setPassword(passwordEncoder.encode(employee.getPassword()));
@@ -100,8 +103,6 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     private void addAuthorities(Employee employee, EmployeeCreateDTO employeeCreateDTO) {
-        employeeValidator.validate(employeeCreateDTO);
-
         String roleString = ObjectUtils.defaultIfNull(employeeCreateDTO.getRole(), "user");
         addAuthorities(employee, UserAuthorities.fromString(roleString));
 
@@ -113,8 +114,6 @@ class EmployeeServiceImpl implements EmployeeService {
     @Transactional
     @Override
     public Employee createPointOfContact(@NonNull EmployeeCreateDTO employeeCreateDTO, Customer customer) {
-        employeeValidator.validate(employeeCreateDTO);
-
         Employee poc = createEmployee(employeeCreateDTO, customer);
         addAuthorities(poc, UserAuthorities.SUPER_ADMIN);
         return poc;
@@ -122,11 +121,11 @@ class EmployeeServiceImpl implements EmployeeService {
 
     @Transactional
     @Override
-    public Employee updateEmployee(@NonNull Long employeeId, @NonNull EmployeeDTO employeeDTO) {
-        Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
+    public Employee updateEmployee(@NonNull EmployeeDTO employeeDTO) {
+        employeeDtoValidator.validate(employeeDTO);
+        Employee employee = employeeRepository.findById(employeeDTO.getId())
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeDTO.getId().toString()));
 
-        employeeValidator.validateWhenUpdate(employee, employeeDTO);
         modelMapper.map(employeeDTO, employee);
 
         Long responsibleId = employeeDTO.getResponsibleId();
@@ -149,7 +148,6 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     private boolean employeeDetailsPresent(EmployeeDTO employeeDTO) {
-        employeeValidator.validate(employeeDTO);
         return employeeDTO.getDetails() != null;
     }
 
@@ -171,8 +169,6 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     private void updateAuthorities(Employee employee, EmployeeDTO employeeDTO) {
-        employeeValidator.validate(employeeDTO);
-
         Set<UserAuthorities> authorities = employee.getAuthorities();
         String roleString = ObjectUtils.defaultIfNull(employeeDTO.getRole(), "user");
         UserAuthorities newRole = UserAuthorities.fromString(roleString);
@@ -225,7 +221,7 @@ class EmployeeServiceImpl implements EmployeeService {
     @Transactional
     @Override
     public void performReview(Long employeeId, ReviewDTO reviewDTO) {
-        reviewValidator.validate(reviewDTO);
+        reviewDtoBaseValidator.validate(reviewDTO);
 
         Employee employee = getById(employeeId)
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
@@ -241,7 +237,7 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     private EmployeeReview mapEmployeeReview(ReviewDTO reviewDTO, Employee subject) {
-        reviewValidator.validate(reviewDTO);
+        reviewDtoBaseValidator.validate(reviewDTO);
 
         EmployeeReview employeeReview = new EmployeeReview();
         employeeReview.setSubject(subject);
@@ -320,7 +316,7 @@ class EmployeeServiceImpl implements EmployeeService {
 
     private ReviewTemplate resolveReviewTemplate(Long reviewTemplateId) {
         return reviewTemplateService.getById(reviewTemplateId)
-                .orElseThrow(() -> new NotFoundException("review.template.id.not.found", reviewTemplateId.toString()));
+                .orElseThrow(() -> new NotFoundException(REVIEW_TEMPLATE_ID_NOT_FOUND, reviewTemplateId.toString()));
     }
 
     private Employee resolveResponsible(Long responsibleId) {

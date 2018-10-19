@@ -13,7 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.RolesAllowed;
-import javax.validation.Valid;
 import java.util.Collection;
 
 import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.CUSTOMER_ID_NOT_FOUND;
@@ -44,14 +43,15 @@ public class CustomerController {
 
     @RolesAllowed("super_admin")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Customer createCustomer(@RequestBody @Valid CustomerCreateDTO customerCreateDTO) {
+    public Customer createCustomer(@RequestBody CustomerCreateDTO customerCreateDTO) {
         return customerService.createCustomer(customerCreateDTO);
     }
 
     @RolesAllowed("super_admin")
     @PutMapping(value = "/{customerId}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Customer updateCustomerById(@PathVariable Long customerId, @RequestBody @Valid CustomerEditDTO customerEditDTO) {
-        return customerService.updateCustomer(customerId, customerEditDTO);
+    public Customer updateCustomerById(@PathVariable Long customerId, @RequestBody CustomerEditDTO customerEditDTO) {
+        customerEditDTO.setId(customerId);
+        return customerService.updateCustomer(customerEditDTO);
     }
 
     @DeleteMapping("/{customerId}")

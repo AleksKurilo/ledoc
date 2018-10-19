@@ -18,7 +18,6 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.RolesAllowed;
-import javax.validation.Valid;
 import java.util.Collection;
 import java.util.List;
 
@@ -68,7 +67,7 @@ public class EquipmentController {
 
     @RolesAllowed("ROLE_super_admin")
     @PostMapping(value = "/auth-types", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public AuthenticationType createAuthType(@RequestBody @Valid AuthenticationTypeDTO authenticationTypeDTO) {
+    public AuthenticationType createAuthType(@RequestBody AuthenticationTypeDTO authenticationTypeDTO) {
         return equipmentService.createAuthType(authenticationTypeDTO);
     }
 
@@ -79,25 +78,26 @@ public class EquipmentController {
 
     @RolesAllowed("super_admin")
     @PostMapping(value = "/categories", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public EquipmentCategory createNewEqCategory(@RequestBody @Valid EquipmentCategoryCreateDTO categoryCreateDTO) {
+    public EquipmentCategory createNewEqCategory(@RequestBody EquipmentCategoryCreateDTO categoryCreateDTO) {
         return equipmentService.createNewCategory(categoryCreateDTO);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Equipment createEquipment(@RequestBody @Valid EquipmentCreateDTO equipmentCreateDTO) {
+    public Equipment createEquipment(@RequestBody EquipmentCreateDTO equipmentCreateDTO) {
         Customer currentCustomer = customerService.getCurrentCustomerReference();
         return equipmentService.createEquipment(equipmentCreateDTO, currentCustomer);
     }
 
     @PutMapping(value = "/{equipmentId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Equipment updateEquipmentById(@PathVariable Long equipmentId,
-                                         @RequestBody @Valid EquipmentEditDTO equipmentEditDTO) {
-        return equipmentService.updateEquipment(equipmentId, equipmentEditDTO);
+                                         @RequestBody EquipmentEditDTO equipmentEditDTO) {
+        equipmentEditDTO.setId(equipmentId);
+        return equipmentService.updateEquipment(equipmentEditDTO);
     }
 
     @PostMapping(value = "/loan/{equipmentId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public void loanEquipment(@PathVariable Long equipmentId,
-                              @RequestBody @Valid EquipmentLoanDTO equipmentLoanDTO) {
+                              @RequestBody EquipmentLoanDTO equipmentLoanDTO) {
         equipmentService.loanEquipment(equipmentId, equipmentLoanDTO);
     }
 

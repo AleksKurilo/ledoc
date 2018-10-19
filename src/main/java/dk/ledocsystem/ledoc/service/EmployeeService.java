@@ -38,11 +38,10 @@ public interface EmployeeService extends CustomerBasedDomainService<Employee> {
     /**
      * Updates the properties of the employee with the given ID with properties of {@code employeeCreateDTO}.
      *
-     * @param employeeId  ID of the employee
      * @param employeeDTO New properties of the employee
      * @return Updated {@link Employee}
      */
-    Employee updateEmployee(Long employeeId, EmployeeDTO employeeDTO);
+    Employee updateEmployee(EmployeeDTO employeeDTO);
 
     /**
      * Changes password of the user with given email.

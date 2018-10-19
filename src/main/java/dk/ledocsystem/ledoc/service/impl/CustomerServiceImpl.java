@@ -19,6 +19,8 @@ import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.LocationService;
 import dk.ledocsystem.ledoc.util.BeanCopyUtils;
+import dk.ledocsystem.ledoc.validator.BaseValidator;
+import dk.ledocsystem.ledoc.validator.CustomerEditDtoValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.IterableUtils;
@@ -43,10 +45,14 @@ class CustomerServiceImpl implements CustomerService {
     private final TradeRepository tradeRepository;
     private final LocationService locationService;
     private final EmailNotificationRepository emailNotificationRepository;
+    private final BaseValidator<CustomerCreateDTO> customerCreateDtoValidator;
+    private final CustomerEditDtoValidator customerEditDtoValidator;
 
     @Transactional
     @Override
     public Customer createCustomer(@NonNull CustomerCreateDTO customerCreateDTO) {
+        customerCreateDtoValidator.validate(customerCreateDTO);
+
         Customer customer = new Customer();
         BeanCopyUtils.copyProperties(customerCreateDTO, customer);
 
@@ -79,9 +85,10 @@ class CustomerServiceImpl implements CustomerService {
 
     @Transactional
     @Override
-    public Customer updateCustomer(@NonNull Long customerId, @NonNull CustomerEditDTO customerEditDTO) {
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new NotFoundException(CUSTOMER_ID_NOT_FOUND, customerId.toString()));
+    public Customer updateCustomer(@NonNull CustomerEditDTO customerEditDTO) {
+        customerEditDtoValidator.validate(customerEditDTO);
+        Customer customer = customerRepository.findById(customerEditDTO.getId())
+                .orElseThrow(() -> new NotFoundException(CUSTOMER_ID_NOT_FOUND, customerEditDTO.getId().toString()));
         BeanCopyUtils.copyProperties(customerEditDTO, customer, false);
 
         Set<Long> tradeIds = customerEditDTO.getTradeIds();

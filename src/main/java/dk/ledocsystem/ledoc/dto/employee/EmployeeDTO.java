@@ -14,8 +14,10 @@ import java.util.Set;
 public class EmployeeDTO {
 
     @NotNull
+    private Long id;
+
+    @NotNull
     @Email
-    @OnlyAscii
     private String username;
 
     @Pattern(regexp = "admin|user", flags = Pattern.Flag.CASE_INSENSITIVE)

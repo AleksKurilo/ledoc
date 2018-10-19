@@ -29,7 +29,6 @@ import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.UNEXPECTED_ERROR;
 @RequiredArgsConstructor
 class RestExceptionHandler implements AsyncUncaughtExceptionHandler {
 
-
     private final MessageSource messageSource;
 
     @ExceptionHandler(LedocException.class)

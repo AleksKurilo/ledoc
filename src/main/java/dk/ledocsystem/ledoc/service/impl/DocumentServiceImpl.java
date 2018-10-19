@@ -9,6 +9,7 @@ import dk.ledocsystem.ledoc.repository.DocumentRepository;
 import dk.ledocsystem.ledoc.service.DocumentService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.EquipmentService;
+import dk.ledocsystem.ledoc.validator.BaseValidator;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -28,10 +29,13 @@ class DocumentServiceImpl implements DocumentService {
     private final EmployeeService employeeService;
     private final EquipmentService equipmentService;
     private final ModelMapper modelMapper;
+    private final BaseValidator<DocumentDTO> documentDtoValidator;
 
     @Override
     @Transactional
     public Document createOrUpdate(DocumentDTO documentDTO) {
+        documentDtoValidator.validate(documentDTO);
+
         Document document = modelMapper.map(documentDTO, Document.class);
 
         Long documentId = documentDTO.getId();

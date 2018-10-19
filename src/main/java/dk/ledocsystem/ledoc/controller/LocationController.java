@@ -14,7 +14,6 @@ import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.Collection;
 
 import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.LOCATION_ID_NOT_FOUND;
@@ -45,14 +44,15 @@ public class LocationController {
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Location createLocation(@RequestBody @Valid LocationCreateDTO locationCreateDTO) {
+    public Location createLocation(@RequestBody LocationCreateDTO locationCreateDTO) {
         Customer currentCustomer = customerService.getCurrentCustomerReference();
         return locationService.createLocation(locationCreateDTO, currentCustomer);
     }
 
     @PutMapping(value = "/{locationId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Location updateLocationById(@PathVariable Long locationId,
-                                       @RequestBody @Valid LocationEditDTO locationEditDTO) {
+                                       @RequestBody LocationEditDTO locationEditDTO) {
+        locationEditDTO.setId(locationId);
         return locationService.updateLocation(locationId, locationEditDTO);
     }
 

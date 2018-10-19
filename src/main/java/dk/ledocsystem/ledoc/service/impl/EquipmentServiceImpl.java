@@ -21,6 +21,8 @@ import dk.ledocsystem.ledoc.service.EquipmentService;
 import dk.ledocsystem.ledoc.service.LocationService;
 import dk.ledocsystem.ledoc.service.ReviewTemplateService;
 import dk.ledocsystem.ledoc.util.BeanCopyUtils;
+import dk.ledocsystem.ledoc.validator.BaseValidator;
+import dk.ledocsystem.ledoc.validator.EquipmentEditDtoValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.IterableUtils;
@@ -50,9 +52,17 @@ class EquipmentServiceImpl implements EquipmentService {
     private final ReviewTemplateService reviewTemplateService;
     private final EmailNotificationRepository emailNotificationRepository;
 
+    private final BaseValidator<AuthenticationTypeDTO> authenticationTypeDtoValidator;
+    private final BaseValidator<EquipmentCategoryCreateDTO> equipmentCategoryCreateDtoValidator;
+    private final BaseValidator<EquipmentCreateDTO> equipmentCreateDtoValidator;
+    private final EquipmentEditDtoValidator equipmentEditDtoValidator;
+    private final BaseValidator<EquipmentLoanDTO> equipmentLoanDtoValidator;
+
     @Override
     @Transactional
     public Equipment createEquipment(@NonNull EquipmentCreateDTO equipmentCreateDTO, Customer customer) {
+        equipmentCreateDtoValidator.validate(equipmentCreateDTO);
+
         Equipment equipment = new Equipment();
         BeanCopyUtils.copyProperties(equipmentCreateDTO, equipment, false);
 
@@ -75,9 +85,11 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     @Transactional
-    public Equipment updateEquipment(@NonNull Long equipmentId, @NonNull EquipmentEditDTO equipmentEditDTO) {
-        Equipment equipment = equipmentRepository.findById(equipmentId)
-                .orElseThrow(() -> new NotFoundException(EQUIPMENT_ID_NOT_FOUND, equipmentId.toString()));
+    public Equipment updateEquipment(@NonNull EquipmentEditDTO equipmentEditDTO) {
+        equipmentEditDtoValidator.validate(equipmentEditDTO);
+
+        Equipment equipment = equipmentRepository.findById(equipmentEditDTO.getId())
+                .orElseThrow(() -> new NotFoundException(EQUIPMENT_ID_NOT_FOUND, equipmentEditDTO.getId().toString()));
         BeanCopyUtils.copyProperties(equipmentEditDTO, equipment, false);
 
         Long categoryId = equipmentEditDTO.getCategoryId();
@@ -140,6 +152,8 @@ class EquipmentServiceImpl implements EquipmentService {
     @Override
     @Transactional
     public void loanEquipment(Long equipmentId, EquipmentLoanDTO equipmentLoanDTO) {
+        equipmentLoanDtoValidator.validate(equipmentLoanDTO);
+
         EquipmentLoan equipmentLoan = new EquipmentLoan();
         BeanCopyUtils.copyProperties(equipmentLoanDTO, equipmentLoan);
 
@@ -177,7 +191,7 @@ class EquipmentServiceImpl implements EquipmentService {
     private ReviewTemplate resolveReviewTemplate(Long reviewTemplateId) {
         return (reviewTemplateId == null) ? null :
                 reviewTemplateService.getById(reviewTemplateId)
-                        .orElseThrow(() -> new NotFoundException("review.template.id.not.found", reviewTemplateId.toString()));
+                        .orElseThrow(() -> new NotFoundException(REVIEW_TEMPLATE_ID_NOT_FOUND, reviewTemplateId.toString()));
     }
 
     private Employee resolveResponsible(Long responsibleId) {
@@ -203,9 +217,10 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     public AuthenticationType createAuthType(AuthenticationTypeDTO authenticationTypeDTO) {
+        authenticationTypeDtoValidator.validate(authenticationTypeDTO);
+
         AuthenticationType authenticationType = new AuthenticationType();
         BeanCopyUtils.copyProperties(authenticationTypeDTO, authenticationType);
-
         return authenticationTypeRepository.save(authenticationType);
     }
 
@@ -216,6 +231,8 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     public EquipmentCategory createNewCategory(EquipmentCategoryCreateDTO categoryCreateDTO) {
+        equipmentCategoryCreateDtoValidator.validate(categoryCreateDTO);
+
         EquipmentCategory category = new EquipmentCategory();
         BeanCopyUtils.copyProperties(categoryCreateDTO, category);
 

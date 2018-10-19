@@ -75,7 +75,8 @@ public class EmployeeController {
     @PutMapping(value = "/{employeeId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Employee updateEmployeeById(@PathVariable Long employeeId,
                                        @RequestBody EmployeeDTO employeeDTO) {
-        return employeeService.updateEmployee(employeeId, employeeDTO);
+        employeeDTO.setId(employeeId);
+        return employeeService.updateEmployee(employeeDTO);
     }
 
     @DeleteMapping("/{employeeId}")

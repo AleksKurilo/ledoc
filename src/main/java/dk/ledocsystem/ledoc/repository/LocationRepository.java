@@ -20,6 +20,7 @@ public interface LocationRepository extends JpaRepository<Location, Long>, Query
     @Override
     Page<Location> findAll(Predicate predicate, Pageable pageable);
 
+
     /**
      * @return {@code true} if location with given name and customer ID exists.
      */
