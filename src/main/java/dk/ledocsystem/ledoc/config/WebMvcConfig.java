@@ -9,9 +9,8 @@ import org.springframework.data.web.config.PageableHandlerMethodArgumentResolver
 import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import java.util.concurrent.Executor;
 
 @Configuration
 @EnableAsync
@@ -26,14 +25,15 @@ public class WebMvcConfig implements WebMvcConfigurer, AsyncConfigurer {
     }
 
     @Override
-    public Executor getAsyncExecutor() {
+    public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
         taskExecutor.setCorePoolSize(4);
         taskExecutor.setMaxPoolSize(4);
         taskExecutor.setQueueCapacity(50);
+        //taskExecutor.setAllowCoreThreadTimeOut();
         taskExecutor.setKeepAliveSeconds(120);
         taskExecutor.initialize();
-        return taskExecutor;
+        configurer.setTaskExecutor(taskExecutor);
     }
 
     @Override
