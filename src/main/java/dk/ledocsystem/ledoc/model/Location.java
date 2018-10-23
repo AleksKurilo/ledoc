@@ -12,6 +12,8 @@ import lombok.ToString;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -50,6 +52,10 @@ public class Location {
     @JoinColumn(name = "address_location_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Location addressLocation;
+
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "addressLocation")
+    @Fetch(FetchMode.SUBSELECT)
+    private Set<Location> physicalLocations;
 
     @ManyToMany(mappedBy = "locations")
     @OnDelete(action = OnDeleteAction.CASCADE)

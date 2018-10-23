@@ -6,6 +6,7 @@ import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
 import dk.ledocsystem.ledoc.dto.location.AddressDTO;
 import dk.ledocsystem.ledoc.dto.location.LocationCreateDTO;
 import dk.ledocsystem.ledoc.dto.location.LocationEditDTO;
+import dk.ledocsystem.ledoc.dto.projections.NamesOnly;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.*;
 import dk.ledocsystem.ledoc.model.email_notifications.EmailNotification;
@@ -218,8 +219,15 @@ class LocationServiceImpl implements LocationService {
 
     @Override
     public Page<Location> getAllByCustomer(@NonNull Long customerId, Predicate predicate, @NonNull Pageable pageable) {
-        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
+        Predicate combinePredicate = ExpressionUtils.allOf(predicate,
+                ExpressionUtils.isNull(QLocation.location.addressLocation),
+                CUSTOMER_EQUALS_TO.apply(customerId));
         return locationRepository.findAll(combinePredicate, pageable);
+    }
+
+    @Override
+    public Page<NamesOnly> getAllNamesByCustomer(Long customerId, Pageable pageable) {
+        return locationRepository.findAllByCustomerId(customerId, pageable);
     }
 
     @Override

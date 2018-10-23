@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.time.LocalDate;
 
 @Setter
@@ -13,6 +14,10 @@ import java.time.LocalDate;
 public class DocumentDTO {
 
     private Long id;
+
+    @NotNull
+    @Size(min = 2, max = 40)
+    private String name;
 
     private Long employeeId;
 

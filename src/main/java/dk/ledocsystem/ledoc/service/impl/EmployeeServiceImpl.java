@@ -10,6 +10,7 @@ import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeDetailsDTO;
+import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import dk.ledocsystem.ledoc.dto.review.ReviewDTO;
 import dk.ledocsystem.ledoc.dto.review.ReviewQuestionAnswerDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
@@ -451,6 +452,11 @@ class EmployeeServiceImpl implements EmployeeService {
     public Page<Employee> getAllByCustomer(@NonNull Long customerId, Predicate predicate, @NonNull Pageable pageable) {
         Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
         return employeeRepository.findAll(combinePredicate, pageable);
+    }
+
+    @Override
+    public Page<EmployeeNames> getAllNamesByCustomer(Long customerId, Pageable pageable) {
+        return employeeRepository.findAllByCustomerId(customerId, pageable);
     }
 
     @Override

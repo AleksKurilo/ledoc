@@ -4,6 +4,7 @@ import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
 import dk.ledocsystem.ledoc.dto.location.LocationCreateDTO;
 import dk.ledocsystem.ledoc.dto.location.LocationEditDTO;
+import dk.ledocsystem.ledoc.dto.projections.NamesOnly;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.Location;
@@ -36,6 +37,11 @@ public class LocationController {
     public Iterable<Location> getAllFilteredLocations(@QuerydslPredicate(root = Location.class) Predicate predicate,
                                                       Pageable pageable) {
         return locationService.getAllByCustomer(getCurrentCustomerId(), predicate, pageable);
+    }
+
+    @GetMapping("/names")
+    public Iterable<NamesOnly> getAllLocationNames(Pageable pageable) {
+        return locationService.getAllNamesByCustomer(getCurrentCustomerId(), pageable);
     }
 
     @GetMapping("/{locationId}")

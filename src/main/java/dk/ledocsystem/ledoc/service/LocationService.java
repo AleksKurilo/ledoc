@@ -3,9 +3,12 @@ package dk.ledocsystem.ledoc.service;
 import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
 import dk.ledocsystem.ledoc.dto.location.LocationCreateDTO;
 import dk.ledocsystem.ledoc.dto.location.LocationEditDTO;
+import dk.ledocsystem.ledoc.dto.projections.NamesOnly;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.Location;
 import dk.ledocsystem.ledoc.model.employee.Employee;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface LocationService extends CustomerBasedDomainService<Location> {
 
@@ -44,4 +47,6 @@ public interface LocationService extends CustomerBasedDomainService<Location> {
      * Changes the archived status according to data from {@code archivedStatusDTO}.
      */
     void changeArchivedStatus(Long locationId, ArchivedStatusDTO archivedStatusDTO);
+
+    Page<NamesOnly> getAllNamesByCustomer(Long customerId, Pageable pageable);
 }

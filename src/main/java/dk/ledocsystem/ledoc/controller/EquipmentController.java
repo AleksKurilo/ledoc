@@ -1,6 +1,7 @@
 package dk.ledocsystem.ledoc.controller;
 
 import com.querydsl.core.types.Predicate;
+import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
 import dk.ledocsystem.ledoc.dto.equipment.*;
 import dk.ledocsystem.ledoc.dto.projections.IdAndLocalizedName;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;

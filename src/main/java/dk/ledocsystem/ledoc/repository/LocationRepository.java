@@ -1,6 +1,7 @@
 package dk.ledocsystem.ledoc.repository;
 
 import com.querydsl.core.types.Predicate;
+import dk.ledocsystem.ledoc.dto.projections.NamesOnly;
 import dk.ledocsystem.ledoc.model.Location;
 import dk.ledocsystem.ledoc.model.QLocation;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,7 @@ public interface LocationRepository extends JpaRepository<Location, Long>, Query
     @Override
     Page<Location> findAll(Predicate predicate, Pageable pageable);
 
+    Page<NamesOnly> findAllByCustomerId(Long customerId, Pageable pageable);
 
     /**
      * @return {@code true} if location with given name and customer ID exists.

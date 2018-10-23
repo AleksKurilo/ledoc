@@ -6,5 +6,5 @@ public interface EmployeeNames {
     Long getId();
 
     @Value("#{target.firstName + ' ' + target.lastName}")
-    String getFullName();
+    String getName();
 }

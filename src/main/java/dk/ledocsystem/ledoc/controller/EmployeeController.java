@@ -5,6 +5,7 @@ import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeDTO;
+import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import dk.ledocsystem.ledoc.dto.review.ReviewDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
@@ -41,6 +42,11 @@ public class EmployeeController {
     public Iterable<Employee> getAllFilteredEmployees(@QuerydslPredicate(root = Employee.class) Predicate predicate,
                                                       Pageable pageable) {
         return employeeService.getAllByCustomer(getCurrentCustomerId(), predicate, pageable);
+    }
+
+    @GetMapping("/names")
+    public Iterable<EmployeeNames> getAllEmployeeNames(Pageable pageable) {
+        return employeeService.getAllNamesByCustomer(getCurrentCustomerId(), pageable);
     }
 
     @GetMapping("/new")

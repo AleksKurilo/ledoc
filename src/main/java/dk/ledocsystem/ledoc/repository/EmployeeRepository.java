@@ -7,6 +7,8 @@ import dk.ledocsystem.ledoc.dto.projections.EmployeeDataExcel;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.model.employee.QEmployee;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -91,6 +93,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Loggi
 
     @Query("select e from Employee e join fetch e.details.responsibleOfSkills where e.archived = false")
     List<Employee> findAllForReview();
+
+    Page<EmployeeNames> findAllByCustomerId(Long customerId, Pageable pageable);
 
     @Override
     default void customize(QuerydslBindings bindings, QEmployee root) {

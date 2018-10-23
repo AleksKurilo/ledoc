@@ -5,6 +5,7 @@ import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeDTO;
+import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import dk.ledocsystem.ledoc.dto.review.ReviewDTO;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.employee.Employee;
@@ -85,6 +86,8 @@ public interface EmployeeService extends CustomerBasedDomainService<Employee> {
      * @return All employees eligible for review
      */
     List<Employee> getAllForReview();
+
+    Page<EmployeeNames> getAllNamesByCustomer(Long customerId, Pageable pageable);
 
     boolean existsByUsername(String username);
 
