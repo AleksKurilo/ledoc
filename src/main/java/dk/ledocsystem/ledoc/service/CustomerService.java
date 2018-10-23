@@ -19,11 +19,10 @@ public interface CustomerService extends DomainService<Customer> {
     /**
      * Updates the properties of the customer with the given ID with properties of {@code customerCreateDTO}.
      *
-     * @param customerId      ID of the customer
      * @param customerEditDTO New properties of the customer
      * @return Updated {@link Customer}
      */
-    Customer updateCustomer(Long customerId, CustomerEditDTO customerEditDTO);
+    Customer updateCustomer(CustomerEditDTO customerEditDTO);
 
     /**
      * Changes the archived status according to {@code archived}.

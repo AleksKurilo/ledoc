@@ -22,6 +22,8 @@ import dk.ledocsystem.ledoc.service.EquipmentService;
 import dk.ledocsystem.ledoc.service.LocationService;
 import dk.ledocsystem.ledoc.service.ReviewTemplateService;
 import dk.ledocsystem.ledoc.util.BeanCopyUtils;
+import dk.ledocsystem.ledoc.validator.BaseValidator;
+import dk.ledocsystem.ledoc.validator.EquipmentEditDtoValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.IterableUtils;
@@ -33,6 +35,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+
+import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.*;
 
 @Service
 @RequiredArgsConstructor
@@ -49,9 +53,17 @@ class EquipmentServiceImpl implements EquipmentService {
     private final ReviewTemplateService reviewTemplateService;
     private final EmailNotificationRepository emailNotificationRepository;
 
+    private final BaseValidator<AuthenticationTypeDTO> authenticationTypeDtoValidator;
+    private final BaseValidator<EquipmentCategoryCreateDTO> equipmentCategoryCreateDtoValidator;
+    private final BaseValidator<EquipmentCreateDTO> equipmentCreateDtoValidator;
+    private final EquipmentEditDtoValidator equipmentEditDtoValidator;
+    private final BaseValidator<EquipmentLoanDTO> equipmentLoanDtoValidator;
+
     @Override
     @Transactional
     public Equipment createEquipment(@NonNull EquipmentCreateDTO equipmentCreateDTO, Customer customer) {
+        equipmentCreateDtoValidator.validate(equipmentCreateDTO);
+
         Equipment equipment = new Equipment();
         BeanCopyUtils.copyProperties(equipmentCreateDTO, equipment, false);
 
@@ -74,9 +86,11 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     @Transactional
-    public Equipment updateEquipment(@NonNull Long equipmentId, @NonNull EquipmentEditDTO equipmentEditDTO) {
-        Equipment equipment = equipmentRepository.findById(equipmentId)
-                .orElseThrow(() -> new NotFoundException("equipment.id.not.found", equipmentId.toString()));
+    public Equipment updateEquipment(@NonNull EquipmentEditDTO equipmentEditDTO) {
+        equipmentEditDtoValidator.validate(equipmentEditDTO);
+
+        Equipment equipment = equipmentRepository.findById(equipmentEditDTO.getId())
+                .orElseThrow(() -> new NotFoundException(EQUIPMENT_ID_NOT_FOUND, equipmentEditDTO.getId().toString()));
         BeanCopyUtils.copyProperties(equipmentEditDTO, equipment, false);
 
         Long categoryId = equipmentEditDTO.getCategoryId();
@@ -132,7 +146,7 @@ class EquipmentServiceImpl implements EquipmentService {
     @Override
     public Page<Equipment> getNewEquipment(@NonNull Long userId, @NonNull Pageable pageable, Predicate predicate) {
         Employee employee = employeeService.getById(userId)
-                .orElseThrow(() -> new NotFoundException("employee.id.not.found", userId.toString()));
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, userId.toString()));
         Long customerId = employee.getCustomer().getId();
 
         Predicate newEquipmentPredicate = ExpressionUtils.allOf(
@@ -150,6 +164,8 @@ class EquipmentServiceImpl implements EquipmentService {
     @Override
     @Transactional
     public void loanEquipment(Long equipmentId, EquipmentLoanDTO equipmentLoanDTO) {
+        equipmentLoanDtoValidator.validate(equipmentLoanDTO);
+
         EquipmentLoan equipmentLoan = new EquipmentLoan();
         BeanCopyUtils.copyProperties(equipmentLoanDTO, equipmentLoan);
 
@@ -157,7 +173,7 @@ class EquipmentServiceImpl implements EquipmentService {
         equipmentLoan.setLocation(resolveLocation(equipmentLoanDTO.getLocationId()));
 
         Equipment equipment = equipmentRepository.findById(equipmentId)
-                .orElseThrow(() -> new NotFoundException("equipment.id.not.found", equipmentId.toString()));
+                .orElseThrow(() -> new NotFoundException(EQUIPMENT_ID_NOT_FOUND, equipmentId.toString()));
         equipment.setLoan(equipmentLoan);
     }
 
@@ -165,7 +181,7 @@ class EquipmentServiceImpl implements EquipmentService {
     @Transactional
     public void returnLoanedEquipment(Long equipmentId) {
         Equipment equipment = equipmentRepository.findById(equipmentId)
-                .orElseThrow(() -> new NotFoundException("equipment.id.not.found", equipmentId.toString()));
+                .orElseThrow(() -> new NotFoundException(EQUIPMENT_ID_NOT_FOUND, equipmentId.toString()));
         equipment.removeLoan();
     }
 
@@ -176,34 +192,34 @@ class EquipmentServiceImpl implements EquipmentService {
 
     private EquipmentCategory resolveCategory(Long categoryId) {
         return equipmentCategoryRepository.findById(categoryId)
-                .orElseThrow(() -> new NotFoundException("equipment.category.not.found", categoryId.toString()));
+                .orElseThrow(() -> new NotFoundException(EQUIPMENT_CATEGORY_NOT_FOUND, categoryId.toString()));
     }
 
     private Location resolveLocation(Long locationId) {
         return locationService.getById(locationId)
-                .orElseThrow(() -> new NotFoundException("location.id.not.found", locationId.toString()));
+                .orElseThrow(() -> new NotFoundException(LOCATION_ID_NOT_FOUND, locationId.toString()));
     }
 
     private ReviewTemplate resolveReviewTemplate(Long reviewTemplateId) {
         return (reviewTemplateId == null) ? null :
                 reviewTemplateService.getById(reviewTemplateId)
-                        .orElseThrow(() -> new NotFoundException("review.template.id.not.found", reviewTemplateId.toString()));
+                        .orElseThrow(() -> new NotFoundException(REVIEW_TEMPLATE_ID_NOT_FOUND, reviewTemplateId.toString()));
     }
 
     private Employee resolveResponsible(Long responsibleId) {
         return employeeService.getById(responsibleId)
-                .orElseThrow(() -> new NotFoundException("employee.responsible.not.found", responsibleId.toString()));
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_RESPONSIBLE_NOT_FOUND, responsibleId.toString()));
     }
 
     private AuthenticationType resolveAuthenticationType(Long authTypeId) {
         return (authTypeId == null) ? null :
                 authenticationTypeRepository.findById(authTypeId)
-                        .orElseThrow(() -> new NotFoundException("equipment.authentication.type.not.found", authTypeId.toString()));
+                        .orElseThrow(() -> new NotFoundException(EQUIPMENT_AUTHENTICATION_TYPE_NOT_FOUND, authTypeId.toString()));
     }
 
     private Employee resolveBorrower(Long borrowerId) {
         return employeeService.getById(borrowerId)
-                .orElseThrow(() -> new NotFoundException("equipment.borrower.not.found", borrowerId.toString()));
+                .orElseThrow(() -> new NotFoundException(EQUIPMENT_BORROWER_NOT_FOUND, borrowerId.toString()));
     }
 
     @Override
@@ -218,9 +234,10 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     public AuthenticationType createAuthType(AuthenticationTypeDTO authenticationTypeDTO) {
+        authenticationTypeDtoValidator.validate(authenticationTypeDTO);
+
         AuthenticationType authenticationType = new AuthenticationType();
         BeanCopyUtils.copyProperties(authenticationTypeDTO, authenticationType);
-
         return authenticationTypeRepository.save(authenticationType);
     }
 
@@ -236,6 +253,8 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     public EquipmentCategory createNewCategory(EquipmentCategoryCreateDTO categoryCreateDTO) {
+        equipmentCategoryCreateDtoValidator.validate(categoryCreateDTO);
+
         EquipmentCategory category = new EquipmentCategory();
         BeanCopyUtils.copyProperties(categoryCreateDTO, category);
 

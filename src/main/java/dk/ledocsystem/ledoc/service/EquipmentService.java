@@ -35,7 +35,7 @@ public interface EquipmentService extends CustomerBasedDomainService<Equipment> 
      * @param equipmentEditDTO New properties of the equipment
      * @return Updated {@link Equipment}
      */
-    Equipment updateEquipment(Long equipmentId, EquipmentEditDTO equipmentEditDTO);
+    Equipment updateEquipment(EquipmentEditDTO equipmentEditDTO);
 
     /**
      * Changes the archived status according to data from {@code archivedStatusDTO}.

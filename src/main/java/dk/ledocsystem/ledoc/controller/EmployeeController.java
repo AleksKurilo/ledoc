@@ -20,8 +20,9 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.RolesAllowed;
-import javax.validation.Valid;
 import java.util.Collection;
+
+import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.EMPLOYEE_ID_NOT_FOUND;
 
 @RestController
 @RequiredArgsConstructor
@@ -56,26 +57,27 @@ public class EmployeeController {
     @GetMapping("/{employeeId}")
     public GetEmployeeDTO getEmployeeById(@PathVariable Long employeeId) {
         return employeeService.getEmployeeDtoById(employeeId)
-                .orElseThrow(() -> new NotFoundException("employee.id.not.found", employeeId.toString()));
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
     }
 
     @GetMapping("/{employeeId}/preview")
     public EmployeePreviewDTO getEmployeeByIdForPreview(@PathVariable Long employeeId) {
         return employeeService.getPreviewDtoById(employeeId)
-                .orElseThrow(() -> new NotFoundException("employee.id.not.found", employeeId.toString()));
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
     }
 
-    @RolesAllowed("admin")
+    //@RolesAllowed("admin")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Employee createEmployee(@RequestBody @Valid EmployeeCreateDTO employeeCreateDTO) {
+    public Employee createEmployee(@RequestBody EmployeeCreateDTO employeeCreateDTO) {
         Customer currentCustomer = customerService.getCurrentCustomerReference();
         return employeeService.createEmployee(employeeCreateDTO, currentCustomer);
     }
 
     @PutMapping(value = "/{employeeId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Employee updateEmployeeById(@PathVariable Long employeeId,
-                                       @RequestBody @Valid EmployeeDTO employeeDTO) {
-        return employeeService.updateEmployee(employeeId, employeeDTO);
+                                       @RequestBody EmployeeDTO employeeDTO) {
+        employeeDTO.setId(employeeId);
+        return employeeService.updateEmployee(employeeDTO);
     }
 
     @DeleteMapping("/{employeeId}")
@@ -95,7 +97,7 @@ public class EmployeeController {
     }
 
     @PostMapping("/{employeeId}/review")
-    public void performReview(@PathVariable Long employeeId, @RequestBody @Valid ReviewDTO reviewDTO) {
+    public void performReview(@PathVariable Long employeeId, @RequestBody ReviewDTO reviewDTO) {
         employeeService.performReview(employeeId, reviewDTO);
     }
 
@@ -106,7 +108,7 @@ public class EmployeeController {
 
     @RolesAllowed("can_create_point_of_contact")
     @PostMapping(value = "/point-of-contact", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Employee createPointOfContact(@RequestBody @Valid EmployeeCreateDTO employeeCreateDTO) {
+    public Employee createPointOfContact(@RequestBody EmployeeCreateDTO employeeCreateDTO) {
         Customer currentCustomer = customerService.getCurrentCustomerReference();
         return employeeService.createPointOfContact(employeeCreateDTO, currentCustomer);
     }

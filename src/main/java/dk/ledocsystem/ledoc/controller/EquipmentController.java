@@ -1,7 +1,6 @@
 package dk.ledocsystem.ledoc.controller;
 
 import com.querydsl.core.types.Predicate;
-import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
 import dk.ledocsystem.ledoc.dto.equipment.*;
 import dk.ledocsystem.ledoc.dto.projections.IdAndLocalizedName;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
@@ -19,8 +18,9 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.RolesAllowed;
-import javax.validation.Valid;
 import java.util.Collection;
+
+import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.EQUIPMENT_ID_NOT_FOUND;
 
 @RestController
 @RequiredArgsConstructor
@@ -56,7 +56,7 @@ public class EquipmentController {
     @GetMapping("/{equipmentId}")
     public Equipment getEquipmentById(@PathVariable Long equipmentId) {
         return equipmentService.getById(equipmentId)
-                .orElseThrow(() -> new NotFoundException("equipment.id.not.found", equipmentId.toString()));
+                .orElseThrow(() -> new NotFoundException(EQUIPMENT_ID_NOT_FOUND, equipmentId.toString()));
     }
 
     @GetMapping("/auth-types")
@@ -66,7 +66,7 @@ public class EquipmentController {
 
     @RolesAllowed("ROLE_super_admin")
     @PostMapping(value = "/auth-types", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public AuthenticationType createAuthType(@RequestBody @Valid AuthenticationTypeDTO authenticationTypeDTO) {
+    public AuthenticationType createAuthType(@RequestBody AuthenticationTypeDTO authenticationTypeDTO) {
         return equipmentService.createAuthType(authenticationTypeDTO);
     }
 
@@ -77,20 +77,21 @@ public class EquipmentController {
 
     @RolesAllowed("super_admin")
     @PostMapping(value = "/categories", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public EquipmentCategory createNewEqCategory(@RequestBody @Valid EquipmentCategoryCreateDTO categoryCreateDTO) {
+    public EquipmentCategory createNewEqCategory(@RequestBody EquipmentCategoryCreateDTO categoryCreateDTO) {
         return equipmentService.createNewCategory(categoryCreateDTO);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Equipment createEquipment(@RequestBody @Valid EquipmentCreateDTO equipmentCreateDTO) {
+    public Equipment createEquipment(@RequestBody EquipmentCreateDTO equipmentCreateDTO) {
         Customer currentCustomer = customerService.getCurrentCustomerReference();
         return equipmentService.createEquipment(equipmentCreateDTO, currentCustomer);
     }
 
     @PutMapping(value = "/{equipmentId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Equipment updateEquipmentById(@PathVariable Long equipmentId,
-                                         @RequestBody @Valid EquipmentEditDTO equipmentEditDTO) {
-        return equipmentService.updateEquipment(equipmentId, equipmentEditDTO);
+                                         @RequestBody EquipmentEditDTO equipmentEditDTO) {
+        equipmentEditDTO.setId(equipmentId);
+        return equipmentService.updateEquipment(equipmentEditDTO);
     }
 
     @PostMapping("/{equipmentId}/archive")
@@ -100,7 +101,7 @@ public class EquipmentController {
 
     @PostMapping(value = "/loan/{equipmentId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public void loanEquipment(@PathVariable Long equipmentId,
-                              @RequestBody @Valid EquipmentLoanDTO equipmentLoanDTO) {
+                              @RequestBody EquipmentLoanDTO equipmentLoanDTO) {
         equipmentService.loanEquipment(equipmentId, equipmentLoanDTO);
     }
 

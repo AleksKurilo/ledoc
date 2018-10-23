@@ -9,8 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.Set;
+
+import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.DOCUMENT_ID_NOT_FOUND;
 
 
 @RestController
@@ -21,12 +22,12 @@ public class DocumentController {
     private final DocumentService documentService;
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Document create(@RequestBody @Valid DocumentDTO documentDTO) {
+    public Document create(@RequestBody DocumentDTO documentDTO) {
         return documentService.createOrUpdate(documentDTO);
     }
 
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Document update(@RequestBody @Valid DocumentDTO documentDTO, @PathVariable long id) {
+    public Document update(@RequestBody DocumentDTO documentDTO, @PathVariable long id) {
         documentDTO.setId(id);
         return documentService.createOrUpdate(documentDTO);
     }
@@ -39,7 +40,7 @@ public class DocumentController {
     @GetMapping(path = "/{id}")
     public Document getById(@PathVariable long id) {
         return documentService.getById(id)
-                .orElseThrow(() -> new NotFoundException("document.id.not.found", id));
+                .orElseThrow(() -> new NotFoundException(DOCUMENT_ID_NOT_FOUND, id));
     }
 
     @GetMapping(path = "/employeeId/{employeeId}")

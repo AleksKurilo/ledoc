@@ -22,12 +22,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.UNEXPECTED_ERROR;
+
 
 @ControllerAdvice
 @RequiredArgsConstructor
 class RestExceptionHandler implements AsyncUncaughtExceptionHandler {
 
-    private static final String UNEXPECTED_ERROR = "Exception.unexpected";
     private final MessageSource messageSource;
 
     @ExceptionHandler(LedocException.class)
@@ -35,7 +36,6 @@ class RestExceptionHandler implements AsyncUncaughtExceptionHandler {
         String errorMessage = messageSource.getMessage(ex.getMessageKey(), ex.getParams(), locale);
         return handleExceptionInternal(ex, new RestResponse(Arrays.asList(errorMessage)));
     }
-
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<RestResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, Locale locale) {
@@ -47,6 +47,11 @@ class RestExceptionHandler implements AsyncUncaughtExceptionHandler {
                                 fieldError -> messageSource.getMessage(fieldError, locale), Collectors.toList()
                         )));
         return new ResponseEntity<>(new RestResponse(fieldsWithErrors), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ValidationDtoException.class)
+    public ResponseEntity<RestResponse> handleMethodArgumentNotValid(ValidationDtoException ex) {
+        return new ResponseEntity<>(new RestResponse(ex.getErrors()), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(AccessDeniedException.class)

@@ -31,6 +31,18 @@ public interface CustomerRepository extends JpaRepository<Customer, Long>, Query
      */
     Integer countAllByArchivedFalse();
 
+    /**
+     * @param name
+     * @return {@code true} if there is user provided name
+     */
+    boolean existsByName(String name);
+
+    /**
+     * @param cvr
+     * @return {@code true} if there is user provided cvr
+     */
+    boolean existsByCvr(String cvr);
+
     @Modifying
     @Query("delete from Customer c where c.id in ?1")
     void deleteById(Iterable<Long> ids);

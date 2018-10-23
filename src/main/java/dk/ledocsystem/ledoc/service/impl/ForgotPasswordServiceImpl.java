@@ -11,6 +11,7 @@ import dk.ledocsystem.ledoc.repository.EmailNotificationRepository;
 import dk.ledocsystem.ledoc.repository.ResetTokenRepository;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.ForgotPasswordService;
+import dk.ledocsystem.ledoc.validator.BaseValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Map;
 import java.util.UUID;
 
+import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.RESET_TOKEN_NOT_FOUND;
+import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.USER_NAME_NOT_FOUND;
+
 @Service
 @RequiredArgsConstructor
 class ForgotPasswordServiceImpl implements ForgotPasswordService {
@@ -26,13 +30,17 @@ class ForgotPasswordServiceImpl implements ForgotPasswordService {
     private final ResetTokenRepository resetTokenRepository;
     private final EmailNotificationRepository emailNotificationRepository;
     private final PasswordEncoder passwordEncoder;
+    private final BaseValidator<ForgotPasswordDTO> forgotPasswordDtoValidator;
+    private final BaseValidator<ResetPasswordDTO> resetPasswordDtoValidator;
 
     @Override
     @Transactional
     public void forgotPassword(ForgotPasswordDTO forgotPasswordDTO) {
+        forgotPasswordDtoValidator.validate(forgotPasswordDTO);
+
         String email = forgotPasswordDTO.getEmail();
         if (!employeeService.existsByUsername(email)) {
-            throw new InvalidCredentialsException("username.not.found");
+            throw new InvalidCredentialsException(USER_NAME_NOT_FOUND);
         }
 
         String token = UUID.randomUUID().toString();
@@ -47,9 +55,11 @@ class ForgotPasswordServiceImpl implements ForgotPasswordService {
     @Override
     @Transactional
     public void resetPassword(ResetPasswordDTO resetPasswordDTO) {
+        resetPasswordDtoValidator.validate(resetPasswordDTO);
+
         String token = resetPasswordDTO.getToken();
         ResetToken resetToken = resetTokenRepository.findByToken(token)
-                .orElseThrow(() -> new NotFoundException("reset.token.not.found", token));
+                .orElseThrow(() -> new NotFoundException(RESET_TOKEN_NOT_FOUND, token));
 
         String encodedPassword = passwordEncoder.encode(resetPasswordDTO.getPassword());
 

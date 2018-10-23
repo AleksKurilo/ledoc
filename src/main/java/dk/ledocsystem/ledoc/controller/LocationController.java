@@ -15,8 +15,9 @@ import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.Collection;
+
+import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.LOCATION_ID_NOT_FOUND;
 
 @RestController
 @RequiredArgsConstructor
@@ -40,18 +41,19 @@ public class LocationController {
     @GetMapping("/{locationId}")
     public Location getLocationById(@PathVariable Long locationId) {
         return locationService.getById(locationId)
-                .orElseThrow(() -> new NotFoundException("location.id.not.found", locationId.toString()));
+                .orElseThrow(() -> new NotFoundException(LOCATION_ID_NOT_FOUND, locationId.toString()));
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Location createLocation(@RequestBody @Valid LocationCreateDTO locationCreateDTO) {
+    public Location createLocation(@RequestBody LocationCreateDTO locationCreateDTO) {
         Customer currentCustomer = customerService.getCurrentCustomerReference();
         return locationService.createLocation(locationCreateDTO, currentCustomer);
     }
 
     @PutMapping(value = "/{locationId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Location updateLocationById(@PathVariable Long locationId,
-                                       @RequestBody @Valid LocationEditDTO locationEditDTO) {
+                                       @RequestBody LocationEditDTO locationEditDTO) {
+        locationEditDTO.setId(locationId);
         return locationService.updateLocation(locationId, locationEditDTO);
     }
 

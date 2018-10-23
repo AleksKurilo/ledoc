@@ -1,11 +1,13 @@
 package dk.ledocsystem.ledoc.annotations.validation.review;
 
 import dk.ledocsystem.ledoc.dto.employee.EmployeeDetailsDTO;
+import lombok.Data;
 import org.apache.commons.lang3.ObjectUtils;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
+@Data
 class ReviewDetailsValidatorForEmployee implements ConstraintValidator<ReviewDetails, EmployeeDetailsDTO> {
 
     @Override
