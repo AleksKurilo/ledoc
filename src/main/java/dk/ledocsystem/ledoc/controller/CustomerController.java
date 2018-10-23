@@ -1,6 +1,7 @@
 package dk.ledocsystem.ledoc.controller;
 
 import com.querydsl.core.types.Predicate;
+import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
 import dk.ledocsystem.ledoc.dto.customer.CustomerCreateDTO;
 import dk.ledocsystem.ledoc.dto.customer.CustomerEditDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
@@ -52,6 +53,12 @@ public class CustomerController {
     public Customer updateCustomerById(@PathVariable Long customerId, @RequestBody CustomerEditDTO customerEditDTO) {
         customerEditDTO.setId(customerId);
         return customerService.updateCustomer(customerEditDTO);
+    }
+
+    @RolesAllowed("super_admin")
+    @PostMapping("/{customerId}/archive")
+    public void changeArchivedStatus(@PathVariable Long customerId, @RequestBody ArchivedStatusDTO archivedStatusDTO) {
+        customerService.changeArchivedStatus(customerId, archivedStatusDTO.isArchived());
     }
 
     @DeleteMapping("/{customerId}")

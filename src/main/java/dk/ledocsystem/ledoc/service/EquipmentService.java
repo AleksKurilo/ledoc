@@ -1,7 +1,12 @@
 package dk.ledocsystem.ledoc.service;
 
 import com.querydsl.core.types.Predicate;
-import dk.ledocsystem.ledoc.dto.equipment.*;
+import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
+import dk.ledocsystem.ledoc.dto.equipment.AuthenticationTypeDTO;
+import dk.ledocsystem.ledoc.dto.equipment.EquipmentCategoryCreateDTO;
+import dk.ledocsystem.ledoc.dto.equipment.EquipmentCreateDTO;
+import dk.ledocsystem.ledoc.dto.equipment.EquipmentEditDTO;
+import dk.ledocsystem.ledoc.dto.equipment.EquipmentLoanDTO;
 import dk.ledocsystem.ledoc.dto.projections.IdAndLocalizedName;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.equipment.AuthenticationType;
@@ -32,6 +37,11 @@ public interface EquipmentService extends CustomerBasedDomainService<Equipment> 
      */
     Equipment updateEquipment(EquipmentEditDTO equipmentEditDTO);
 
+    /**
+     * Changes the archived status according to data from {@code archivedStatusDTO}.
+     */
+    void changeArchivedStatus(Long equipmentId, ArchivedStatusDTO archivedStatusDTO);
+
     Page<Equipment> getNewEquipment(Long userId, Pageable pageable);
 
     Page<Equipment> getNewEquipment(Long userId, Pageable pageable, Predicate predicate);
@@ -47,9 +57,13 @@ public interface EquipmentService extends CustomerBasedDomainService<Equipment> 
 
     List<IdAndLocalizedName> getAuthTypes();
 
+    Page<IdAndLocalizedName> getAuthTypes(Pageable pageable);
+
     AuthenticationType createAuthType(AuthenticationTypeDTO authenticationTypeDTO);
 
     List<IdAndLocalizedName> getCategories();
+
+    Page<IdAndLocalizedName> getCategories(Pageable pageable);
 
     EquipmentCategory createNewCategory(EquipmentCategoryCreateDTO categoryCreateDTO);
 }

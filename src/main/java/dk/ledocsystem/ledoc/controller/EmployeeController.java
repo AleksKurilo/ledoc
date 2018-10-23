@@ -2,6 +2,7 @@ package dk.ledocsystem.ledoc.controller;
 
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
+import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeDTO;
 import dk.ledocsystem.ledoc.dto.review.ReviewDTO;
@@ -98,6 +99,11 @@ public class EmployeeController {
     @PostMapping("/{employeeId}/review")
     public void performReview(@PathVariable Long employeeId, @RequestBody ReviewDTO reviewDTO) {
         employeeService.performReview(employeeId, reviewDTO);
+    }
+
+    @PostMapping("/{employeeId}/archive")
+    public void changeArchivedStatus(@PathVariable Long employeeId, @RequestBody ArchivedStatusDTO archivedStatusDTO) {
+        employeeService.changeArchivedStatus(employeeId, archivedStatusDTO);
     }
 
     @RolesAllowed("can_create_point_of_contact")

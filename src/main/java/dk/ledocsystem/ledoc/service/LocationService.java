@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.service;
 
+import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
 import dk.ledocsystem.ledoc.dto.location.LocationCreateDTO;
 import dk.ledocsystem.ledoc.dto.location.LocationEditDTO;
 import dk.ledocsystem.ledoc.model.Customer;
@@ -38,4 +39,9 @@ public interface LocationService extends CustomerBasedDomainService<Location> {
      * @return Updated {@link Location}
      */
     Location updateLocation(Long locationId, LocationEditDTO locationEditDTO);
+
+    /**
+     * Changes the archived status according to data from {@code archivedStatusDTO}.
+     */
+    void changeArchivedStatus(Long locationId, ArchivedStatusDTO archivedStatusDTO);
 }

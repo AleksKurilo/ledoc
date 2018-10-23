@@ -2,6 +2,7 @@ package dk.ledocsystem.ledoc.service.impl;
 
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
+import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
 import dk.ledocsystem.ledoc.dto.location.AddressDTO;
 import dk.ledocsystem.ledoc.dto.location.LocationCreateDTO;
 import dk.ledocsystem.ledoc.dto.location.LocationEditDTO;
@@ -150,6 +151,17 @@ class LocationServiceImpl implements LocationService {
         if (locationEditDTO.getAddress() != null) {
             BeanCopyUtils.copyProperties(locationEditDTO.getAddress(), location.getAddress(), false);
         }
+    }
+
+    @Override
+    @Transactional
+    public void changeArchivedStatus(@NonNull Long locationId, @NonNull ArchivedStatusDTO archivedStatusDTO) {
+        Location location = getById(locationId)
+                .orElseThrow(() -> new NotFoundException("location.id.not.found", locationId.toString()));
+
+        location.setArchived(archivedStatusDTO.isArchived());
+        location.setArchiveReason(archivedStatusDTO.getArchiveReason());
+        locationRepository.save(location);
     }
 
     private void sendMessages(Employee employee) {

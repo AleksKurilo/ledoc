@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.RolesAllowed;
 import java.util.Collection;
-import java.util.List;
 
 import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.EQUIPMENT_ID_NOT_FOUND;
 
@@ -61,8 +60,8 @@ public class EquipmentController {
     }
 
     @GetMapping("/auth-types")
-    public List<IdAndLocalizedName> getAuthenticationTypes() {
-        return equipmentService.getAuthTypes();
+    public Iterable<IdAndLocalizedName> getAuthenticationTypes(Pageable pageable) {
+        return equipmentService.getAuthTypes(pageable);
     }
 
     @RolesAllowed("ROLE_super_admin")
@@ -72,8 +71,8 @@ public class EquipmentController {
     }
 
     @GetMapping("/categories")
-    public List<IdAndLocalizedName> getCategories() {
-        return equipmentService.getCategories();
+    public Iterable<IdAndLocalizedName> getCategories(Pageable pageable) {
+        return equipmentService.getCategories(pageable);
     }
 
     @RolesAllowed("super_admin")
@@ -93,6 +92,11 @@ public class EquipmentController {
                                          @RequestBody EquipmentEditDTO equipmentEditDTO) {
         equipmentEditDTO.setId(equipmentId);
         return equipmentService.updateEquipment(equipmentEditDTO);
+    }
+
+    @PostMapping("/{equipmentId}/archive")
+    public void changeArchivedStatus(@PathVariable Long equipmentId, @RequestBody ArchivedStatusDTO archivedStatusDTO) {
+        equipmentService.changeArchivedStatus(equipmentId, archivedStatusDTO);
     }
 
     @PostMapping(value = "/loan/{equipmentId}", consumes = MediaType.APPLICATION_JSON_VALUE)
