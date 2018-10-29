@@ -94,7 +94,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Loggi
     @Query("select e from Employee e join fetch e.details.responsibleOfSkills where e.archived = false")
     List<Employee> findAllForReview();
 
-    Page<EmployeeNames> findAllByCustomerId(Long customerId, Pageable pageable);
+    Page<EmployeeNames> findAllByCustomerIdAndArchivedFalse(Long customerId, Pageable pageable);
 
     @Override
     default void customize(QuerydslBindings bindings, QEmployee root) {

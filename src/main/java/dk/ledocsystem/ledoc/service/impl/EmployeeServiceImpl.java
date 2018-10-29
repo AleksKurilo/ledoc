@@ -123,7 +123,7 @@ class EmployeeServiceImpl implements EmployeeService {
 
     @Transactional
     @Override
-    public Employee updateEmployee(@NonNull EmployeeDTO employeeDTO) {
+    public GetEmployeeDTO updateEmployee(@NonNull EmployeeDTO employeeDTO) {
         employeeDtoValidator.validate(employeeDTO);
         Employee employee = employeeRepository.findById(employeeDTO.getId())
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeDTO.getId().toString()));
@@ -146,7 +146,7 @@ class EmployeeServiceImpl implements EmployeeService {
         }
 
         updateAuthorities(employee, employeeDTO);
-        return employeeRepository.save(employee);
+        return mapModelToDto(employeeRepository.save(employee));
     }
 
     private boolean employeeDetailsPresent(EmployeeDTO employeeDTO) {
@@ -456,7 +456,7 @@ class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public Page<EmployeeNames> getAllNamesByCustomer(Long customerId, Pageable pageable) {
-        return employeeRepository.findAllByCustomerId(customerId, pageable);
+        return employeeRepository.findAllByCustomerIdAndArchivedFalse(customerId, pageable);
     }
 
     @Override

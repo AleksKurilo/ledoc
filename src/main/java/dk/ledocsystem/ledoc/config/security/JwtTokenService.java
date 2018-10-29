@@ -55,7 +55,7 @@ public class JwtTokenService {
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     String checkAndUpdateToken(String token) {
-        return tokenRepository.checkAndUpdateToken(token, token);
+        return tokenRepository.checkAndUpdateToken(token);
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
@@ -64,15 +64,11 @@ public class JwtTokenService {
     }
 
     @Transactional
-    public void setUserOffline(String token) {
-        Token t = tokenRepository.findByToken(token);
-        if (t != null) {
-            t.setState(State.OFFLINE);
-            tokenRepository.save(t);
-        }
-        else {
-            throw new InvalidTokenException("token.not.found", token);
-        }
+    public void setUserOffline(String tokenString) {
+        Token token = tokenRepository.findByToken(tokenString)
+                .orElseThrow(() -> new InvalidTokenException("token.not.found", tokenString));
+        token.setState(State.OFFLINE);
+        tokenRepository.save(token);
     }
 
     public void updateTokens(Long employeeId, Set<UserAuthorities> authorities) {

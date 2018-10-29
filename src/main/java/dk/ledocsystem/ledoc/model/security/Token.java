@@ -20,7 +20,7 @@ public class Token {
     @SequenceGenerator(name = "access_tokens_seq", sequenceName = "access_tokens_seq")
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 4000)
+    @Column(nullable = false, length = 4000)
     private String token;
 
     @Column(length = 4000)
