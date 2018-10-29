@@ -1,28 +1,43 @@
 package dk.ledocsystem.ledoc.dto.location;
 
-public interface AddressDTO {
+import dk.ledocsystem.ledoc.annotations.validation.OnlyAscii;
+import dk.ledocsystem.ledoc.model.AddressType;
+import lombok.Data;
 
-    String getStreet();
+import javax.validation.constraints.Digits;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
-    void setStreet(String street);
+@Data
+public class AddressDTO {
 
-    String getBuildingNumber();
+    @NotNull
+    @OnlyAscii
+    @Size(min = 3, max = 40)
+    private String street;
 
-    void setBuildingNumber(String buildingNumber);
+    @Size(min = 1, max = 40)
+    private String buildingNumber;
 
-    String getPostalCode();
+    @NotNull
+    @Size(min = 4, max = 40)
+    @Digits(integer = 40, fraction = 0)
+    private String postalCode;
 
-    void setPostalCode(String postalCode);
+    @NotNull
+    @OnlyAscii
+    @Size(min = 3, max = 40)
+    private String city;
 
-    String getCity();
+    @NotNull
+    @OnlyAscii
+    @Size(min = 3, max = 40)
+    private String country;
 
-    void setCity(String city);
+    @OnlyAscii
+    @Size(min = 3, max = 40)
+    private String district;
 
-    String getCountry();
-
-    void setCountry(String country);
-
-    String getDistrict();
-
-    void setDistrict(String district);
+    @NotNull
+    private AddressType addressType;
 }

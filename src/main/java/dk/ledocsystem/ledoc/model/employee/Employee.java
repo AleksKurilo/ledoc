@@ -109,7 +109,7 @@ public class Employee implements Visitable {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Employee> visitedBy;
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(name = "employee_location",
             joinColumns = {@JoinColumn(name = "employee_id")},
             inverseJoinColumns = {@JoinColumn(name = "location_id")})

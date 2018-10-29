@@ -1,14 +1,17 @@
 package dk.ledocsystem.ledoc.service;
 
 import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
-import dk.ledocsystem.ledoc.dto.location.LocationCreateDTO;
-import dk.ledocsystem.ledoc.dto.location.LocationEditDTO;
-import dk.ledocsystem.ledoc.dto.projections.NamesOnly;
+import dk.ledocsystem.ledoc.dto.location.LocationDTO;
+import dk.ledocsystem.ledoc.dto.projections.LocationSummary;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.Location;
 import dk.ledocsystem.ledoc.model.employee.Employee;
+import dk.ledocsystem.ledoc.service.dto.GetLocationDTO;
+import dk.ledocsystem.ledoc.service.dto.LocationPreviewDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.util.Optional;
 
 public interface LocationService extends CustomerBasedDomainService<Location> {
 
@@ -19,7 +22,7 @@ public interface LocationService extends CustomerBasedDomainService<Location> {
      * @param customer    Customer - the owner of location
      * @return Newly created {@link Location}
      */
-    Location createLocation(LocationCreateDTO locationDTO, Customer customer);
+    Location createLocation(LocationDTO locationDTO, Customer customer);
 
     /**
      * Creates new {@link Location}, using the data from {@code locationDTO},
@@ -32,21 +35,22 @@ public interface LocationService extends CustomerBasedDomainService<Location> {
      *                           and therefore cannot be deleted will be set
      * @return Newly created {@link Location}
      */
-    Location createLocation(LocationCreateDTO locationDTO, Customer customer, Employee responsible, boolean isFirstForCustomer);
+    Location createLocation(LocationDTO locationDTO, Customer customer, Employee responsible, boolean isFirstForCustomer);
 
     /**
-     * Updates the properties of the location with the given ID with properties of {@code locationEditDTO}.
-     *
-     * @param locationId      ID of the location
-     * @param locationEditDTO New properties of the location
+     * @param locationDTO Properties of the location
      * @return Updated {@link Location}
      */
-    Location updateLocation(Long locationId, LocationEditDTO locationEditDTO);
+    GetLocationDTO updateLocation(LocationDTO locationDTO);
 
     /**
      * Changes the archived status according to data from {@code archivedStatusDTO}.
      */
     void changeArchivedStatus(Long locationId, ArchivedStatusDTO archivedStatusDTO);
 
-    Page<NamesOnly> getAllNamesByCustomer(Long customerId, Pageable pageable);
+    Page<LocationSummary> getAllNamesByCustomer(Long customerId, Pageable pageable);
+
+    Optional<GetLocationDTO> getLocationDtoById(Long locationId);
+
+    Optional<LocationPreviewDTO> getPreviewDtoById(Long locationId);
 }

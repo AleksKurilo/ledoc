@@ -2,7 +2,6 @@ package dk.ledocsystem.ledoc.dto.location;
 
 import dk.ledocsystem.ledoc.annotations.validation.OnlyAscii;
 import dk.ledocsystem.ledoc.annotations.validation.location.LocationCreator;
-import dk.ledocsystem.ledoc.annotations.validation.location.UniqueName;
 import dk.ledocsystem.ledoc.model.LocationType;
 import lombok.Builder;
 import lombok.Data;
@@ -16,7 +15,10 @@ import java.util.Set;
 @Data
 @Builder
 @LocationCreator
-public class LocationCreateDTO {
+public class LocationDTO {
+
+    private Long id;
+    private Long customerId; //todo should not be here
 
     @NotNull
     private LocationType type;
@@ -24,10 +26,8 @@ public class LocationCreateDTO {
     @NotNull
     @Size(min = 3, max = 40)
     @OnlyAscii
-    @UniqueName
     private String name;
 
-    @NotNull
     private Long responsibleId;
 
     @NotNull
@@ -35,7 +35,7 @@ public class LocationCreateDTO {
     private Set<Long> employeeIds = Collections.emptySet();
 
     @Valid
-    private AddressCreateDTO address;
+    private AddressDTO address;
 
     private Long addressLocationId;
 }

@@ -5,7 +5,7 @@ import dk.ledocsystem.ledoc.annotations.validation.OnlyAscii;
 import dk.ledocsystem.ledoc.annotations.validation.PhoneNumber;
 import dk.ledocsystem.ledoc.annotations.validation.customer.UniqueCVR;
 import dk.ledocsystem.ledoc.annotations.validation.customer.UniqueName;
-import dk.ledocsystem.ledoc.dto.location.AddressCreateDTO;
+import dk.ledocsystem.ledoc.dto.location.AddressDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import lombok.Data;
 
@@ -58,7 +58,7 @@ public class CustomerCreateDTO {
 
     @Valid
     @NotNull
-    private AddressCreateDTO address;
+    private AddressDTO address;
 
     @Valid
     @NotNull

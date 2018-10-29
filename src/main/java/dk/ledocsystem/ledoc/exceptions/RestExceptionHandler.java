@@ -50,7 +50,7 @@ class RestExceptionHandler implements AsyncUncaughtExceptionHandler {
     }
 
     @ExceptionHandler(ValidationDtoException.class)
-    public ResponseEntity<RestResponse> handleMethodArgumentNotValid(ValidationDtoException ex) {
+    public ResponseEntity<RestResponse> handleValidationException(ValidationDtoException ex) {
         return new ResponseEntity<>(new RestResponse(ex.getErrors()), HttpStatus.BAD_REQUEST);
     }
 

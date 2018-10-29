@@ -16,7 +16,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target({ElementType.TYPE})
 @Retention(RUNTIME)
 @Documented
-@Constraint(validatedBy = { LocationCreatorValidatorForCreateDTO.class, LocationCreatorValidatorForEditDTO.class })
+@Constraint(validatedBy = { LocationCreatorValidator.class })
 public @interface LocationCreator {
 
     String message() default "";

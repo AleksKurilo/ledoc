@@ -1,7 +1,7 @@
 package dk.ledocsystem.ledoc.model.equipment;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import dk.ledocsystem.ledoc.exceptions.InvalidApprovalType;
+import dk.ledocsystem.ledoc.exceptions.InvalidEnumValueException;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -19,6 +19,6 @@ public enum ApprovalType {
                 return approvalType;
             }
         }
-        throw new InvalidApprovalType(stringValue);
+        throw new InvalidEnumValueException("equipment.approval.type.not.found", stringValue);
     }
 }

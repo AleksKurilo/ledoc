@@ -4,7 +4,7 @@ import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.dto.customer.CustomerCreateDTO;
 import dk.ledocsystem.ledoc.dto.customer.CustomerEditDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
-import dk.ledocsystem.ledoc.dto.location.LocationCreateDTO;
+import dk.ledocsystem.ledoc.dto.location.LocationDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.Location;
@@ -68,12 +68,12 @@ class CustomerServiceImpl implements CustomerService {
         employeeCreateDTO.setRole("admin");
         Employee admin = employeeService.createEmployee(employeeCreateDTO, customer);
 
-        LocationCreateDTO locationCreateDTO = LocationCreateDTO.builder()
+        LocationDTO locationDTO = LocationDTO.builder()
                 .type(LocationType.ADDRESS)
                 .name(customer.getName())
                 .address(customerCreateDTO.getAddress())
                 .build();
-        Location location = locationService.createLocation(locationCreateDTO, customer, admin, true);
+        Location location = locationService.createLocation(locationDTO, customer, admin, true);
 
         admin.setPlaceOfEmployment(location);
         if (pointOfContact != null) {

@@ -1,6 +1,7 @@
 package dk.ledocsystem.ledoc.model;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import dk.ledocsystem.ledoc.model.employee.Employee;
@@ -18,6 +19,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.util.Set;
 
 @Getter
@@ -27,7 +29,6 @@ import java.util.Set;
 @ToString(of = {"id", "name"})
 @DynamicInsert
 @DynamicUpdate
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Location {
 
     @EqualsAndHashCode.Include
@@ -39,15 +40,24 @@ public class Location {
     @Column(nullable = false, length = 40)
     private String name;
 
+    @ColumnDefault("CURRENT_DATE")
+    @Column(name = "creation_date", nullable = false)
+    private LocalDate creationDate;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "responsible_id", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "responsible_id")
     private Employee responsible;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by", nullable = false)
+    private Employee createdBy;
 
     @OneToOne(mappedBy = "location", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private Address address;
 
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+    @JsonIdentityReference(alwaysAsId = true)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "address_location_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -77,6 +87,10 @@ public class Location {
     @Column(name = "archive_reason")
     private String archiveReason;
 
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    public LocationType type;
+
     public void setAddress(@NonNull Address address) {
         this.address = address;
         address.setLocation(this);
@@ -89,4 +103,3 @@ public class Location {
         this.address = null;
     }
 }
-

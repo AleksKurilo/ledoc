@@ -1,8 +1,7 @@
 package dk.ledocsystem.ledoc.validator;
 
-import dk.ledocsystem.ledoc.dto.location.LocationEditDTO;
+import dk.ledocsystem.ledoc.dto.location.LocationDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
-import dk.ledocsystem.ledoc.model.Location;
 import dk.ledocsystem.ledoc.repository.LocationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -17,19 +16,22 @@ import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.LOCATION_NAME_IS_ALR
 
 @Component
 @RequiredArgsConstructor
-public class LocationEditDtoValidator extends BaseValidator<LocationEditDTO> {
+public class LocationDtoValidator extends BaseValidator<LocationDTO> {
 
     private final LocationRepository locationRepository;
 
     @Override
-    protected void validateUniqueProperty(LocationEditDTO dto, Map<String, List<String>> messages) {
-        Location location = locationRepository.findById(dto.getId())
-                .orElseThrow(() -> new NotFoundException(LOCATION_ID_NOT_FOUND, dto.getId().toString()));
+    protected void validateUniqueProperty(LocationDTO dto, Map<String, List<String>> messages) {
+        String currentName = null;
+        if (dto.getId() != null) {
+            currentName = locationRepository.findById(dto.getId())
+                    .orElseThrow(() -> new NotFoundException(LOCATION_ID_NOT_FOUND, dto.getId().toString()))
+                    .getName();
+        }
 
-        String existName = location.getName();
         String newName = dto.getName();
-        Long customerId = location.getCustomer().getId();
-        if (!existName.equals(newName) && locationRepository.existsByNameAndCustomerId(newName, customerId)) {
+        Long customerId = dto.getCustomerId();
+        if (!newName.equals(currentName) && locationRepository.existsByNameAndCustomerId(newName, customerId)) {
             messages.computeIfAbsent("name",
                     k -> new ArrayList<>()).add(this.messageSource.getMessage(LOCATION_NAME_IS_ALREADY_IN_USE, null, LocaleContextHolder.getLocale()));
         }

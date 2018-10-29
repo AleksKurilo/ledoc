@@ -24,7 +24,7 @@ public final class ErrorMessageKey {
     public static final String EQUIPMENT_BORROWER_NOT_FOUND = "equipment.borrower.not.found";
     public static final String LOCATION_ID_NOT_FOUND = "location.id.not.found";
     public static final String LOCATION_ADDRESS_LOCATION_NOT_FOUND = "location.address.location.not.found";
-    public static final String LOCATION_NAME_IS_ALREADY_IN_USE = "UniqueName.dk.ledocsystem.ledoc.dto.location.LocationEditDTO.name";
+    public static final String LOCATION_NAME_IS_ALREADY_IN_USE = "location.name.already.in.use";
     public static final String REVIEW_QUESTION_ID_NOT_FOUND = "review.question.id.not.found";
     public static final String REVIEW_TEMPLATE_ID_NOT_FOUND = "review.template.id.not.found";
 
