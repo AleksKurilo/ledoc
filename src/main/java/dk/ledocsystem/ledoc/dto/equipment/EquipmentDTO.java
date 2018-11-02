@@ -1,9 +1,9 @@
 package dk.ledocsystem.ledoc.dto.equipment;
 
 import dk.ledocsystem.ledoc.annotations.validation.OnlyAscii;
-import dk.ledocsystem.ledoc.annotations.validation.equipment.UniqueName;
 import dk.ledocsystem.ledoc.annotations.validation.review.ReviewDetails;
 import dk.ledocsystem.ledoc.model.equipment.ApprovalType;
+import dk.ledocsystem.ledoc.model.equipment.Status;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,12 +15,13 @@ import java.time.Period;
 @Getter
 @Setter
 @ReviewDetails
-public class EquipmentCreateDTO {
+public class EquipmentDTO {
 
-    @NotNull
+    private Long id;
+    private Long customerId; //todo should not be here
+
     @Size(min = 3, max = 40)
     @OnlyAscii
-    @UniqueName
     private String name;
 
     @Size(min = 3, max = 40)
@@ -44,6 +45,8 @@ public class EquipmentCreateDTO {
     private Period approvalRate;
 
     private Long reviewTemplateId;
+
+    private Status status;
 
     @Size(min = 3, max = 40)
     @OnlyAscii

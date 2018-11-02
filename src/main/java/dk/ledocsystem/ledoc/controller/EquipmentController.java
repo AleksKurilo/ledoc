@@ -12,6 +12,8 @@ import dk.ledocsystem.ledoc.model.equipment.EquipmentCategory;
 import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.EquipmentService;
+import dk.ledocsystem.ledoc.service.dto.EquipmentPreviewDTO;
+import dk.ledocsystem.ledoc.service.dto.GetEquipmentDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
@@ -55,8 +57,14 @@ public class EquipmentController {
     }
 
     @GetMapping("/{equipmentId}")
-    public Equipment getEquipmentById(@PathVariable Long equipmentId) {
-        return equipmentService.getById(equipmentId)
+    public GetEquipmentDTO getEquipmentById(@PathVariable Long equipmentId) {
+        return equipmentService.getEquipmentDtoById(equipmentId)
+                .orElseThrow(() -> new NotFoundException(EQUIPMENT_ID_NOT_FOUND, equipmentId.toString()));
+    }
+
+    @GetMapping("/{equipmentId}/preview")
+    public EquipmentPreviewDTO getEquipmentByIdForPreview(@PathVariable Long equipmentId) {
+        return equipmentService.getPreviewDtoById(equipmentId)
                 .orElseThrow(() -> new NotFoundException(EQUIPMENT_ID_NOT_FOUND, equipmentId.toString()));
     }
 
@@ -83,16 +91,18 @@ public class EquipmentController {
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Equipment createEquipment(@RequestBody EquipmentCreateDTO equipmentCreateDTO) {
+    public Equipment createEquipment(@RequestBody EquipmentDTO equipmentDTO) {
         Customer currentCustomer = customerService.getCurrentCustomerReference();
-        return equipmentService.createEquipment(equipmentCreateDTO, currentCustomer);
+        equipmentDTO.setCustomerId(getCurrentCustomerId());
+        return equipmentService.createEquipment(equipmentDTO, currentCustomer);
     }
 
     @PutMapping(value = "/{equipmentId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Equipment updateEquipmentById(@PathVariable Long equipmentId,
-                                         @RequestBody EquipmentEditDTO equipmentEditDTO) {
-        equipmentEditDTO.setId(equipmentId);
-        return equipmentService.updateEquipment(equipmentEditDTO);
+                                         @RequestBody EquipmentDTO equipmentDTO) {
+        equipmentDTO.setId(equipmentId);
+        equipmentDTO.setCustomerId(getCurrentCustomerId());
+        return equipmentService.updateEquipment(equipmentDTO);
     }
 
     @PostMapping("/{equipmentId}/archive")

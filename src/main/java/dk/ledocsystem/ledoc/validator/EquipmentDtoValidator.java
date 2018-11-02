@@ -1,8 +1,7 @@
 package dk.ledocsystem.ledoc.validator;
 
-import dk.ledocsystem.ledoc.dto.equipment.EquipmentEditDTO;
+import dk.ledocsystem.ledoc.dto.equipment.EquipmentDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
-import dk.ledocsystem.ledoc.model.equipment.Equipment;
 import dk.ledocsystem.ledoc.repository.EquipmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -17,17 +16,22 @@ import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.EQUIPMENT_NAME_IS_AL
 
 @Component
 @RequiredArgsConstructor
-public class EquipmentEditDtoValidator extends BaseValidator<EquipmentEditDTO> {
+public class EquipmentDtoValidator extends BaseValidator<EquipmentDTO> {
 
     private final EquipmentRepository equipmentRepository;
 
     @Override
-    protected void validateUniqueProperty(EquipmentEditDTO dto, Map<String, List<String>> messages) {
-        Equipment equipment = equipmentRepository.findById(dto.getId())
-                .orElseThrow(() -> new NotFoundException(EQUIPMENT_ID_NOT_FOUND, dto.getId().toString()));
-        String existName = equipment.getName();
+    protected void validateUniqueProperty(EquipmentDTO dto, Map<String, List<String>> messages) {
+        String currentName = null;
+        if (dto.getId() != null) {
+            currentName = equipmentRepository.findById(dto.getId())
+                    .orElseThrow(() -> new NotFoundException(EQUIPMENT_ID_NOT_FOUND, dto.getId().toString()))
+                    .getName();
+        }
+
         String newName = dto.getName();
-        if (!existName.equals(newName) && equipmentRepository.existsByName(newName)) {
+        Long customerId = dto.getCustomerId();
+        if (!newName.equals(currentName) && equipmentRepository.existsByNameAndCustomerId(newName, customerId)) {
             messages.computeIfAbsent("name",
                     k -> new ArrayList<>()).add(this.messageSource.getMessage(EQUIPMENT_NAME_IS_ALREADY_IN_USE, null, LocaleContextHolder.getLocale()));
         }

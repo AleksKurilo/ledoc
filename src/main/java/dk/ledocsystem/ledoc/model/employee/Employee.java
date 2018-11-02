@@ -1,6 +1,5 @@
 package dk.ledocsystem.ledoc.model.employee;
 
-import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.model.Customer;
@@ -113,7 +112,6 @@ public class Employee implements Visitable {
     @JoinTable(name = "employee_location",
             joinColumns = {@JoinColumn(name = "employee_id")},
             inverseJoinColumns = {@JoinColumn(name = "location_id")})
-    @JsonIdentityReference(alwaysAsId = true)
     private Set<Location> locations;
 
     public String getName() {

@@ -21,12 +21,13 @@ import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.EquipmentService;
 import dk.ledocsystem.ledoc.service.LocationService;
 import dk.ledocsystem.ledoc.service.ReviewTemplateService;
-import dk.ledocsystem.ledoc.util.BeanCopyUtils;
+import dk.ledocsystem.ledoc.service.dto.EquipmentPreviewDTO;
+import dk.ledocsystem.ledoc.service.dto.GetEquipmentDTO;
 import dk.ledocsystem.ledoc.validator.BaseValidator;
-import dk.ledocsystem.ledoc.validator.EquipmentEditDtoValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.IterableUtils;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,7 @@ class EquipmentServiceImpl implements EquipmentService {
     private static final Function<Long, Predicate> CUSTOMER_EQUALS_TO =
             customerId -> ExpressionUtils.eqConst(QEquipment.equipment.customer.id, customerId);
 
+    private final ModelMapper modelMapper;
     private final EquipmentRepository equipmentRepository;
     private final EquipmentCategoryRepository equipmentCategoryRepository;
     private final AuthenticationTypeRepository authenticationTypeRepository;
@@ -53,30 +55,27 @@ class EquipmentServiceImpl implements EquipmentService {
     private final ReviewTemplateService reviewTemplateService;
     private final EmailNotificationRepository emailNotificationRepository;
 
+    private final BaseValidator<EquipmentDTO> equipmentDtoValidator;
+    private final BaseValidator<EquipmentLoanDTO> equipmentLoanDtoValidator;
     private final BaseValidator<AuthenticationTypeDTO> authenticationTypeDtoValidator;
     private final BaseValidator<EquipmentCategoryCreateDTO> equipmentCategoryCreateDtoValidator;
-    private final BaseValidator<EquipmentCreateDTO> equipmentCreateDtoValidator;
-    private final EquipmentEditDtoValidator equipmentEditDtoValidator;
-    private final BaseValidator<EquipmentLoanDTO> equipmentLoanDtoValidator;
 
     @Override
     @Transactional
-    public Equipment createEquipment(@NonNull EquipmentCreateDTO equipmentCreateDTO, Customer customer) {
-        equipmentCreateDtoValidator.validate(equipmentCreateDTO);
+    public Equipment createEquipment(@NonNull EquipmentDTO equipmentDTO, Customer customer) {
+        equipmentDtoValidator.validate(equipmentDTO);
 
-        Equipment equipment = new Equipment();
-        BeanCopyUtils.copyProperties(equipmentCreateDTO, equipment, false);
-
+        Equipment equipment = modelMapper.map(equipmentDTO, Equipment.class);
         Employee creator = employeeService.getCurrentUserReference();
-        Employee responsible = resolveResponsible(equipmentCreateDTO.getResponsibleId());
+        Employee responsible = resolveResponsible(equipmentDTO.getResponsibleId());
 
         equipment.setCreator(creator);
         equipment.setResponsible(responsible);
         equipment.setCustomer(customer);
-        equipment.setCategory(resolveCategory(equipmentCreateDTO.getCategoryId()));
-        equipment.setLocation(resolveLocation(equipmentCreateDTO.getLocationId()));
-        equipment.setReviewTemplate(resolveReviewTemplate(equipmentCreateDTO.getReviewTemplateId()));
-        equipment.setAuthenticationType(resolveAuthenticationType(equipmentCreateDTO.getAuthTypeId()));
+        equipment.setCategory(resolveCategory(equipmentDTO.getCategoryId()));
+        equipment.setLocation(resolveLocation(equipmentDTO.getLocationId()));
+        equipment.setReviewTemplate(resolveReviewTemplate(equipmentDTO.getReviewTemplateId()));
+        equipment.setAuthenticationType(resolveAuthenticationType(equipmentDTO.getAuthTypeId()));
 
         sendMessages(creator);
         sendMessages(responsible);
@@ -86,42 +85,27 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     @Transactional
-    public Equipment updateEquipment(@NonNull EquipmentEditDTO equipmentEditDTO) {
-        equipmentEditDtoValidator.validate(equipmentEditDTO);
+    public Equipment updateEquipment(@NonNull EquipmentDTO equipmentDTO) {
+        equipmentDtoValidator.validate(equipmentDTO);
 
-        Equipment equipment = equipmentRepository.findById(equipmentEditDTO.getId())
-                .orElseThrow(() -> new NotFoundException(EQUIPMENT_ID_NOT_FOUND, equipmentEditDTO.getId().toString()));
-        BeanCopyUtils.copyProperties(equipmentEditDTO, equipment, false);
+        Equipment equipment = equipmentRepository.findById(equipmentDTO.getId())
+                .orElseThrow(() -> new NotFoundException(EQUIPMENT_ID_NOT_FOUND, equipmentDTO.getId().toString()));
+        modelMapper.map(equipmentDTO, equipment);
 
-        Long categoryId = equipmentEditDTO.getCategoryId();
-        if (categoryId != null) {
-            equipment.setCategory(resolveCategory(categoryId));
-        }
+        equipment.setCategory(resolveCategory(equipmentDTO.getCategoryId()));
+        equipment.setLocation(resolveLocation(equipmentDTO.getLocationId()));
+        equipment.setReviewTemplate(resolveReviewTemplate(equipmentDTO.getReviewTemplateId()));
+        equipment.setAuthenticationType(resolveAuthenticationType(equipmentDTO.getAuthTypeId()));
 
-        Long locationId = equipmentEditDTO.getLocationId();
-        if (locationId != null) {
-            equipment.setLocation(resolveLocation(locationId));
-        }
-
-        Long reviewTemplateId = equipmentEditDTO.getReviewTemplateId();
-        if (reviewTemplateId != null) {
-            equipment.setReviewTemplate(resolveReviewTemplate(reviewTemplateId));
-        }
-
-        Long responsibleId = equipmentEditDTO.getResponsibleId();
-        if (responsibleId != null) {
+        Long responsibleId = equipmentDTO.getResponsibleId();
+        if (!responsibleId.equals(equipment.getResponsible().getId())) {
             Employee responsible = resolveResponsible(responsibleId);
             equipment.setResponsible(responsible);
             sendMessages(responsible);
         }
 
-        Long authTypeId = equipmentEditDTO.getAuthTypeId();
-        if (authTypeId != null) {
-            equipment.setAuthenticationType(resolveAuthenticationType(authTypeId));
-        }
-
-        ApprovalType approvalType = equipmentEditDTO.getApprovalType();
-        if (approvalType != null && approvalType == ApprovalType.NO_NEED) {
+        ApprovalType approvalType = equipmentDTO.getApprovalType();
+        if (approvalType == ApprovalType.NO_NEED) {
             equipment.eraseReviewDetails();
         }
         return equipmentRepository.save(equipment);
@@ -162,13 +146,23 @@ class EquipmentServiceImpl implements EquipmentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Optional<GetEquipmentDTO> getEquipmentDtoById(Long equipmentId) {
+        return getById(equipmentId).map(this::mapModelToDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<EquipmentPreviewDTO> getPreviewDtoById(Long equipmentId) {
+        return getById(equipmentId).map(this::mapModelToPreviewDto);
+    }
+
+    @Override
     @Transactional
     public void loanEquipment(Long equipmentId, EquipmentLoanDTO equipmentLoanDTO) {
         equipmentLoanDtoValidator.validate(equipmentLoanDTO);
 
-        EquipmentLoan equipmentLoan = new EquipmentLoan();
-        BeanCopyUtils.copyProperties(equipmentLoanDTO, equipmentLoan);
-
+        EquipmentLoan equipmentLoan = modelMapper.map(equipmentLoanDTO, EquipmentLoan.class);
         equipmentLoan.setBorrower(resolveBorrower(equipmentLoanDTO.getBorrowerId()));
         equipmentLoan.setLocation(resolveLocation(equipmentLoanDTO.getLocationId()));
 
@@ -236,8 +230,7 @@ class EquipmentServiceImpl implements EquipmentService {
     public AuthenticationType createAuthType(AuthenticationTypeDTO authenticationTypeDTO) {
         authenticationTypeDtoValidator.validate(authenticationTypeDTO);
 
-        AuthenticationType authenticationType = new AuthenticationType();
-        BeanCopyUtils.copyProperties(authenticationTypeDTO, authenticationType);
+        AuthenticationType authenticationType = modelMapper.map(authenticationTypeDTO, AuthenticationType.class);
         return authenticationTypeRepository.save(authenticationType);
     }
 
@@ -255,10 +248,46 @@ class EquipmentServiceImpl implements EquipmentService {
     public EquipmentCategory createNewCategory(EquipmentCategoryCreateDTO categoryCreateDTO) {
         equipmentCategoryCreateDtoValidator.validate(categoryCreateDTO);
 
-        EquipmentCategory category = new EquipmentCategory();
-        BeanCopyUtils.copyProperties(categoryCreateDTO, category);
-
+        EquipmentCategory category = modelMapper.map(categoryCreateDTO, EquipmentCategory.class);
         return equipmentCategoryRepository.save(category);
+    }
+
+    //todo It'd be better to replace this with appropriate ModelMapper configuration
+    //#see ModelMapper.addMappings()
+    private GetEquipmentDTO mapModelToDto(Equipment equipment) {
+        GetEquipmentDTO dto = modelMapper.map(equipment, GetEquipmentDTO.class);
+
+        dto.setResponsibleId(equipment.getResponsible().getId());
+        dto.setLocationId(equipment.getLocation().getId());
+        dto.setCategoryId(equipment.getCategory().getId());
+
+        if (equipment.getAuthenticationType() != null) {
+            dto.setAuthTypeId(equipment.getAuthenticationType().getId());
+        }
+
+        if (equipment.getReviewTemplate() != null) {
+            dto.setReviewTemplateId(equipment.getReviewTemplate().getId());
+        }
+
+        return dto;
+    }
+
+    private EquipmentPreviewDTO mapModelToPreviewDto(Equipment equipment) {
+        EquipmentPreviewDTO dto = modelMapper.map(equipment, EquipmentPreviewDTO.class);
+
+        dto.setResponsibleName(equipment.getResponsible().getName());
+        dto.setLocationName(equipment.getLocation().getName());
+        dto.setCategoryName(equipment.getCategory().getNameEn());
+
+        if (equipment.getAuthenticationType() != null) {
+            dto.setAuthTypeName(equipment.getAuthenticationType().getNameEn());
+        }
+
+        if (equipment.getReviewTemplate() != null) {
+            dto.setReviewTemplateName(equipment.getReviewTemplate().getName());
+        }
+
+        return dto;
     }
 
     //region GET/DELETE standard API

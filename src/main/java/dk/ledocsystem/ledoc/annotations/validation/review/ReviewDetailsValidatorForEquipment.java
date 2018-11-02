@@ -1,17 +1,16 @@
 package dk.ledocsystem.ledoc.annotations.validation.review;
 
-import dk.ledocsystem.ledoc.dto.equipment.EquipmentEditDTO;
+import dk.ledocsystem.ledoc.dto.equipment.EquipmentDTO;
 import dk.ledocsystem.ledoc.model.equipment.ApprovalType;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
-class ReviewDetailsValidatorForEditEquipment
-        implements ConstraintValidator<ReviewDetails, EquipmentEditDTO> {
+class ReviewDetailsValidatorForEquipment implements ConstraintValidator<ReviewDetails, EquipmentDTO> {
 
     @Override
-    public boolean isValid(EquipmentEditDTO value, ConstraintValidatorContext context) {
-        return value.getApprovalType() != ApprovalType.ALL_TIME
+    public boolean isValid(EquipmentDTO value, ConstraintValidatorContext context) {
+        return value.getApprovalType() == ApprovalType.NO_NEED
                 || (value.getApprovalRate() != null && value.getReviewTemplateId() != null);
     }
 }

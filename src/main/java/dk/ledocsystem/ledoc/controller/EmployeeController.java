@@ -5,7 +5,6 @@ import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeDTO;
-import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import dk.ledocsystem.ledoc.dto.review.ReviewDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
@@ -13,8 +12,10 @@ import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.dto.EmployeePreviewDTO;
+import dk.ledocsystem.ledoc.service.dto.EmployeeSummaryDTO;
 import dk.ledocsystem.ledoc.service.dto.GetEmployeeDTO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.MediaType;
@@ -45,8 +46,8 @@ public class EmployeeController {
     }
 
     @GetMapping("/names")
-    public Iterable<EmployeeNames> getAllEmployeeNames(Pageable pageable) {
-        return employeeService.getAllNamesByCustomer(getCurrentCustomerId(), pageable);
+    public Iterable<EmployeeSummaryDTO> getAllEmployeeNames() {
+        return new PageImpl<>(employeeService.getAllNamesByCustomer(getCurrentCustomerId()));
     }
 
     @GetMapping("/new")

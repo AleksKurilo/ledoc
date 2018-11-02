@@ -18,7 +18,7 @@ public final class ErrorMessageKey {
     public static final String EMPLOYEE_RESPONSIBLE_NOT_FOUND = "employee.responsible.not.found";
     public static final String EMPLOYEE_RESPONSIBLE_OF_SKILL_NOT_FOUND = "employee.responsible.of.skills.not.found";
     public static final String EQUIPMENT_ID_NOT_FOUND = "equipment.id.not.found";
-    public static final String EQUIPMENT_NAME_IS_ALREADY_IN_USE = "UniqueName.dk.ledocsystem.ledoc.dto.equipment.EquipmentCreateDTO.name";
+    public static final String EQUIPMENT_NAME_IS_ALREADY_IN_USE = "UniqueName.dk.ledocsystem.ledoc.dto.equipment.EquipmentDTO.name";
     public static final String EQUIPMENT_CATEGORY_NOT_FOUND = "equipment.category.not.found";
     public static final String EQUIPMENT_AUTHENTICATION_TYPE_NOT_FOUND = "equipment.authentication.type.not.found";
     public static final String EQUIPMENT_BORROWER_NOT_FOUND = "equipment.borrower.not.found";

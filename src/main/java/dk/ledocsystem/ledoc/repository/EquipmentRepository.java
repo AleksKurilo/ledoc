@@ -28,7 +28,7 @@ public interface EquipmentRepository extends JpaRepository<Equipment, Long>, Log
     @EntityGraph(attributePaths = {"loan", "responsible"})
     List<Equipment> findAllByArchivedFalseAndNextReviewDateNotNull();
 
-    boolean existsByName(String name);
+    boolean existsByNameAndCustomerId(String name, Long customerId);
 
     /**
      * Deletes equipment items with the given IDs.

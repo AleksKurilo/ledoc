@@ -1,14 +1,15 @@
 package dk.ledocsystem.ledoc.model.equipment;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import dk.ledocsystem.ledoc.exceptions.InvalidEnumValueException;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public enum ApprovalType {
-    NO_NEED("no need"),
-    BEFORE_USE("before use"),
-    ALL_TIME("all time");
+    NO_NEED("No need"),
+    BEFORE_USE("Before use"),
+    ALL_TIME("All time");
 
     private final String value;
 
@@ -20,5 +21,10 @@ public enum ApprovalType {
             }
         }
         throw new InvalidEnumValueException("equipment.approval.type.not.found", stringValue);
+    }
+
+    @JsonValue
+    public String value() {
+        return value;
     }
 }

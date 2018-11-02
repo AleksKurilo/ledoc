@@ -5,11 +5,11 @@ import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeDTO;
-import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import dk.ledocsystem.ledoc.dto.review.ReviewDTO;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.service.dto.EmployeePreviewDTO;
+import dk.ledocsystem.ledoc.service.dto.EmployeeSummaryDTO;
 import dk.ledocsystem.ledoc.service.dto.GetEmployeeDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -87,7 +87,7 @@ public interface EmployeeService extends CustomerBasedDomainService<Employee> {
      */
     List<Employee> getAllForReview();
 
-    Page<EmployeeNames> getAllNamesByCustomer(Long customerId, Pageable pageable);
+    List<EmployeeSummaryDTO> getAllNamesByCustomer(Long customerId);
 
     boolean existsByUsername(String username);
 

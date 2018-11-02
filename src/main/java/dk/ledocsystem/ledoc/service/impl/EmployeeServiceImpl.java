@@ -10,7 +10,6 @@ import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeDetailsDTO;
-import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
 import dk.ledocsystem.ledoc.dto.review.ReviewDTO;
 import dk.ledocsystem.ledoc.dto.review.ReviewQuestionAnswerDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
@@ -32,6 +31,7 @@ import dk.ledocsystem.ledoc.service.LocationService;
 import dk.ledocsystem.ledoc.service.ReviewQuestionService;
 import dk.ledocsystem.ledoc.service.ReviewTemplateService;
 import dk.ledocsystem.ledoc.service.dto.EmployeePreviewDTO;
+import dk.ledocsystem.ledoc.service.dto.EmployeeSummaryDTO;
 import dk.ledocsystem.ledoc.service.dto.GetEmployeeDTO;
 import dk.ledocsystem.ledoc.service.exceptions.ReviewNotApplicableException;
 import dk.ledocsystem.ledoc.validator.BaseValidator;
@@ -455,8 +455,19 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public Page<EmployeeNames> getAllNamesByCustomer(Long customerId, Pageable pageable) {
-        return employeeRepository.findAllByCustomerIdAndArchivedFalse(customerId, pageable);
+    public List<EmployeeSummaryDTO> getAllNamesByCustomer(Long customerId) {
+        return employeeRepository.findAllBy(customerId)
+                .stream()
+                .map(EmployeeSummaryDTO::new)
+                .collect(Collectors.groupingBy(EmployeeSummaryDTO::getId, Collectors.reducing((first, second) -> {
+                    first.getLocations().addAll(second.getLocations()); // ugly workaround to overcome Spring Data's inability
+                    return first;                                       // to group results with custom @Query
+                })))
+                .values()
+                .stream()
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
     }
 
     @Override

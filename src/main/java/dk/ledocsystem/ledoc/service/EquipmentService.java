@@ -4,38 +4,39 @@ import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
 import dk.ledocsystem.ledoc.dto.equipment.AuthenticationTypeDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentCategoryCreateDTO;
-import dk.ledocsystem.ledoc.dto.equipment.EquipmentCreateDTO;
-import dk.ledocsystem.ledoc.dto.equipment.EquipmentEditDTO;
+import dk.ledocsystem.ledoc.dto.equipment.EquipmentDTO;
 import dk.ledocsystem.ledoc.dto.equipment.EquipmentLoanDTO;
 import dk.ledocsystem.ledoc.dto.projections.IdAndLocalizedName;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.equipment.AuthenticationType;
 import dk.ledocsystem.ledoc.model.equipment.Equipment;
 import dk.ledocsystem.ledoc.model.equipment.EquipmentCategory;
+import dk.ledocsystem.ledoc.service.dto.EquipmentPreviewDTO;
+import dk.ledocsystem.ledoc.service.dto.GetEquipmentDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface EquipmentService extends CustomerBasedDomainService<Equipment> {
 
     /**
-     * Creates new {@link Equipment}, using the data from {@code equipmentCreateDTO}.
+     * Creates new {@link Equipment}, using the data from {@code equipmentDTO}.
      *
-     * @param equipmentCreateDTO Equipment properties
-     * @param customer           Customer - the owner of equipment
+     * @param equipmentDTO Equipment properties
+     * @param customer     Customer - the owner of equipment
      * @return Newly created {@link Equipment}
      */
-    Equipment createEquipment(EquipmentCreateDTO equipmentCreateDTO, Customer customer);
+    Equipment createEquipment(EquipmentDTO equipmentDTO, Customer customer);
 
     /**
      * Updates the properties of the equipment with the given ID with properties of {@code equipmentCreateDTO}.
      *
-     * @param equipmentId      ID of the equipment
-     * @param equipmentEditDTO New properties of the equipment
+     * @param equipmentDTO New properties of the equipment
      * @return Updated {@link Equipment}
      */
-    Equipment updateEquipment(EquipmentEditDTO equipmentEditDTO);
+    Equipment updateEquipment(EquipmentDTO equipmentDTO);
 
     /**
      * Changes the archived status according to data from {@code archivedStatusDTO}.
@@ -50,6 +51,12 @@ public interface EquipmentService extends CustomerBasedDomainService<Equipment> 
      * @return All equipment eligible for review
      */
     List<Equipment> getAllForReview();
+
+    // TODO This is shit.
+    // TODO Replace it with getById during service layer separation process.
+    Optional<GetEquipmentDTO> getEquipmentDtoById(Long equipmentId);
+
+    Optional<EquipmentPreviewDTO> getPreviewDtoById(Long equipmentId);
 
     void loanEquipment(Long equipmentId, EquipmentLoanDTO equipmentLoanDTO);
 

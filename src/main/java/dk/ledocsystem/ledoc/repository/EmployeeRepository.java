@@ -6,9 +6,7 @@ import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.projections.EmployeeDataExcel;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.model.employee.QEmployee;
-import dk.ledocsystem.ledoc.dto.projections.EmployeeNames;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import dk.ledocsystem.ledoc.dto.projections.EmployeeSummary;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -35,12 +33,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Loggi
             nativeQuery = true)
     void addAuthorities(@Param("employeeId") Long employeeId,
                         @Param("authorities") UserAuthorities authorities);
-
-    /**
-     * @param authorities {@link UserAuthorities authority}
-     * @return All employees that have given authority
-     */
-    List<EmployeeNames> findAllByAuthoritiesContains(UserAuthorities authorities);
 
     /**
      * @param authorities {@link UserAuthorities authority}
@@ -80,12 +72,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Loggi
     void deleteByIdIn(Iterable<Long> ids);
 
     /**
-     * Counts employees that are not archived and
-     * has {@link dk.ledocsystem.ledoc.model.Customer} with provided ID.
-     */
-    long countByCustomerIdAndArchivedFalse(Long customerId);
-
-    /**
      * @param authorities List of authorities
      * @return All {@link Employee} employees that contains given authorities
      */
@@ -94,7 +80,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Loggi
     @Query("select e from Employee e join fetch e.details.responsibleOfSkills where e.archived = false")
     List<Employee> findAllForReview();
 
-    Page<EmployeeNames> findAllByCustomerIdAndArchivedFalse(Long customerId, Pageable pageable);
+    @Query("select e.id as id, e.firstName as firstName, e.lastName as lastName, l.id as locations " +
+            "from Employee e left join e.locations l where e.customer.id = ?1 and e.archived = false")
+    List<EmployeeSummary> findAllBy(Long customerId);
 
     @Override
     default void customize(QuerydslBindings bindings, QEmployee root) {
