@@ -61,7 +61,7 @@ public class LocationController {
 
     @PutMapping(value = "/{locationId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public GetLocationDTO updateLocationById(@PathVariable Long locationId,
-                                       @RequestBody LocationDTO locationDTO) {
+                                             @RequestBody LocationDTO locationDTO) {
         locationDTO.setId(locationId);
         locationDTO.setCustomerId(getCurrentCustomerId());
         return locationService.updateLocation(locationDTO);
