@@ -71,7 +71,11 @@ public class EquipmentDTO {
 
     @Size(max = 400)
     @OnlyAscii
-    private String remark;
+    private String comment;
 
     private String avatar;
+
+    private boolean readyToLoan;
+
+    private boolean reviewed;
 }

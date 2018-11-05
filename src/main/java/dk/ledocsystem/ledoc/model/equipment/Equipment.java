@@ -119,11 +119,19 @@ public class Equipment implements Visitable {
     private LocalDate nextReviewDate;
 
     @Column(length = 400)
-    private String remark;
+    private String comment;
+
+    @ColumnDefault("false")
+    @Column(name = "ready_to_loan", nullable = false)
+    private Boolean readyToLoan;
 
     @OneToOne(mappedBy = "equipment", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private EquipmentLoan loan;
+
+    public boolean isLoaned() {
+        return loan != null;
+    }
 
     @ManyToMany
     @JoinTable(name = "equipment_log",

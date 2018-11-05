@@ -43,7 +43,9 @@ public class GetEquipmentDTO {
 
     private BigDecimal price;
 
-    private String remark;
+    private String comment;
 
     private String avatar;
+
+    private Boolean readyToLoan;
 }
