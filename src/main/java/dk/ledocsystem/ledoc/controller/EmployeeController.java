@@ -3,6 +3,7 @@ package dk.ledocsystem.ledoc.controller;
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
+import dk.ledocsystem.ledoc.dto.ChangePasswordDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeDTO;
 import dk.ledocsystem.ledoc.dto.review.ReviewDTO;
@@ -73,7 +74,7 @@ public class EmployeeController {
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
     }
 
-    //@RolesAllowed("admin")
+    @RolesAllowed("admin")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public Employee createEmployee(@RequestBody EmployeeCreateDTO employeeCreateDTO) {
         Customer currentCustomer = customerService.getCurrentCustomerReference();
@@ -111,6 +112,11 @@ public class EmployeeController {
     @PostMapping("/{employeeId}/archive")
     public void changeArchivedStatus(@PathVariable Long employeeId, @RequestBody ArchivedStatusDTO archivedStatusDTO) {
         employeeService.changeArchivedStatus(employeeId, archivedStatusDTO);
+    }
+
+    @PostMapping("/{employeeId}/password/change")
+    public void changePassword(@PathVariable Long employeeId, @RequestBody ChangePasswordDTO changePasswordDTO) {
+        employeeService.changePassword(employeeId, changePasswordDTO);
     }
 
     @RolesAllowed("can_create_point_of_contact")

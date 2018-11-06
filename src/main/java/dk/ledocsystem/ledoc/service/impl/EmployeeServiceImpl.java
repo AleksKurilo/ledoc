@@ -7,6 +7,7 @@ import com.querydsl.core.types.dsl.Expressions;
 import dk.ledocsystem.ledoc.config.security.JwtTokenService;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
+import dk.ledocsystem.ledoc.dto.ChangePasswordDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeDetailsDTO;
@@ -35,8 +36,6 @@ import dk.ledocsystem.ledoc.service.dto.EmployeeSummaryDTO;
 import dk.ledocsystem.ledoc.service.dto.GetEmployeeDTO;
 import dk.ledocsystem.ledoc.service.exceptions.ReviewNotApplicableException;
 import dk.ledocsystem.ledoc.validator.BaseValidator;
-import dk.ledocsystem.ledoc.validator.EmployeeCreateDtoValidator;
-import dk.ledocsystem.ledoc.validator.EmployeeDtoValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.IterableUtils;
@@ -73,10 +72,10 @@ class EmployeeServiceImpl implements EmployeeService {
     private final EmailNotificationRepository emailNotificationRepository;
     private final EmployeeReviewRepository employeeReviewRepository;
     private final ModelMapper modelMapper;
-    private final EmployeeDtoValidator employeeDtoValidator;
-    private final EmployeeCreateDtoValidator employeeCreateDtoValidator;
+    private final BaseValidator<EmployeeDTO> employeeDtoValidator;
+    private final BaseValidator<EmployeeCreateDTO> employeeCreateDtoValidator;
     private final BaseValidator<ReviewDTO> reviewDtoBaseValidator;
-
+    private final BaseValidator<ChangePasswordDTO> changePasswordDtoValidator;
 
     @Transactional
     @Override
@@ -210,6 +209,17 @@ class EmployeeServiceImpl implements EmployeeService {
 
         employee.setArchived(archivedStatusDTO.isArchived());
         employee.setArchiveReason(archivedStatusDTO.getArchiveReason());
+        employeeRepository.save(employee);
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(Long employeeId, ChangePasswordDTO changePasswordDTO) {
+        changePasswordDtoValidator.validate(changePasswordDTO);
+        Employee employee = getById(employeeId)
+                .orElseThrow(() -> new NotFoundException("employee.id.not.found", employeeId.toString()));
+
+        employee.setPassword(passwordEncoder.encode(changePasswordDTO.getNewPassword()));
         employeeRepository.save(employee);
     }
 

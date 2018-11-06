@@ -3,6 +3,7 @@ package dk.ledocsystem.ledoc.service;
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.config.security.UserAuthorities;
 import dk.ledocsystem.ledoc.dto.ArchivedStatusDTO;
+import dk.ledocsystem.ledoc.dto.ChangePasswordDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeDTO;
 import dk.ledocsystem.ledoc.dto.review.ReviewDTO;
@@ -57,6 +58,11 @@ public interface EmployeeService extends CustomerBasedDomainService<Employee> {
      * Changes the archived status according to data from {@code archivedStatusDTO}.
      */
     void changeArchivedStatus(Long employeeId, ArchivedStatusDTO archivedStatusDTO);
+
+    /**
+     * Changes password fot the given employee.
+     */
+    void changePassword(Long employeeId, ChangePasswordDTO changePasswordDTO);
 
     /**
      * Grants the provided {@link UserAuthorities authorities} to employee.
