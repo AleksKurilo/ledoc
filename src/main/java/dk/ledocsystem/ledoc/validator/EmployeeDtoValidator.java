@@ -23,7 +23,7 @@ class EmployeeDtoValidator extends BaseValidator<EmployeeDTO> {
     private final EmployeeRepository employeeRepository;
 
     @Override
-    protected void validateUniqueProperty(EmployeeDTO dto, Map<String, List<String>> messages) {
+    protected void validateInner(EmployeeDTO dto, Map<String, List<String>> messages) {
         Employee employee = employeeRepository.findById(dto.getId())
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, dto.getId().toString()));
         String existUserName = employee.getUsername();

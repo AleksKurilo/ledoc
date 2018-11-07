@@ -32,14 +32,13 @@ public class BaseValidator<T> {
                         Collectors.mapping(
                                 fieldError -> messageSource.getMessage(fieldError, LocaleContextHolder.getLocale()), Collectors.toList()
                         )));
-        validateUniqueProperty(target, messages);
+        validateInner(target, messages);
         if (!messages.isEmpty()) {
             throw new ValidationDtoException(messages);
         }
     }
 
-    protected void validateUniqueProperty(T target, Map<String, List<String>> messages) {
-        //used for validate unique properties dto
+    protected void validateInner(T target, Map<String, List<String>> messages) {
     }
 
 }

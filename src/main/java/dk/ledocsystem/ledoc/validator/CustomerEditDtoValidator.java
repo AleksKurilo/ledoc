@@ -21,7 +21,7 @@ class CustomerEditDtoValidator extends BaseValidator<CustomerEditDTO> {
     private final CustomerRepository customerRepository;
 
     @Override
-    protected void validateUniqueProperty(CustomerEditDTO dto, Map<String, List<String>> messages) {
+    protected void validateInner(CustomerEditDTO dto, Map<String, List<String>> messages) {
         Customer customer = customerRepository.findById(dto.getId())
                 .orElseThrow(() -> new NotFoundException(CUSTOMER_ID_NOT_FOUND, dto.getId().toString()));
         String existName = customer.getName();

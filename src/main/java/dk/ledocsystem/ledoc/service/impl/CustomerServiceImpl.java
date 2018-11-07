@@ -6,6 +6,7 @@ import dk.ledocsystem.ledoc.dto.customer.CustomerEditDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.location.LocationDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
+import dk.ledocsystem.ledoc.model.AddressType;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.Location;
 import dk.ledocsystem.ledoc.model.LocationType;
@@ -51,6 +52,7 @@ class CustomerServiceImpl implements CustomerService {
     @Transactional
     @Override
     public Customer createCustomer(@NonNull CustomerCreateDTO customerCreateDTO) {
+        customerCreateDTO.getAddress().setAddressType(AddressType.HEAD_OFFICE);
         customerCreateDtoValidator.validate(customerCreateDTO);
 
         Customer customer = modelMapper.map(customerCreateDTO, Customer.class);

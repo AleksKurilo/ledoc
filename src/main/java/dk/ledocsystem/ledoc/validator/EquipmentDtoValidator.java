@@ -21,7 +21,7 @@ class EquipmentDtoValidator extends BaseValidator<EquipmentDTO> {
     private final EquipmentRepository equipmentRepository;
 
     @Override
-    protected void validateUniqueProperty(EquipmentDTO dto, Map<String, List<String>> messages) {
+    protected void validateInner(EquipmentDTO dto, Map<String, List<String>> messages) {
         String currentName = null;
         if (dto.getId() != null) {
             currentName = equipmentRepository.findById(dto.getId())

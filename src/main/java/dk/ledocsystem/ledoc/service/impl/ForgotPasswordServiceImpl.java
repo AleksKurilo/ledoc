@@ -3,7 +3,6 @@ package dk.ledocsystem.ledoc.service.impl;
 import com.google.common.collect.ImmutableMap;
 import dk.ledocsystem.ledoc.dto.ForgotPasswordDTO;
 import dk.ledocsystem.ledoc.dto.ResetPasswordDTO;
-import dk.ledocsystem.ledoc.exceptions.InvalidCredentialsException;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.email_notifications.EmailNotification;
 import dk.ledocsystem.ledoc.model.security.ResetToken;
@@ -21,7 +20,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.RESET_TOKEN_NOT_FOUND;
-import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.USER_NAME_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -39,17 +37,11 @@ class ForgotPasswordServiceImpl implements ForgotPasswordService {
         forgotPasswordDtoValidator.validate(forgotPasswordDTO);
 
         String email = forgotPasswordDTO.getEmail();
-        if (!employeeService.existsByUsername(email)) {
-            throw new InvalidCredentialsException(USER_NAME_NOT_FOUND);
-        }
-
         String token = UUID.randomUUID().toString();
-        ResetToken resetToken = new ResetToken();
-        resetToken.setUsername(email);
-        resetToken.setToken(token);
+        ResetToken resetToken = new ResetToken(email, token);
         resetTokenRepository.save(resetToken);
 
-        sendResetEmail(forgotPasswordDTO.getEmail(), forgotPasswordDTO.getResetUrl(), token);
+        sendResetEmail(email, forgotPasswordDTO.getResetUrl(), token);
     }
 
     @Override

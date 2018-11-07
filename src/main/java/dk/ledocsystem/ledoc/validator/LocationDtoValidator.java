@@ -21,7 +21,7 @@ class LocationDtoValidator extends BaseValidator<LocationDTO> {
     private final LocationRepository locationRepository;
 
     @Override
-    protected void validateUniqueProperty(LocationDTO dto, Map<String, List<String>> messages) {
+    protected void validateInner(LocationDTO dto, Map<String, List<String>> messages) {
         String currentName = null;
         if (dto.getId() != null) {
             currentName = locationRepository.findById(dto.getId())
