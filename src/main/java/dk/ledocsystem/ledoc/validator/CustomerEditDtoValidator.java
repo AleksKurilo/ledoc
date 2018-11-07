@@ -16,7 +16,7 @@ import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.*;
 
 @Component
 @RequiredArgsConstructor
-public class CustomerEditDtoValidator extends BaseValidator<CustomerEditDTO> {
+class CustomerEditDtoValidator extends BaseValidator<CustomerEditDTO> {
 
     private final CustomerRepository customerRepository;
 

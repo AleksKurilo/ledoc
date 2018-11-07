@@ -16,7 +16,7 @@ import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.LOCATION_NAME_IS_ALR
 
 @Component
 @RequiredArgsConstructor
-public class LocationDtoValidator extends BaseValidator<LocationDTO> {
+class LocationDtoValidator extends BaseValidator<LocationDTO> {
 
     private final LocationRepository locationRepository;
 

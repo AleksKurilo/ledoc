@@ -1,6 +1,9 @@
 package dk.ledocsystem.ledoc.model.equipment;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.Location;
 import dk.ledocsystem.ledoc.model.Supplier;
@@ -95,6 +98,8 @@ public class Equipment implements Visitable {
     @JoinColumn(name = "responsible_id", nullable = false)
     private Employee responsible;
 
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "name")
+    @JsonIdentityReference(alwaysAsId = true)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id", nullable = false)
     private Location location;

@@ -18,12 +18,11 @@ import dk.ledocsystem.ledoc.repository.TradeRepository;
 import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.LocationService;
-import dk.ledocsystem.ledoc.util.BeanCopyUtils;
 import dk.ledocsystem.ledoc.validator.BaseValidator;
-import dk.ledocsystem.ledoc.validator.CustomerEditDtoValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.IterableUtils;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -44,18 +43,17 @@ class CustomerServiceImpl implements CustomerService {
     private final EmployeeService employeeService;
     private final TradeRepository tradeRepository;
     private final LocationService locationService;
+    private final ModelMapper modelMapper;
     private final EmailNotificationRepository emailNotificationRepository;
     private final BaseValidator<CustomerCreateDTO> customerCreateDtoValidator;
-    private final CustomerEditDtoValidator customerEditDtoValidator;
+    private final BaseValidator<CustomerEditDTO> customerEditDtoValidator;
 
     @Transactional
     @Override
     public Customer createCustomer(@NonNull CustomerCreateDTO customerCreateDTO) {
         customerCreateDtoValidator.validate(customerCreateDTO);
 
-        Customer customer = new Customer();
-        BeanCopyUtils.copyProperties(customerCreateDTO, customer);
-
+        Customer customer = modelMapper.map(customerCreateDTO, Customer.class);
         Employee pointOfContact = resolvePointOfContact(customerCreateDTO.getPointOfContactId());
         customer.setPointOfContact(pointOfContact);
 
@@ -89,7 +87,7 @@ class CustomerServiceImpl implements CustomerService {
         customerEditDtoValidator.validate(customerEditDTO);
         Customer customer = customerRepository.findById(customerEditDTO.getId())
                 .orElseThrow(() -> new NotFoundException(CUSTOMER_ID_NOT_FOUND, customerEditDTO.getId().toString()));
-        BeanCopyUtils.copyProperties(customerEditDTO, customer, false);
+        modelMapper.map(customerEditDTO, customer);
 
         Set<Long> tradeIds = customerEditDTO.getTradeIds();
         if (tradeIds != null) {

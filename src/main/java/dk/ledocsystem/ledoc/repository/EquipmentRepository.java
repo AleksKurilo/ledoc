@@ -21,7 +21,7 @@ import java.util.List;
 public interface EquipmentRepository extends JpaRepository<Equipment, Long>, LoggingRepository<Equipment, Long>,
         QuerydslPredicateExecutor<Equipment>, QuerydslBinderCustomizer<QEquipment> {
 
-    @EntityGraph(attributePaths = "loan")
+    @EntityGraph(attributePaths = {"loan", "location.name"})
     @Override
     Page<Equipment> findAll(Predicate predicate, Pageable pageable);
 

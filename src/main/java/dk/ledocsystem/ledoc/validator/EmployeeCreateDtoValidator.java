@@ -14,7 +14,7 @@ import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.EMPLOYEE_USERNAME_IS
 
 @Component
 @RequiredArgsConstructor
-public class EmployeeCreateDtoValidator extends BaseValidator<EmployeeCreateDTO> {
+class EmployeeCreateDtoValidator extends BaseValidator<EmployeeCreateDTO> {
 
     private final EmployeeRepository employeeRepository;
 

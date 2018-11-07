@@ -16,7 +16,7 @@ import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.EQUIPMENT_NAME_IS_AL
 
 @Component
 @RequiredArgsConstructor
-public class EquipmentDtoValidator extends BaseValidator<EquipmentDTO> {
+class EquipmentDtoValidator extends BaseValidator<EquipmentDTO> {
 
     private final EquipmentRepository equipmentRepository;
 
