@@ -1,11 +1,13 @@
 package dk.ledocsystem.ledoc.service.impl;
 
 import com.querydsl.core.types.Predicate;
+import dk.ledocsystem.ledoc.dto.customer.CustomerAdminDTO;
 import dk.ledocsystem.ledoc.dto.customer.CustomerCreateDTO;
 import dk.ledocsystem.ledoc.dto.customer.CustomerEditDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import dk.ledocsystem.ledoc.dto.location.LocationDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
+import dk.ledocsystem.ledoc.model.AddressType;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.Location;
 import dk.ledocsystem.ledoc.model.LocationType;
@@ -18,17 +20,17 @@ import dk.ledocsystem.ledoc.repository.TradeRepository;
 import dk.ledocsystem.ledoc.service.CustomerService;
 import dk.ledocsystem.ledoc.service.EmployeeService;
 import dk.ledocsystem.ledoc.service.LocationService;
-import dk.ledocsystem.ledoc.util.BeanCopyUtils;
 import dk.ledocsystem.ledoc.validator.BaseValidator;
-import dk.ledocsystem.ledoc.validator.CustomerEditDtoValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.IterableUtils;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -44,18 +46,18 @@ class CustomerServiceImpl implements CustomerService {
     private final EmployeeService employeeService;
     private final TradeRepository tradeRepository;
     private final LocationService locationService;
+    private final ModelMapper modelMapper;
     private final EmailNotificationRepository emailNotificationRepository;
     private final BaseValidator<CustomerCreateDTO> customerCreateDtoValidator;
-    private final CustomerEditDtoValidator customerEditDtoValidator;
+    private final BaseValidator<CustomerEditDTO> customerEditDtoValidator;
 
     @Transactional
     @Override
     public Customer createCustomer(@NonNull CustomerCreateDTO customerCreateDTO) {
+        customerCreateDTO.getAddress().setAddressType(AddressType.HEAD_OFFICE);
         customerCreateDtoValidator.validate(customerCreateDTO);
 
-        Customer customer = new Customer();
-        BeanCopyUtils.copyProperties(customerCreateDTO, customer);
-
+        Customer customer = modelMapper.map(customerCreateDTO, Customer.class);
         Employee pointOfContact = resolvePointOfContact(customerCreateDTO.getPointOfContactId());
         customer.setPointOfContact(pointOfContact);
 
@@ -64,18 +66,21 @@ class CustomerServiceImpl implements CustomerService {
 
         customer = customerRepository.save(customer);
 
-        EmployeeCreateDTO employeeCreateDTO = customerCreateDTO.getEmployeeCreateDTO();
-        employeeCreateDTO.setRole("admin");
-        Employee admin = employeeService.createEmployee(employeeCreateDTO, customer);
-
         LocationDTO locationDTO = LocationDTO.builder()
                 .type(LocationType.ADDRESS)
                 .name(customer.getName())
                 .address(customerCreateDTO.getAddress())
                 .build();
-        Location location = locationService.createLocation(locationDTO, customer, admin, true);
+        Location location = locationService.createLocation(locationDTO, customer, true);
+
+        CustomerAdminDTO adminDTO = customerCreateDTO.getAdmin();
+        EmployeeCreateDTO employeeCreateDTO = modelMapper.map(adminDTO, EmployeeCreateDTO.class);
+        employeeCreateDTO.setLocationIds(Collections.singleton(location.getId()));
+        Employee admin = employeeService.createEmployee(employeeCreateDTO, customer);
 
         admin.setPlaceOfEmployment(location);
+        admin.getLocations().add(location);
+        location.setResponsible(admin);
         if (pointOfContact != null) {
             sendNotificationToPointOfContact(pointOfContact);
         }
@@ -89,7 +94,7 @@ class CustomerServiceImpl implements CustomerService {
         customerEditDtoValidator.validate(customerEditDTO);
         Customer customer = customerRepository.findById(customerEditDTO.getId())
                 .orElseThrow(() -> new NotFoundException(CUSTOMER_ID_NOT_FOUND, customerEditDTO.getId().toString()));
-        BeanCopyUtils.copyProperties(customerEditDTO, customer, false);
+        modelMapper.map(customerEditDTO, customer);
 
         Set<Long> tradeIds = customerEditDTO.getTradeIds();
         if (tradeIds != null) {

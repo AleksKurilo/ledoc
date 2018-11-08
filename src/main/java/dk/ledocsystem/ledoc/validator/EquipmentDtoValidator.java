@@ -4,7 +4,6 @@ import dk.ledocsystem.ledoc.dto.equipment.EquipmentDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.repository.EquipmentRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -16,12 +15,12 @@ import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.EQUIPMENT_NAME_IS_AL
 
 @Component
 @RequiredArgsConstructor
-public class EquipmentDtoValidator extends BaseValidator<EquipmentDTO> {
+class EquipmentDtoValidator extends BaseValidator<EquipmentDTO> {
 
     private final EquipmentRepository equipmentRepository;
 
     @Override
-    protected void validateUniqueProperty(EquipmentDTO dto, Map<String, List<String>> messages) {
+    protected void validateInner(EquipmentDTO dto, Map<String, List<String>> messages) {
         String currentName = null;
         if (dto.getId() != null) {
             currentName = equipmentRepository.findById(dto.getId())
@@ -32,8 +31,8 @@ public class EquipmentDtoValidator extends BaseValidator<EquipmentDTO> {
         String newName = dto.getName();
         Long customerId = dto.getCustomerId();
         if (!newName.equals(currentName) && equipmentRepository.existsByNameAndCustomerId(newName, customerId)) {
-            messages.computeIfAbsent("name",
-                    k -> new ArrayList<>()).add(this.messageSource.getMessage(EQUIPMENT_NAME_IS_ALREADY_IN_USE, null, LocaleContextHolder.getLocale()));
+            messages.computeIfAbsent("name", k -> new ArrayList<>())
+                    .add(this.messageSource.getMessage(EQUIPMENT_NAME_IS_ALREADY_IN_USE, null, getLocale()));
         }
     }
 }

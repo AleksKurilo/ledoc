@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.ledocsystem.ledoc.exceptions.RestResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -13,8 +14,11 @@ import org.springframework.web.servlet.LocaleResolver;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.USER_NAME_NOT_FOUND;
 import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.USER_PASSWORD_INVALID;
@@ -31,16 +35,19 @@ public class CustomAuthenticationFailureHandler implements AuthenticationFailure
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
                                         AuthenticationException exception) throws IOException {
         Locale locale = localeResolver.resolveLocale(request);
-        String message;
+        Map<String, List<String>> errorMap = new HashMap<>();
 
         if (exception instanceof UsernameNotFoundException) {
-            message = messageSource.getMessage(USER_NAME_NOT_FOUND, null, locale);
+            String message = messageSource.getMessage(USER_NAME_NOT_FOUND, null, locale);
+            errorMap.put("username", Collections.singletonList(message));
         } else {
-            message = messageSource.getMessage(USER_PASSWORD_INVALID, null, locale);
+            String message = messageSource.getMessage(USER_PASSWORD_INVALID, null, locale);
+            errorMap.put("password", Collections.singletonList(message));
         }
 
-        RestResponse restResponse = new RestResponse(Arrays.asList(message));
+        RestResponse restResponse = new RestResponse(errorMap);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setStatus(HttpStatus.BAD_REQUEST.value());
         objectMapper.writeValue(response.getWriter(), restResponse);
     }
 }

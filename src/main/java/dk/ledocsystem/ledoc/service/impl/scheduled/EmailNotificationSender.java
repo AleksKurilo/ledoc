@@ -9,6 +9,7 @@ import dk.ledocsystem.ledoc.service.SimpleMailService;
 import freemarker.template.TemplateException;
 import lombok.RequiredArgsConstructor;
 import org.pmw.tinylog.Logger;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 
