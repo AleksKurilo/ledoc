@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -69,6 +70,7 @@ public class Location {
 
     @ManyToMany(mappedBy = "locations")
     @OnDelete(action = OnDeleteAction.CASCADE)
+    @JsonBackReference
     private Set<Employee> employees;
 
     @ManyToOne(fetch = FetchType.LAZY)

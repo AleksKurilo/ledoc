@@ -4,7 +4,6 @@ import dk.ledocsystem.ledoc.dto.location.LocationDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.repository.LocationRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -32,8 +31,8 @@ class LocationDtoValidator extends BaseValidator<LocationDTO> {
         String newName = dto.getName();
         Long customerId = dto.getCustomerId();
         if (!newName.equals(currentName) && locationRepository.existsByNameAndCustomerId(newName, customerId)) {
-            messages.computeIfAbsent("name",
-                    k -> new ArrayList<>()).add(this.messageSource.getMessage(LOCATION_NAME_IS_ALREADY_IN_USE, null, LocaleContextHolder.getLocale()));
+            messages.computeIfAbsent("name", k -> new ArrayList<>())
+                    .add(this.messageSource.getMessage(LOCATION_NAME_IS_ALREADY_IN_USE, null, getLocale()));
         }
     }
 }

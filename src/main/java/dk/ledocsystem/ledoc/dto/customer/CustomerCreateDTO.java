@@ -1,12 +1,10 @@
 package dk.ledocsystem.ledoc.dto.customer;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import dk.ledocsystem.ledoc.annotations.validation.OnlyAscii;
 import dk.ledocsystem.ledoc.annotations.validation.PhoneNumber;
 import dk.ledocsystem.ledoc.annotations.validation.customer.UniqueCVR;
 import dk.ledocsystem.ledoc.annotations.validation.customer.UniqueName;
 import dk.ledocsystem.ledoc.dto.location.AddressDTO;
-import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
 import lombok.Data;
 
 import javax.validation.Valid;
@@ -62,6 +60,5 @@ public class CustomerCreateDTO {
 
     @Valid
     @NotNull
-    @JsonAlias({"employee", "admin"})
-    private EmployeeCreateDTO employeeCreateDTO;
+    private CustomerAdminDTO admin;
 }

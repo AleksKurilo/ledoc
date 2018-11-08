@@ -49,26 +49,26 @@ class LocationServiceImpl implements LocationService {
     @Transactional
     @Override
     public Location createLocation(@NonNull LocationDTO locationDTO, @NonNull Customer customer) {
-        Employee responsible = resolveResponsible(locationDTO.getResponsibleId());
-        return createLocation(locationDTO, customer, responsible, false);
+        return createLocation(locationDTO, customer, false);
     }
 
     @Transactional
     @Override
-    public Location createLocation(@NonNull LocationDTO locationDTO, @NonNull Customer customer,
-                                   Employee responsible, boolean isFirstForCustomer) {
+    public Location createLocation(@NonNull LocationDTO locationDTO, @NonNull Customer customer, boolean isFirstForCustomer) {
         locationDtoValidator.validate(locationDTO);
 
         Employee creator = employeeService.getCurrentUserReference();
+        Employee responsible = resolveResponsible(locationDTO.getResponsibleId());
         Location location = (locationDTO.getType() == LocationType.ADDRESS)
                 ? createAddressLocation(locationDTO)
                 : createPhysicalLocation(locationDTO);
+
         location.setName(locationDTO.getName());
         location.setIsCustomerFirst(isFirstForCustomer);
         location.setCustomer(customer);
         location.setResponsible(responsible);
         location.setCreatedBy(creator);
-        location.setEmployees(resolveEmployees(locationDTO.getEmployeeIds()));
+        setConnectedEmployees(location, locationDTO);
 
         sendMessages(responsible);
         sendMessages(creator);
@@ -92,6 +92,12 @@ class LocationServiceImpl implements LocationService {
         location.setAddressLocation(owningAddressLocation);
 
         return location;
+    }
+
+    private void setConnectedEmployees(Location location, LocationDTO locationDTO) {
+        Set<Employee> employees = resolveEmployees(locationDTO.getEmployeeIds());
+        employees.forEach(employee -> employee.getLocations().add(location));
+        location.setEmployees(employees);
     }
 
     @Transactional

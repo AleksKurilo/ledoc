@@ -4,7 +4,6 @@ import dk.ledocsystem.ledoc.dto.equipment.EquipmentDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.repository.EquipmentRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -32,8 +31,8 @@ class EquipmentDtoValidator extends BaseValidator<EquipmentDTO> {
         String newName = dto.getName();
         Long customerId = dto.getCustomerId();
         if (!newName.equals(currentName) && equipmentRepository.existsByNameAndCustomerId(newName, customerId)) {
-            messages.computeIfAbsent("name",
-                    k -> new ArrayList<>()).add(this.messageSource.getMessage(EQUIPMENT_NAME_IS_ALREADY_IN_USE, null, LocaleContextHolder.getLocale()));
+            messages.computeIfAbsent("name", k -> new ArrayList<>())
+                    .add(this.messageSource.getMessage(EQUIPMENT_NAME_IS_ALREADY_IN_USE, null, getLocale()));
         }
     }
 }

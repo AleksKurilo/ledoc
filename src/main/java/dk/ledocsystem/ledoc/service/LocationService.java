@@ -5,7 +5,6 @@ import dk.ledocsystem.ledoc.dto.location.LocationDTO;
 import dk.ledocsystem.ledoc.dto.projections.LocationSummary;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.Location;
-import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.service.dto.GetLocationDTO;
 import dk.ledocsystem.ledoc.service.dto.LocationPreviewDTO;
 import org.springframework.data.domain.Page;
@@ -30,12 +29,11 @@ public interface LocationService extends CustomerBasedDomainService<Location> {
      *
      * @param locationDTO        Location properties
      * @param customer           Customer - the owner of location
-     * @param responsible        Employee - responsible for the location
      * @param isFirstForCustomer if {@code true}, the flag indicating that this location is first for customer
      *                           and therefore cannot be deleted will be set
      * @return Newly created {@link Location}
      */
-    Location createLocation(LocationDTO locationDTO, Customer customer, Employee responsible, boolean isFirstForCustomer);
+    Location createLocation(LocationDTO locationDTO, Customer customer, boolean isFirstForCustomer);
 
     /**
      * @param locationDTO Properties of the location

@@ -1,6 +1,7 @@
 package dk.ledocsystem.ledoc.service.impl;
 
 import com.querydsl.core.types.Predicate;
+import dk.ledocsystem.ledoc.dto.customer.CustomerAdminDTO;
 import dk.ledocsystem.ledoc.dto.customer.CustomerCreateDTO;
 import dk.ledocsystem.ledoc.dto.customer.CustomerEditDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeCreateDTO;
@@ -29,6 +30,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -64,18 +66,21 @@ class CustomerServiceImpl implements CustomerService {
 
         customer = customerRepository.save(customer);
 
-        EmployeeCreateDTO employeeCreateDTO = customerCreateDTO.getEmployeeCreateDTO();
-        employeeCreateDTO.setRole("admin");
-        Employee admin = employeeService.createEmployee(employeeCreateDTO, customer);
-
         LocationDTO locationDTO = LocationDTO.builder()
                 .type(LocationType.ADDRESS)
                 .name(customer.getName())
                 .address(customerCreateDTO.getAddress())
                 .build();
-        Location location = locationService.createLocation(locationDTO, customer, admin, true);
+        Location location = locationService.createLocation(locationDTO, customer, true);
+
+        CustomerAdminDTO adminDTO = customerCreateDTO.getAdmin();
+        EmployeeCreateDTO employeeCreateDTO = modelMapper.map(adminDTO, EmployeeCreateDTO.class);
+        employeeCreateDTO.setLocationIds(Collections.singleton(location.getId()));
+        Employee admin = employeeService.createEmployee(employeeCreateDTO, customer);
 
         admin.setPlaceOfEmployment(location);
+        admin.getLocations().add(location);
+        location.setResponsible(admin);
         if (pointOfContact != null) {
             sendNotificationToPointOfContact(pointOfContact);
         }

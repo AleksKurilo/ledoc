@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.ledocsystem.ledoc.exceptions.RestResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -46,6 +47,7 @@ public class CustomAuthenticationFailureHandler implements AuthenticationFailure
 
         RestResponse restResponse = new RestResponse(errorMap);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setStatus(HttpStatus.BAD_REQUEST.value());
         objectMapper.writeValue(response.getWriter(), restResponse);
     }
 }
