@@ -72,6 +72,13 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Loggi
     void deleteByIdIn(Iterable<Long> ids);
 
     /**
+     * Get list of employees with the given IDs.
+     *
+     * @param ids The collection of employee IDs.
+     */
+    List<Employee> findByIdIn(Iterable<Long> ids);
+
+    /**
      * @param authorities List of authorities
      * @return All {@link Employee} employees that contains given authorities
      */

@@ -65,7 +65,7 @@ class SupportTicketServiceImpl implements SupportTicketService {
                 .put("message", ticket.getMessage())
                 .put("employeeName", ticket.getEmployee().getUsername())
                 .put("customerName", ticket.getEmployee().getCustomer().getName())
-                .put("page", ticket.getPageLocation().getDescr())
+                .put("page", ticket.getPageLocation().getDescription())
                 .build();
         EmailNotification notification =
                 new EmailNotification(email, "support_ticket_created", model);

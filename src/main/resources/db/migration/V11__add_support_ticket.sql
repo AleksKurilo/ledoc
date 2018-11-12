@@ -9,7 +9,7 @@ create table main.support_tickets
   id              bigint                         not null
     constraint support_tickets_pkey
     primary key,
-  created timestamp default CURRENT_DATE not null,
+  created timestamp default CURRENT_TIMESTAMP not null,
   employee_id           bigint                   not null,
   theme           varchar(255)                   not null,
   message         varchar(4000)                  not null,

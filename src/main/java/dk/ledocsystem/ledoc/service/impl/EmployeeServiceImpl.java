@@ -20,6 +20,7 @@ import dk.ledocsystem.ledoc.model.email_notifications.EmailNotification;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.model.employee.EmployeeDetails;
 import dk.ledocsystem.ledoc.model.employee.QEmployee;
+import dk.ledocsystem.ledoc.model.logging.LogType;
 import dk.ledocsystem.ledoc.model.review.EmployeeReview;
 import dk.ledocsystem.ledoc.model.review.EmployeeReviewQuestionAnswer;
 import dk.ledocsystem.ledoc.model.review.ReviewQuestion;
@@ -27,10 +28,7 @@ import dk.ledocsystem.ledoc.model.review.ReviewTemplate;
 import dk.ledocsystem.ledoc.repository.EmailNotificationRepository;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
 import dk.ledocsystem.ledoc.repository.EmployeeReviewRepository;
-import dk.ledocsystem.ledoc.service.EmployeeService;
-import dk.ledocsystem.ledoc.service.LocationService;
-import dk.ledocsystem.ledoc.service.ReviewQuestionService;
-import dk.ledocsystem.ledoc.service.ReviewTemplateService;
+import dk.ledocsystem.ledoc.service.*;
 import dk.ledocsystem.ledoc.service.dto.EmployeePreviewDTO;
 import dk.ledocsystem.ledoc.service.dto.EmployeeSummaryDTO;
 import dk.ledocsystem.ledoc.service.dto.GetEmployeeDTO;
@@ -64,6 +62,7 @@ class EmployeeServiceImpl implements EmployeeService {
             customerId -> ExpressionUtils.eqConst(QEmployee.employee.customer.id, customerId);
 
     private final EmployeeRepository employeeRepository;
+    private final EmployeeService employeeService;
     private final LocationService locationService;
     private final ReviewTemplateService reviewTemplateService;
     private final ReviewQuestionService reviewQuestionService;
@@ -71,6 +70,7 @@ class EmployeeServiceImpl implements EmployeeService {
     private final JwtTokenService tokenService;
     private final EmailNotificationRepository emailNotificationRepository;
     private final EmployeeReviewRepository employeeReviewRepository;
+    private final EmployeeLogService employeeLogService;
     private final ModelMapper modelMapper;
     private final BaseValidator<EmployeeDTO> employeeDtoValidator;
     private final BaseValidator<EmployeeCreateDTO> employeeCreateDtoValidator;
@@ -100,6 +100,12 @@ class EmployeeServiceImpl implements EmployeeService {
 
         addAuthorities(employee, employeeCreateDTO);
         sendMessages(employeeCreateDTO, responsible);
+
+        Long currentUserId = getCurrentUser().getUserId();
+        Employee currentUser = employeeService.getById(currentUserId)
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, currentUserId.toString()));
+
+        employeeLogService.createLog(currentUser, employee, LogType.Create);
         return employee;
     }
 
@@ -124,6 +130,10 @@ class EmployeeServiceImpl implements EmployeeService {
     @Override
     public GetEmployeeDTO updateEmployee(@NonNull EmployeeDTO employeeDTO) {
         employeeDtoValidator.validate(employeeDTO);
+        Long currentUserId = getCurrentUser().getUserId();
+        Employee currentUser = employeeService.getById(currentUserId)
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, currentUserId.toString()));
+
         Employee employee = employeeRepository.findById(employeeDTO.getId())
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeDTO.getId().toString()));
 
@@ -145,6 +155,9 @@ class EmployeeServiceImpl implements EmployeeService {
         }
 
         updateAuthorities(employee, employeeDTO);
+
+        employeeLogService.createLog(currentUser, employee, LogType.Edit);
+
         return mapModelToDto(employeeRepository.save(employee));
     }
 
@@ -204,11 +217,22 @@ class EmployeeServiceImpl implements EmployeeService {
     @Override
     @Transactional
     public void changeArchivedStatus(@NonNull Long employeeId, @NonNull ArchivedStatusDTO archivedStatusDTO) {
+        Long currentUserId = getCurrentUser().getUserId();
+
+        Employee currentUser = getById(currentUserId)
+                .orElseThrow(() -> new NotFoundException("employee.id.not.found", currentUserId.toString()));
         Employee employee = getById(employeeId)
                 .orElseThrow(() -> new NotFoundException("employee.id.not.found", employeeId.toString()));
 
         employee.setArchived(archivedStatusDTO.isArchived());
         employee.setArchiveReason(archivedStatusDTO.getArchiveReason());
+
+        if (archivedStatusDTO.isArchived()) {
+            employeeLogService.createLog(currentUser, employee, LogType.Archive);
+        } else {
+            employeeLogService.createLog(currentUser, employee, LogType.Unarchive);
+        }
+
         employeeRepository.save(employee);
     }
 
@@ -257,6 +281,12 @@ class EmployeeServiceImpl implements EmployeeService {
         employeeReview.setReviewTemplate(reviewTemplate);
 
         employeeReviewRepository.save(employeeReview);
+
+        Long currentUserId = getCurrentUser().getUserId();
+        Employee currentUser = employeeService.getById(currentUserId)
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, currentUserId.toString()));
+
+        employeeLogService.createLog(currentUser, employee, LogType.Review);
     }
 
     private EmployeeReview mapEmployeeReview(ReviewDTO reviewDTO, Employee subject) {
@@ -317,8 +347,17 @@ class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public Optional<EmployeePreviewDTO> getPreviewDtoById(Long employeeId) {
+        Long currentUserId = getCurrentUser().getUserId();
+
+        Employee currentUser = employeeService.getById(currentUserId)
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, currentUserId.toString()));
+
+        Employee employee = employeeService.getById(employeeId)
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
+
+        employeeLogService.createLog(currentUser, employee, LogType.Read);
         return getById(employeeId).map(this::mapModelToPreviewDto);
     }
 

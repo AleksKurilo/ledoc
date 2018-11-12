@@ -1,5 +1,10 @@
 package dk.ledocsystem.ledoc.model.support_tickets;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
 public enum PageLocation {
     DASHBOARD ("Dashboard page"),
     EMPLOYEES("Employees page"),
@@ -11,11 +16,7 @@ public enum PageLocation {
     SKILLS("Skill page"),
     LOCATION("Location page");
 
-    private String descr;
-
-    private PageLocation(String descr) {
-        this.descr = descr;
-    }
+    private String description;
 
     public static PageLocation findLocation(int ordinal) {
         for (PageLocation s : values()) {
@@ -25,9 +26,5 @@ public enum PageLocation {
         }
 
         return null;
-    }
-
-    public String getDescr() {
-        return descr;
     }
 }

@@ -1,4 +1,4 @@
-package dk.ledocsystem.ledoc.model.support_tickets;
+package dk.ledocsystem.ledoc.model.logging;
 
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import lombok.EqualsAndHashCode;
@@ -10,18 +10,17 @@ import org.hibernate.annotations.DynamicUpdate;
 import javax.persistence.*;
 import java.util.Date;
 
-@Setter
 @Getter
-@Entity
+@Setter
 @DynamicInsert
 @DynamicUpdate
-@Table(name = "support_tickets")
-public class SupportTicket {
+@MappedSuperclass
+public abstract class AbstractLog {
 
     @EqualsAndHashCode.Include
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "support_ticket_seq")
-    @SequenceGenerator(name = "support_ticket_seq", sequenceName = "support_ticket_seq")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "log_seq")
+    @SequenceGenerator(name = "log_seq", sequenceName = "log_seq")
     private Long id;
 
     @Basic(optional = false)
@@ -33,13 +32,7 @@ public class SupportTicket {
     @JoinColumn(name = "employee_id")
     private Employee employee;
 
-    @Column(name = "theme", length = 40)
-    private String theme;
-
-    @Column(name = "message")
-    private String message;
-
     @Enumerated(EnumType.STRING)
-    @Column(name="page_location", nullable = false)
-    private PageLocation pageLocation;
+    @Column(name="type", nullable = false)
+    private LogType logType;
 }
