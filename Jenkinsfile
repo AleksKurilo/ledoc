@@ -2,7 +2,7 @@ node {
    def mvnHome
    stage('Preparation') {
       // Get code from a GitHub repository
-      branch 'develop'
+      echo env.BRANCH_NAME
       git 'git@gitlab.chisw.us:anton.chertash/ledoc.git'
    }
    stage('Build') {
