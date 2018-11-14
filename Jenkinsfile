@@ -1,4 +1,9 @@
 node {
+   def mvnHome
+   stage('Preparation') {
+      // Get code from a GitHub repository
+      sh git 'git@gitlab.chisw.us:anton.chertash/ledoc.git' -b develop
+   }
    stage('Build') {
       // Run the maven build
       sh 'mvn clean install'
