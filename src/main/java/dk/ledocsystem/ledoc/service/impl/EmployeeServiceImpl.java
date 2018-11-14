@@ -96,14 +96,17 @@ class EmployeeServiceImpl implements EmployeeService {
             updateReviewDetails(employeeCreateDTO.getDetails(), employee.getDetails());
         }
 
-        employee = employeeRepository.save(employee);
-
-        addAuthorities(employee, employeeCreateDTO);
-        sendMessages(employeeCreateDTO, responsible);
 
         Long currentUserId = getCurrentUser().getUserId();
         Employee currentUser = employeeService.getById(currentUserId)
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, currentUserId.toString()));
+
+        employee.setCreator(currentUser);
+
+        employee = employeeRepository.save(employee);
+
+        addAuthorities(employee, employeeCreateDTO);
+        sendMessages(employeeCreateDTO, responsible);
 
         employeeLogService.createLog(currentUser, employee, LogType.Create);
         return employee;

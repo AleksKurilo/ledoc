@@ -116,6 +116,11 @@ public class Employee implements Visitable {
     @JsonManagedReference
     private Set<Location> locations;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "creator_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Employee creator;
+
     public String getName() {
         return firstName + " " + lastName;
     }
