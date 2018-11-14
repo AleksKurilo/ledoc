@@ -5,7 +5,7 @@ pipeline {
        stage('Preparation') {
            steps {
                 // Get code from a GitHub repository
-                echo env.BRANCH_NAME
+                echo "Branch is " + env.BRANCH_NAME
            }
        }
        stage('Build') {
