@@ -93,7 +93,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Loggi
 
     @Override
     default void customize(QuerydslBindings bindings, QEmployee root) {
-        bindings.including(root.archived, root.responsible.id, root.authorities, root.username, root.firstName,
+        bindings.including(root.archived, root.responsible.id, root.creator.id, root.authorities, root.username, root.firstName,
                 root.lastName, root.cellPhone, root.idNumber, root.initials, root.phoneNumber, root.title,
                 root.nearestRelative.email, root.nearestRelative.phoneNumber, root.personalInfo.personalMobile,
                 root.personalInfo.privateEmail,

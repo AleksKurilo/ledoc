@@ -1,7 +1,10 @@
 package dk.ledocsystem.ledoc.service.impl;
 
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.dto.AbstractLogDTO;
 import dk.ledocsystem.ledoc.model.employee.Employee;
+import dk.ledocsystem.ledoc.model.employee.QEmployee;
 import dk.ledocsystem.ledoc.model.logging.EmployeeLog;
 import dk.ledocsystem.ledoc.model.logging.LogType;
 import dk.ledocsystem.ledoc.repository.EmployeeLogRepository;
@@ -15,11 +18,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 
 @Service
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
 public class EmployeeLogServiceImpl implements EmployeeLogService {
+
+    private static final Function<Long, Predicate> EMPLOYEE_EQUALS_TO =
+            employeeId -> ExpressionUtils.eqConst(QEmployee.employee.id, employeeId);
 
     final EmployeeService employeeService;
     private final EmployeeLogRepository employeeLogRepository;
@@ -35,9 +42,9 @@ public class EmployeeLogServiceImpl implements EmployeeLogService {
 
     @Override
     @Transactional
-    public List<AbstractLogDTO> getAllEmployeeLogs(Long employeeId) {
+    public List<AbstractLogDTO> getAllEmployeeLogs(Predicate predicate) {
         List<AbstractLogDTO> resultList = new ArrayList<>();
-        employeeLogRepository.getAllByTargetEmployeeId(employeeId).forEach(employeeLog -> {
+        employeeLogRepository.findAll(predicate).forEach(employeeLog -> {
             Employee actionActor = employeeLog.getEmployee();
             SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 

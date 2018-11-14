@@ -1,5 +1,6 @@
 package dk.ledocsystem.ledoc.service;
 
+import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.dto.AbstractLogDTO;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.model.logging.EmployeeLog;
@@ -20,8 +21,8 @@ public interface EmployeeLogService extends AbstractLogService{
 
     /**
      * Returns the required log information to display
-     * @param employeeId - the ID of actioned employee
+     * @param predicate
      * @return List of log properties
      */
-    List<AbstractLogDTO> getAllEmployeeLogs(Long employeeId);
+    List<AbstractLogDTO> getAllEmployeeLogs(Predicate predicate);
 }

@@ -42,7 +42,7 @@ public interface EquipmentRepository extends JpaRepository<Equipment, Long>, Log
     @Override
     default void customize(QuerydslBindings bindings, QEquipment root) {
         bindings.including(root.name, root.localId, root.location.name, root.status,
-                root.responsible.id, root.archived, root.location.id,
+                root.responsible.id, root.creator.id, root.archived, root.location.id,
                 root.category.id, root.authenticationType.id, root.loan.borrower.id);
         bindings.bind(String.class).first((SingleValueBinding<StringPath, String>) StringExpression::containsIgnoreCase);
     }
