@@ -4,6 +4,7 @@ node {
       // Get code from a GitHub repository
       echo env.BRANCH_NAME
       git 'git@gitlab.chisw.us:anton.chertash/ledoc.git'
+      echo env.BRANCH_NAME
    }
    stage('Build') {
       // Run the maven build
