@@ -2,7 +2,8 @@ node {
    def mvnHome
    stage('Preparation') {
       // Get code from a GitHub repository
-      sh git clone git@gitlab.chisw.us:anton.chertash/ledoc.git -b develop
+      branch 'develop'
+      git 'git@gitlab.chisw.us:anton.chertash/ledoc.git'
    }
    stage('Build') {
       // Run the maven build
