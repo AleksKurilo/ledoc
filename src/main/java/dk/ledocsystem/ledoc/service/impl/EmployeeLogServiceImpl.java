@@ -1,10 +1,10 @@
 package dk.ledocsystem.ledoc.service.impl;
 
-import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.dto.AbstractLogDTO;
+import dk.ledocsystem.ledoc.dto.EmployeeLogDTO;
+import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.employee.Employee;
-import dk.ledocsystem.ledoc.model.employee.QEmployee;
 import dk.ledocsystem.ledoc.model.logging.EmployeeLog;
 import dk.ledocsystem.ledoc.model.logging.LogType;
 import dk.ledocsystem.ledoc.repository.EmployeeLogRepository;
@@ -18,7 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
+
+import static dk.ledocsystem.ledoc.constant.ErrorMessageKey.EMPLOYEE_ID_NOT_FOUND;
 
 
 @Service
@@ -39,8 +40,12 @@ public class EmployeeLogServiceImpl implements EmployeeLogService {
 
     @Override
     @Transactional
-    public List<AbstractLogDTO> getAllEmployeeLogs(Predicate predicate) {
+    public EmployeeLogDTO getAllEmployeeLogs(Long employeeId, Predicate predicate) {
         List<AbstractLogDTO> resultList = new ArrayList<>();
+        String employeeName = "";
+        Employee currentUser = employeeService.getById(employeeId)
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
+        employeeName = currentUser.getName();
         employeeLogRepository.findAll(predicate).forEach(employeeLog -> {
             Employee actionActor = employeeLog.getEmployee();
             SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
@@ -53,7 +58,8 @@ public class EmployeeLogServiceImpl implements EmployeeLogService {
             log.setDate(sdf.format(employeeLog.getCreated()));
             resultList.add(log);
         });
-        return resultList;
+        EmployeeLogDTO result = new EmployeeLogDTO(employeeName, resultList);
+        return result;
     }
 
     @Override
