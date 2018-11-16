@@ -7,6 +7,7 @@ import lombok.Setter;
 @Setter
 @Getter
 public class AbstractLogDTO {
+    private Long id;
     private LogType logType;
     private String logTypeMessage;
     private String actionActor;

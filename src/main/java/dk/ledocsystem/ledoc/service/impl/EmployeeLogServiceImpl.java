@@ -25,9 +25,6 @@ import java.util.function.Function;
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
 public class EmployeeLogServiceImpl implements EmployeeLogService {
 
-    private static final Function<Long, Predicate> EMPLOYEE_EQUALS_TO =
-            employeeId -> ExpressionUtils.eqConst(QEmployee.employee.id, employeeId);
-
     final EmployeeService employeeService;
     private final EmployeeLogRepository employeeLogRepository;
 
@@ -49,6 +46,7 @@ public class EmployeeLogServiceImpl implements EmployeeLogService {
             SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 
             AbstractLogDTO log = new AbstractLogDTO();
+            log.setId(employeeLog.getId());
             log.setLogType(employeeLog.getLogType());
             log.setLogTypeMessage(employeeLog.getLogType().getDescription());
             log.setActionActor(actionActor.getFirstName() + " " + actionActor.getLastName() + " (" + actionActor.getUsername() + ")");
