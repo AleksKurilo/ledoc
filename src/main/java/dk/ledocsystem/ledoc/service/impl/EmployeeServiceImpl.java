@@ -351,16 +351,17 @@ class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     @Transactional
-    public Optional<EmployeePreviewDTO> getPreviewDtoById(Long employeeId) {
+    public Optional<EmployeePreviewDTO> getPreviewDtoById(Long employeeId, boolean isSaveLog) {
         Long currentUserId = getCurrentUser().getUserId();
-
-        Employee currentUser = employeeService.getById(currentUserId)
-                .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, currentUserId.toString()));
 
         Employee employee = employeeService.getById(employeeId)
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
 
-        employeeLogService.createLog(currentUser, employee, LogType.Read);
+        if (isSaveLog) {
+            Employee currentUser = employeeService.getById(currentUserId)
+                    .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, currentUserId.toString()));
+            employeeLogService.createLog(currentUser, employee, LogType.Read);
+        }
         return getById(employeeId).map(this::mapModelToPreviewDto);
     }
 

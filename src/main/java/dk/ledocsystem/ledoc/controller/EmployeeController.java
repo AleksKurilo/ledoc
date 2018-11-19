@@ -69,8 +69,8 @@ public class EmployeeController {
     }
 
     @GetMapping("/{employeeId}/preview")
-    public EmployeePreviewDTO getEmployeeByIdForPreview(@PathVariable Long employeeId) {
-        return employeeService.getPreviewDtoById(employeeId)
+    public EmployeePreviewDTO getEmployeeByIdForPreview(@PathVariable Long employeeId, @RequestParam(value = "savelog", required=false) boolean isSaveLog) {
+        return employeeService.getPreviewDtoById(employeeId, isSaveLog)
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
     }
 
