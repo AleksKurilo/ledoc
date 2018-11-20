@@ -18,7 +18,9 @@ import dk.ledocsystem.ledoc.service.dto.GetEmployeeDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,7 +44,7 @@ public class EmployeeController {
 
     @GetMapping("/filter")
     public Iterable<Employee> getAllFilteredEmployees(@QuerydslPredicate(root = Employee.class) Predicate predicate,
-                                                      Pageable pageable) {
+                                                      @PageableDefault(sort = "lastName", direction = Sort.Direction.ASC) Pageable pageable) {
         return employeeService.getAllByCustomer(getCurrentCustomerId(), predicate, pageable);
     }
 
@@ -58,7 +60,7 @@ public class EmployeeController {
 
     @GetMapping("/new/filter")
     public Iterable<Employee> getNewEmployeesForCurrentUser(@QuerydslPredicate(root = Employee.class) Predicate predicate,
-                                                            Pageable pageable) {
+                                                            @PageableDefault(sort = "lastName", direction = Sort.Direction.ASC) Pageable pageable) {
         return employeeService.getNewEmployees(getCurrentUserId(), pageable, predicate);
     }
 
