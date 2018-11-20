@@ -16,7 +16,9 @@ import dk.ledocsystem.ledoc.service.dto.EquipmentPreviewDTO;
 import dk.ledocsystem.ledoc.service.dto.GetEquipmentDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,7 +43,7 @@ public class EquipmentController {
 
     @GetMapping("/filter")
     public Iterable<Equipment> getAllFilteredEquipments(@QuerydslPredicate(root = Equipment.class) Predicate predicate,
-                                                        Pageable pageable) {
+                                                        @PageableDefault(sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
         return equipmentService.getAllByCustomer(getCurrentCustomerId(), predicate, pageable);
     }
 

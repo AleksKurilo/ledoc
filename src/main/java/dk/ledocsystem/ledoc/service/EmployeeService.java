@@ -105,7 +105,7 @@ public interface EmployeeService extends CustomerBasedDomainService<Employee> {
     // TODO Replace it with getById during service layer separation process.
     Optional<GetEmployeeDTO> getEmployeeDtoById(Long employeeId);
 
-    Optional<EmployeePreviewDTO> getPreviewDtoById(Long employeeId);
+    Optional<EmployeePreviewDTO> getPreviewDtoById(Long employeeId, boolean isSaveLog);
 
     /**
      * @return A proxy, whose state can be lazily populated upon access until the end of current transaction.

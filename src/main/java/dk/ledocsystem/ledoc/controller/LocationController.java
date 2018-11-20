@@ -13,7 +13,9 @@ import dk.ledocsystem.ledoc.service.dto.GetLocationDTO;
 import dk.ledocsystem.ledoc.service.dto.LocationPreviewDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +33,7 @@ public class LocationController {
 
     @GetMapping
     public Iterable<Location> getAllLocations(@QuerydslPredicate(root = Location.class) Predicate predicate,
-                                              Pageable pageable) {
+                                              @PageableDefault(sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
         return locationService.getAllByCustomer(getCurrentCustomerId(), predicate, pageable);
     }
 
