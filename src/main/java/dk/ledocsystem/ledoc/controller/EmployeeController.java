@@ -60,7 +60,7 @@ public class EmployeeController {
 
     @GetMapping("/new/filter")
     public Iterable<Employee> getNewEmployeesForCurrentUser(@QuerydslPredicate(root = Employee.class) Predicate predicate,
-                                                            @PageableDefault(sort = "lastName", direction = Sort.Direction.ASC) Pageable pageable) {
+                                                            @PageableDefault(sort = "firstName", direction = Sort.Direction.ASC) Pageable pageable) {
         return employeeService.getNewEmployees(getCurrentUserId(), pageable, predicate);
     }
 
