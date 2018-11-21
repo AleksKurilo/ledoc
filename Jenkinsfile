@@ -21,7 +21,7 @@ pipeline {
        }
        stage('Run') {
            steps {
-                sshPublisher(publishers: [sshPublisherDesc(configName: 'Ledoc-Develop', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: 'sudo /bin/systemctl restart ledoc', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '', remoteDirectorySDF: false, removePrefix: 'target', sourceFiles: 'target/*.jar')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: true)])
+                sshPublisher(publishers: [sshPublisherDesc(configName: 'Ledoc', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: 'sudo /bin/systemctl restart ledoc', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '', remoteDirectorySDF: false, removePrefix: 'target', sourceFiles: 'target/*.jar')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: true)])
        
            }
        }
