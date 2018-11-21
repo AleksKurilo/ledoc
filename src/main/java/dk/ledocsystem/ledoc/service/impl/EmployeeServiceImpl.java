@@ -62,7 +62,6 @@ class EmployeeServiceImpl implements EmployeeService {
             customerId -> ExpressionUtils.eqConst(QEmployee.employee.customer.id, customerId);
 
     private final EmployeeRepository employeeRepository;
-    private final EmployeeService employeeService;
     private final LocationService locationService;
     private final ReviewTemplateService reviewTemplateService;
     private final ReviewQuestionService reviewQuestionService;
@@ -98,7 +97,7 @@ class EmployeeServiceImpl implements EmployeeService {
 
 
         Long currentUserId = getCurrentUser().getUserId();
-        Employee currentUser = employeeService.getById(currentUserId)
+        Employee currentUser = getById(currentUserId)
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, currentUserId.toString()));
 
         employee.setCreator(currentUser);
@@ -134,7 +133,7 @@ class EmployeeServiceImpl implements EmployeeService {
     public GetEmployeeDTO updateEmployee(@NonNull EmployeeDTO employeeDTO) {
         employeeDtoValidator.validate(employeeDTO);
         Long currentUserId = getCurrentUser().getUserId();
-        Employee currentUser = employeeService.getById(currentUserId)
+        Employee currentUser = getById(currentUserId)
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, currentUserId.toString()));
 
         Employee employee = employeeRepository.findById(employeeDTO.getId())
@@ -286,7 +285,7 @@ class EmployeeServiceImpl implements EmployeeService {
         employeeReviewRepository.save(employeeReview);
 
         Long currentUserId = getCurrentUser().getUserId();
-        Employee currentUser = employeeService.getById(currentUserId)
+        Employee currentUser = getById(currentUserId)
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, currentUserId.toString()));
 
         employeeLogService.createLog(currentUser, employee, LogType.Review);
@@ -354,11 +353,11 @@ class EmployeeServiceImpl implements EmployeeService {
     public Optional<EmployeePreviewDTO> getPreviewDtoById(Long employeeId, boolean isSaveLog) {
         Long currentUserId = getCurrentUser().getUserId();
 
-        Employee employee = employeeService.getById(employeeId)
+        Employee employee = getById(employeeId)
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
 
         if (isSaveLog) {
-            Employee currentUser = employeeService.getById(currentUserId)
+            Employee currentUser = getById(currentUserId)
                     .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, currentUserId.toString()));
             employeeLogService.createLog(currentUser, employee, LogType.Read);
         }

@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableMap;
 import dk.ledocsystem.ledoc.dto.SupportTicketDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.email_notifications.EmailNotification;
-import dk.ledocsystem.ledoc.model.support_tickets.PageLocation;
 import dk.ledocsystem.ledoc.model.support_tickets.SupportTicket;
 import dk.ledocsystem.ledoc.repository.EmailNotificationRepository;
 import dk.ledocsystem.ledoc.repository.EmployeeRepository;
@@ -50,7 +49,7 @@ class SupportTicketServiceImpl implements SupportTicketService {
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, supportTicketDTO.getEmployeeId().toString())));
         ticket.setTheme(supportTicketDTO.getTheme());
         ticket.setMessage(supportTicketDTO.getMessage());
-        ticket.setPageLocation(PageLocation.DASHBOARD);
+        ticket.setPageLocation(supportTicketDTO.getPageLocation());
         ticket = supportTicketRepository.save(ticket);
 
         sendNotificationToResponsible(ticket,"testmytests43@gmail.com");
