@@ -142,11 +142,13 @@ class EquipmentServiceImpl implements EquipmentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<GetEquipmentDTO> getNewEquipment(@NonNull UserDetails user, @NonNull Pageable pageable) {
         return getNewEquipment(user, pageable, null);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<GetEquipmentDTO> getNewEquipment(@NonNull UserDetails user, @NonNull Pageable pageable, Predicate predicate) {
         Employee employee = employeeRepository.findByUsername(user.getUsername())
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, user.getUsername()));

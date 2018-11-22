@@ -131,6 +131,7 @@ class CustomerServiceImpl implements CustomerService {
         customerRepository.save(customer);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public GetCustomerDTO getByUsername(String username) {
         return employeeRepository.findByUsername(username)

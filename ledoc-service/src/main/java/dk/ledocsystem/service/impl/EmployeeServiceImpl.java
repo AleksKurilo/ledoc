@@ -332,6 +332,7 @@ class EmployeeServiceImpl implements EmployeeService {
         return employeeReview;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Optional<GetEmployeeDTO> getByUsername(@NonNull String username) {
         return employeeRepository.findByUsername(username).map(this::mapToDto);
@@ -342,11 +343,13 @@ class EmployeeServiceImpl implements EmployeeService {
         return employeeRepository.existsByUsername(username);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Page<GetEmployeeDTO> getNewEmployees(@NonNull UserDetails user, @NonNull Pageable pageable) {
         return getNewEmployees(user, pageable, null);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Page<GetEmployeeDTO> getNewEmployees(@NonNull UserDetails user, @NonNull Pageable pageable, Predicate predicate) {
         Employee employee = employeeRepository.findByUsername(user.getUsername())
