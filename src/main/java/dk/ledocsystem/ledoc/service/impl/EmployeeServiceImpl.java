@@ -13,6 +13,7 @@ import dk.ledocsystem.ledoc.dto.employee.EmployeeDTO;
 import dk.ledocsystem.ledoc.dto.employee.EmployeeDetailsDTO;
 import dk.ledocsystem.ledoc.dto.review.ReviewDTO;
 import dk.ledocsystem.ledoc.dto.review.ReviewQuestionAnswerDTO;
+import dk.ledocsystem.ledoc.events.producer.EmployeeProducer;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.Customer;
 import dk.ledocsystem.ledoc.model.Location;
@@ -20,7 +21,6 @@ import dk.ledocsystem.ledoc.model.email_notifications.EmailNotification;
 import dk.ledocsystem.ledoc.model.employee.Employee;
 import dk.ledocsystem.ledoc.model.employee.EmployeeDetails;
 import dk.ledocsystem.ledoc.model.employee.QEmployee;
-import dk.ledocsystem.ledoc.model.logging.LogType;
 import dk.ledocsystem.ledoc.model.review.EmployeeReview;
 import dk.ledocsystem.ledoc.model.review.EmployeeReviewQuestionAnswer;
 import dk.ledocsystem.ledoc.model.review.ReviewQuestion;
@@ -69,12 +69,12 @@ class EmployeeServiceImpl implements EmployeeService {
     private final JwtTokenService tokenService;
     private final EmailNotificationRepository emailNotificationRepository;
     private final EmployeeReviewRepository employeeReviewRepository;
-    private final EmployeeLogService employeeLogService;
     private final ModelMapper modelMapper;
     private final BaseValidator<EmployeeDTO> employeeDtoValidator;
     private final BaseValidator<EmployeeCreateDTO> employeeCreateDtoValidator;
     private final BaseValidator<ReviewDTO> reviewDtoBaseValidator;
     private final BaseValidator<ChangePasswordDTO> changePasswordDtoValidator;
+    private final EmployeeProducer employeeProducer;
 
     @Transactional
     @Override
@@ -107,7 +107,7 @@ class EmployeeServiceImpl implements EmployeeService {
         addAuthorities(employee, employeeCreateDTO);
         sendMessages(employeeCreateDTO, responsible);
 
-        employeeLogService.createLog(currentUser, employee, LogType.Create);
+        employeeProducer.create(employee, currentUser);
         return employee;
     }
 
@@ -158,7 +158,7 @@ class EmployeeServiceImpl implements EmployeeService {
 
         updateAuthorities(employee, employeeDTO);
 
-        employeeLogService.createLog(currentUser, employee, LogType.Edit);
+        employeeProducer.edit(employee, currentUser);
 
         return mapModelToDto(employeeRepository.save(employee));
     }
@@ -230,9 +230,9 @@ class EmployeeServiceImpl implements EmployeeService {
         employee.setArchiveReason(archivedStatusDTO.getArchiveReason());
 
         if (archivedStatusDTO.isArchived()) {
-            employeeLogService.createLog(currentUser, employee, LogType.Archive);
+            employeeProducer.archive(employee, currentUser);
         } else {
-            employeeLogService.createLog(currentUser, employee, LogType.Unarchive);
+            employeeProducer.unarchive(employee, currentUser);
         }
 
         employeeRepository.save(employee);
@@ -288,7 +288,7 @@ class EmployeeServiceImpl implements EmployeeService {
         Employee currentUser = getById(currentUserId)
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, currentUserId.toString()));
 
-        employeeLogService.createLog(currentUser, employee, LogType.Review);
+        employeeProducer.review(employee, currentUser);
     }
 
     private EmployeeReview mapEmployeeReview(ReviewDTO reviewDTO, Employee subject) {
@@ -356,11 +356,10 @@ class EmployeeServiceImpl implements EmployeeService {
         Employee employee = getById(employeeId)
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
 
-        if (isSaveLog) {
-            Employee currentUser = getById(currentUserId)
-                    .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, currentUserId.toString()));
-            employeeLogService.createLog(currentUser, employee, LogType.Read);
-        }
+        Employee currentUser = getById(currentUserId)
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, currentUserId.toString()));
+
+        employeeProducer.read(employee, currentUser, isSaveLog);
         return getById(employeeId).map(this::mapModelToPreviewDto);
     }
 

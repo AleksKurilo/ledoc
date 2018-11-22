@@ -11,8 +11,7 @@ public enum LogType {
     Archive("was archived by"),
     Unarchive("was unarchived by"),
     Read("has been read by"),
-    Review("has been reviewed by"),
-    Delete("has been deleted by");
+    Review("has been reviewed by");
 
     private String description;
 
