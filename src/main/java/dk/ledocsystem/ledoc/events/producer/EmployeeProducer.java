@@ -18,7 +18,7 @@ public class EmployeeProducer {
     }
 
     public void create(Employee employee, Employee loggedInEmployee) {
-        publisher.publishEvent(new EntityEvents(employee, loggedInEmployee, LogType.Create, true));
+        publisher.publishEvent(new EntityEvents(employee, loggedInEmployee, LogType.Create));
     }
 
 
@@ -27,18 +27,18 @@ public class EmployeeProducer {
     }
 
     public void edit(Employee employee, Employee loggedInEmployee) {
-        publisher.publishEvent(new EntityEvents(employee, loggedInEmployee, LogType.Edit, true));
+        publisher.publishEvent(new EntityEvents(employee, loggedInEmployee, LogType.Edit));
     }
 
     public void review(Employee employee, Employee loggedInEmployee) {
-        publisher.publishEvent(new EntityEvents(employee, loggedInEmployee, LogType.Review, true));
+        publisher.publishEvent(new EntityEvents(employee, loggedInEmployee, LogType.Review));
     }
 
     public void archive(Employee employee, Employee loggedInEmployee) {
-        publisher.publishEvent(new EntityEvents(employee, loggedInEmployee, LogType.Archive, true));
+        publisher.publishEvent(new EntityEvents(employee, loggedInEmployee, LogType.Archive));
     }
 
     public void unarchive(Employee employee, Employee loggedInEmployee) {
-        publisher.publishEvent(new EntityEvents(employee, loggedInEmployee, LogType.Unarchive, true));
+        publisher.publishEvent(new EntityEvents(employee, loggedInEmployee, LogType.Unarchive));
     }
 }

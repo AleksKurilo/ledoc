@@ -1,7 +1,7 @@
 package dk.ledocsystem.ledoc.controller;
 
 import com.querydsl.core.types.Predicate;
-import dk.ledocsystem.ledoc.dto.EmployeeLogDTO;
+import dk.ledocsystem.ledoc.dto.LogsDTO;
 import dk.ledocsystem.ledoc.model.logging.EmployeeLog;
 import dk.ledocsystem.ledoc.service.EmployeeLogService;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ public class LogsController {
     private final EmployeeLogService employeeLogService;
 
     @GetMapping("/employee/{employeeId}")
-    public EmployeeLogDTO getEmployeeLogs(@PathVariable Long employeeId, @QuerydslPredicate(root = EmployeeLog.class) Predicate predicate) {
+    public LogsDTO getEmployeeLogs(@PathVariable Long employeeId, @QuerydslPredicate(root = EmployeeLog.class) Predicate predicate) {
         return  employeeLogService.getAllEmployeeLogs(employeeId, predicate);
     }
 

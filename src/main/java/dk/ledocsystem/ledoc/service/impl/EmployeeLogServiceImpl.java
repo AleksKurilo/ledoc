@@ -3,10 +3,9 @@ package dk.ledocsystem.ledoc.service.impl;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.ledoc.dto.AbstractLogDTO;
-import dk.ledocsystem.ledoc.dto.EmployeeLogDTO;
+import dk.ledocsystem.ledoc.dto.LogsDTO;
 import dk.ledocsystem.ledoc.exceptions.NotFoundException;
 import dk.ledocsystem.ledoc.model.employee.Employee;
-import dk.ledocsystem.ledoc.model.equipment.QEquipment;
 import dk.ledocsystem.ledoc.model.logging.EmployeeLog;
 import dk.ledocsystem.ledoc.model.logging.LogType;
 import dk.ledocsystem.ledoc.model.logging.QEmployeeLog;
@@ -47,7 +46,7 @@ public class EmployeeLogServiceImpl implements EmployeeLogService {
 
     @Override
     @Transactional
-    public EmployeeLogDTO getAllEmployeeLogs(Long employeeId, Predicate predicate) {
+    public LogsDTO getAllEmployeeLogs(Long employeeId, Predicate predicate) {
         List<AbstractLogDTO> resultList = new ArrayList<>();
         String employeeName = "";
         Employee currentUser = employeeService.getById(employeeId)
@@ -68,7 +67,7 @@ public class EmployeeLogServiceImpl implements EmployeeLogService {
             log.setDate(sdf.format(employeeLog.getCreated()));
             resultList.add(log);
         });
-        EmployeeLogDTO result = new EmployeeLogDTO(employeeName, resultList);
+        LogsDTO result = new LogsDTO(employeeName, resultList);
         return result;
     }
 
