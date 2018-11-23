@@ -80,12 +80,12 @@ class EmployeeServiceImpl implements EmployeeService {
     private final JwtTokenService tokenService;
     private final EmailNotificationRepository emailNotificationRepository;
     private final EmployeeReviewRepository employeeReviewRepository;
-    private final EmployeeLogService employeeLogService;
     private final ModelMapper modelMapper;
     private final BaseValidator<EmployeeDTO> employeeDtoValidator;
     private final BaseValidator<EmployeeCreateDTO> employeeCreateDtoValidator;
     private final BaseValidator<ReviewDTO> reviewDtoBaseValidator;
     private final BaseValidator<ChangePasswordDTO> changePasswordDtoValidator;
+    private final EmployeeProducer employeeProducer;
 
     @PostConstruct
     private void init() {
@@ -132,7 +132,7 @@ class EmployeeServiceImpl implements EmployeeService {
         addAuthorities(employee, employeeCreateDTO);
         sendMessages(employeeCreateDTO, responsible);
 
-        employeeLogService.createLog(creator, employee, LogType.Create);
+        employeeProducer.create(employee, currentUser);
         return mapToDto(employee);
     }
 
@@ -181,8 +181,7 @@ class EmployeeServiceImpl implements EmployeeService {
 
         updateAuthorities(employee, employeeDTO);
 
-        Employee currentUser = employeeRepository.findByUsername(currentUserDetails.getUsername()).orElseThrow(IllegalStateException::new);
-        employeeLogService.createLog(currentUser, employee, LogType.Edit);
+        employeeProducer.edit(employee, currentUser);
 
         return mapToDto(employeeRepository.save(employee));
     }
@@ -252,9 +251,9 @@ class EmployeeServiceImpl implements EmployeeService {
 
         Employee currentUser = employeeRepository.findByUsername(currentUserDetails.getUsername()).orElseThrow(IllegalStateException::new);
         if (archivedStatusDTO.isArchived()) {
-            employeeLogService.createLog(currentUser, employee, LogType.Archive);
+            employeeProducer.archive(employee, currentUser);
         } else {
-            employeeLogService.createLog(currentUser, employee, LogType.Unarchive);
+            employeeProducer.unarchive(employee, currentUser);
         }
 
         employeeRepository.save(employee);
@@ -307,7 +306,7 @@ class EmployeeServiceImpl implements EmployeeService {
         employeeReviewRepository.save(employeeReview);
 
         Employee currentUser = employeeRepository.findByUsername(currentUserDetails.getUsername()).orElseThrow(IllegalStateException::new);
-        employeeLogService.createLog(currentUser, employee, LogType.Review);
+        employeeProducer.review(employee, currentUser);
     }
 
     private EmployeeReview mapEmployeeReview(ReviewDTO reviewDTO, Employee subject) {
@@ -376,7 +375,7 @@ class EmployeeServiceImpl implements EmployeeService {
                 employeeLogService.createLog(currentUser, empl, LogType.Read);
             });
         }
-        return employee.map(this::mapToPreviewDto);
+        rreturn employee.map(this::mapToPreviewDto);
     }
 
     private Customer resolveCustomer(Long customerId) {

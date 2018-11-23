@@ -46,7 +46,7 @@ public class EmployeeLogServiceImpl implements EmployeeLogService {
 
     @Override
     @Transactional
-    public EmployeeLogDTO getAllEmployeeLogs(Long employeeId, Predicate predicate) {
+    public LogsDTO getAllEmployeeLogs(Long employeeId, Predicate predicate) {
         List<AbstractLogDTO> resultList = new ArrayList<>();
         Employee currentUser = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
