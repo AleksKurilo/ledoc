@@ -52,7 +52,7 @@ class SupportTicketServiceImpl implements SupportTicketService {
         ticket.setPageLocation(supportTicketDTO.getPageLocation());
         ticket = supportTicketRepository.save(ticket);
 
-        sendNotificationToResponsible(ticket,"testmytests43@gmail.com");
+        sendNotificationToResponsible(ticket,"testmytest43@gmail.com");
     }
 
     private void sendNotificationToResponsible(SupportTicket ticket, String email) {

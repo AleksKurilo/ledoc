@@ -4,21 +4,6 @@ import com.google.common.collect.ImmutableMap;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.Expressions;
-import dk.ledocsystem.data.model.logging.LogType;
-import dk.ledocsystem.data.repository.CustomerRepository;
-import dk.ledocsystem.data.repository.LocationRepository;
-import dk.ledocsystem.service.api.EmployeeLogService;
-import dk.ledocsystem.service.api.JwtTokenService;
-import dk.ledocsystem.data.model.security.UserAuthorities;
-import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
-import dk.ledocsystem.service.api.dto.inbound.ChangePasswordDTO;
-import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeCreateDTO;
-import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeDTO;
-import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeDetailsDTO;
-import dk.ledocsystem.service.api.dto.inbound.review.ReviewDTO;
-import dk.ledocsystem.service.api.dto.inbound.review.ReviewQuestionAnswerDTO;
-import dk.ledocsystem.service.api.dto.outbound.employee.EmployeeEditDTO;
-import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.data.model.Customer;
 import dk.ledocsystem.data.model.Location;
 import dk.ledocsystem.data.model.email_notifications.EmailNotification;
@@ -29,16 +14,26 @@ import dk.ledocsystem.data.model.review.EmployeeReview;
 import dk.ledocsystem.data.model.review.EmployeeReviewQuestionAnswer;
 import dk.ledocsystem.data.model.review.ReviewQuestion;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
-import dk.ledocsystem.data.repository.EmailNotificationRepository;
-import dk.ledocsystem.data.repository.EmployeeRepository;
-import dk.ledocsystem.data.repository.EmployeeReviewRepository;
+import dk.ledocsystem.data.model.security.UserAuthorities;
+import dk.ledocsystem.data.repository.*;
 import dk.ledocsystem.service.api.EmployeeService;
+import dk.ledocsystem.service.api.JwtTokenService;
 import dk.ledocsystem.service.api.ReviewQuestionService;
 import dk.ledocsystem.service.api.ReviewTemplateService;
+import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
+import dk.ledocsystem.service.api.dto.inbound.ChangePasswordDTO;
+import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeCreateDTO;
+import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeDTO;
+import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeDetailsDTO;
+import dk.ledocsystem.service.api.dto.inbound.review.ReviewDTO;
+import dk.ledocsystem.service.api.dto.inbound.review.ReviewQuestionAnswerDTO;
+import dk.ledocsystem.service.api.dto.outbound.employee.EmployeeEditDTO;
 import dk.ledocsystem.service.api.dto.outbound.employee.EmployeePreviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.employee.EmployeeSummaryDTO;
 import dk.ledocsystem.service.api.dto.outbound.employee.GetEmployeeDTO;
+import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.service.api.exceptions.ReviewNotApplicableException;
+import dk.ledocsystem.service.events.producer.EmployeeProducer;
 import dk.ledocsystem.service.impl.property_maps.employee.EmployeeToEditDtoPropertyMap;
 import dk.ledocsystem.service.impl.property_maps.employee.EmployeeToGetEmployeeDtoPropertyMap;
 import dk.ledocsystem.service.impl.property_maps.employee.EmployeeToPreviewDtoPropertyMap;
@@ -132,7 +127,7 @@ class EmployeeServiceImpl implements EmployeeService {
         addAuthorities(employee, employeeCreateDTO);
         sendMessages(employeeCreateDTO, responsible);
 
-        employeeProducer.create(employee, currentUser);
+        employeeProducer.create(employee, creator);
         return mapToDto(employee);
     }
 
@@ -181,6 +176,7 @@ class EmployeeServiceImpl implements EmployeeService {
 
         updateAuthorities(employee, employeeDTO);
 
+        Employee currentUser = employeeRepository.findByUsername(currentUserDetails.getUsername()).orElseThrow(IllegalStateException::new);
         employeeProducer.edit(employee, currentUser);
 
         return mapToDto(employeeRepository.save(employee));
@@ -369,13 +365,12 @@ class EmployeeServiceImpl implements EmployeeService {
                                                           @NonNull UserDetails currentUserDetails) {
         Optional<Employee> employee = employeeRepository.findById(employeeId);
 
-        if (isSaveLog) {
-            employee.ifPresent(empl -> {
-                Employee currentUser = employeeRepository.findByUsername(currentUserDetails.getUsername()).orElseThrow(IllegalStateException::new);
-                employeeLogService.createLog(currentUser, empl, LogType.Read);
-            });
-        }
-        rreturn employee.map(this::mapToPreviewDto);
+
+        Employee currentUser = employeeRepository.findByUsername(currentUserDetails.getUsername()).orElseThrow(IllegalStateException::new);
+        employee.ifPresent(empl -> {
+            employeeProducer.read(empl, currentUser, isSaveLog);
+        });
+        return employee.map(this::mapToPreviewDto);
     }
 
     private Customer resolveCustomer(Long customerId) {

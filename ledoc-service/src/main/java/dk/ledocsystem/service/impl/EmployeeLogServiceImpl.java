@@ -4,7 +4,7 @@ import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.data.repository.EmployeeRepository;
 import dk.ledocsystem.service.api.dto.inbound.AbstractLogDTO;
-import dk.ledocsystem.service.api.dto.inbound.EmployeeLogDTO;
+import dk.ledocsystem.service.api.dto.inbound.LogsDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.logging.EmployeeLog;
@@ -66,7 +66,7 @@ public class EmployeeLogServiceImpl implements EmployeeLogService {
             log.setDate(sdf.format(employeeLog.getCreated()));
             resultList.add(log);
         });
-        return new EmployeeLogDTO(employeeName, resultList);
+        return new LogsDTO(employeeName, resultList);
     }
 
     @Override

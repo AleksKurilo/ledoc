@@ -31,7 +31,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Import({ BeanValidatorPluginsConfiguration.class })
 public class SwaggerConfig {
-    private static final String LEDOC_BASE_PACKAGE = "dk.ledocsystem.ledoc";
+    private static final String LEDOC_BASE_PACKAGE = "dk.ledocsystem.api";
 
     @Value("${build.version}")
     private String version;

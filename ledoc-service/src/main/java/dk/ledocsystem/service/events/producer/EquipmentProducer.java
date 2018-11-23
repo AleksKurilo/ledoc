@@ -1,10 +1,10 @@
-package dk.ledocsystem.ledoc.events.producer;
+package dk.ledocsystem.service.events.producer;
 
 
-import dk.ledocsystem.ledoc.events.event.EntityEvents;
-import dk.ledocsystem.ledoc.model.employee.Employee;
-import dk.ledocsystem.ledoc.model.equipment.Equipment;
-import dk.ledocsystem.ledoc.model.logging.LogType;
+import dk.ledocsystem.data.model.employee.Employee;
+import dk.ledocsystem.data.model.equipment.Equipment;
+import dk.ledocsystem.data.model.logging.LogType;
+import dk.ledocsystem.service.events.event.EntityEvents;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;

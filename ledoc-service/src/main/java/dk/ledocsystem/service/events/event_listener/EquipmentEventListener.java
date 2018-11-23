@@ -1,8 +1,8 @@
-package dk.ledocsystem.ledoc.events.event_listener;
+package dk.ledocsystem.service.events.event_listener;
 
-import dk.ledocsystem.ledoc.events.event.EntityEvents;
-import dk.ledocsystem.ledoc.model.equipment.Equipment;
-import dk.ledocsystem.ledoc.service.EquipmentLogService;
+import dk.ledocsystem.data.model.equipment.Equipment;
+import dk.ledocsystem.service.api.EquipmentLogService;
+import dk.ledocsystem.service.events.event.EntityEvents;
 import lombok.AllArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
