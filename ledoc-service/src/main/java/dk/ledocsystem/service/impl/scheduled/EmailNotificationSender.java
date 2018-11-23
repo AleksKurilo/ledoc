@@ -26,7 +26,7 @@ class EmailNotificationSender {
     private final EmailTemplateService emailTemplateService;
     private final SimpleMailService simpleMailService;
 
-//    @Scheduled(initialDelay = 10000, fixedDelay = 10000)
+    @Scheduled(initialDelay = 10000, fixedDelay = 10000)
     public void sendNotificationsScheduled() {
         List<EmailNotification> newNotifications = emailNotificationRepository.findTop100ByStatus(EmailNotificationStatus.NEW);
 
