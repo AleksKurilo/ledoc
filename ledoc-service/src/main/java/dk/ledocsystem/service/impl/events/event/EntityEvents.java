@@ -1,4 +1,4 @@
-package dk.ledocsystem.service.events.event;
+package dk.ledocsystem.service.impl.events.event;
 
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.logging.LogType;

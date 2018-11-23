@@ -33,7 +33,7 @@ import dk.ledocsystem.service.api.dto.outbound.employee.EmployeeSummaryDTO;
 import dk.ledocsystem.service.api.dto.outbound.employee.GetEmployeeDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.service.api.exceptions.ReviewNotApplicableException;
-import dk.ledocsystem.service.events.producer.EmployeeProducer;
+import dk.ledocsystem.service.impl.events.producer.EmployeeProducer;
 import dk.ledocsystem.service.impl.property_maps.employee.EmployeeToEditDtoPropertyMap;
 import dk.ledocsystem.service.impl.property_maps.employee.EmployeeToGetEmployeeDtoPropertyMap;
 import dk.ledocsystem.service.impl.property_maps.employee.EmployeeToPreviewDtoPropertyMap;
