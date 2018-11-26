@@ -18,6 +18,8 @@ public class GetEquipmentDTO {
 
     private String avatar;
 
+    private String borrowerAvatar;
+
     private boolean readyToLoan;
 
     private boolean loaned;
