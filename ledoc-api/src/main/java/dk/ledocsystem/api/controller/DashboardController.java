@@ -5,6 +5,7 @@ import dk.ledocsystem.data.model.dashboard.Dashboard;
 import dk.ledocsystem.data.model.dashboard.SuperAdminStatistic;
 import dk.ledocsystem.service.api.DashboardService;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.annotation.security.RolesAllowed;
+import java.util.function.Supplier;
 
 @RestController
 @RequiredArgsConstructor
@@ -35,21 +37,21 @@ public class DashboardController {
 
     @RolesAllowed("super_admin")
     @GetMapping("/export/customers")
-    public ResponseEntity<StreamingResponseBody> excelCustomers() {
+    public ResponseEntity<StreamingResponseBody> exportCustomers() {
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"Customers.xslx\"")
-                .body(writeByteArray(dashboardService.exportExcelCustomers()));
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"Customers.xlsx\"")
+                .body(streamBody(dashboardService::exportExcelCustomers));
     }
 
     @RolesAllowed("super_admin")
     @GetMapping("/export/employees")
-    public ResponseEntity<StreamingResponseBody> importEmployees() {
+    public ResponseEntity<StreamingResponseBody> exportEmployees() {
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"All_users.xslx\"")
-                .body(writeByteArray(dashboardService.exportExcelEmployees()));
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"All users.xlsx\"")
+                .body(streamBody(dashboardService::exportExcelEmployees));
     }
 
-    private StreamingResponseBody writeByteArray(byte[] byteArray) {
-        return outputStream -> outputStream.write(byteArray);
+    private StreamingResponseBody streamBody(Supplier<Workbook> workbook) {
+        return outputStream -> workbook.get().write(outputStream);
     }
 }

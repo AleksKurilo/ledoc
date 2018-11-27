@@ -1,6 +1,6 @@
 package dk.ledocsystem.service.impl.excel.model.employees;
 
-public class MyEmployeesSheet extends AbstractEmployeesSheet {
+public class EmployeesSheet extends AbstractEmployeesSheet {
 
     private static final String QUERY = "select concat(main.employees.first_name, ' ', main.employees.last_name) as name," +
             " title, cell_phone, phone_number from main.employees where main.employees.archived is false";
@@ -12,6 +12,6 @@ public class MyEmployeesSheet extends AbstractEmployeesSheet {
 
     @Override
     public String getName() {
-        return "myEmployee";
+        return "Employees";
     }
 }
