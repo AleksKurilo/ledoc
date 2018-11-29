@@ -3,17 +3,19 @@ package dk.ledocsystem.data.model.employee;
 import dk.ledocsystem.data.model.Customer;
 import dk.ledocsystem.data.model.Location;
 import dk.ledocsystem.data.model.Visitable;
+import dk.ledocsystem.data.model.equipment.FollowedEquipment;
 import dk.ledocsystem.data.model.security.UserAuthorities;
 import lombok.*;
 import org.hibernate.annotations.*;
 
 import javax.persistence.CascadeType;
+import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
 import javax.persistence.Table;
-import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 @Setter
@@ -119,11 +121,36 @@ public class Employee implements Visitable {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Employee creator;
 
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<FollowedEmployees> followedEmployees;
+
+    @OneToMany(mappedBy = "employee")
+    private Set<FollowedEquipment> followedEquipments;
+
     public String getName() {
         return firstName + " " + lastName;
     }
 
     public UserAuthorities getRole() {
         return (authorities.contains(UserAuthorities.ADMIN)) ? UserAuthorities.ADMIN : UserAuthorities.USER;
+    }
+
+    public void addFollower(Employee employee, boolean forced) {
+        FollowedEmployees followedEmployee = new FollowedEmployees(employee, this, forced);
+        followedEmployees.add(followedEmployee);
+        employee.getFollowedEmployees().add(followedEmployee);
+    }
+
+    public void removeFollower(Employee employee) {
+        for (Iterator<FollowedEmployees> iterator = followedEmployees.iterator();
+             iterator.hasNext(); ) {
+            FollowedEmployees followedEmployee = iterator.next();
+
+            if (followedEmployee.getFollowedEmployee().equals(this) &&
+                    followedEmployee.getEmployee().equals(employee)) {
+                iterator.remove();
+                followedEmployee.getEmployee().getFollowedEmployees().remove(followedEmployee);
+            }
+        }
     }
 }

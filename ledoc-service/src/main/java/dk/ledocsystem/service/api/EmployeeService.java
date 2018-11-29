@@ -6,10 +6,12 @@ import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.ChangePasswordDTO;
 import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeCreateDTO;
 import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeDTO;
+import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeFollowDTO;
 import dk.ledocsystem.service.api.dto.inbound.review.ReviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.employee.EmployeePreviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.employee.EmployeeSummaryDTO;
 import dk.ledocsystem.service.api.dto.outbound.employee.GetEmployeeDTO;
+import dk.ledocsystem.service.api.dto.outbound.employee.GetFollowedEmployeeDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -110,4 +112,8 @@ public interface EmployeeService extends CustomerBasedDomainService<GetEmployeeD
     Page<GetEmployeeDTO> getNewEmployees(UserDetails user, Pageable pageable, Predicate predicate);
 
     Optional<EmployeePreviewDTO> getPreviewDtoById(Long employeeId, boolean isSaveLog, UserDetails currentUser);
+
+    void follow(Long employeeId, UserDetails currentUser, EmployeeFollowDTO employeeFollowDTO);
+
+    List<GetFollowedEmployeeDTO> getFollowedEmployees(Long employeeId, Pageable pageable);
 }

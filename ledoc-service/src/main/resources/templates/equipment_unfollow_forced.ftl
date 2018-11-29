@@ -1,0 +1,1 @@
+<p>The monitoring of equipment was stopped</p>

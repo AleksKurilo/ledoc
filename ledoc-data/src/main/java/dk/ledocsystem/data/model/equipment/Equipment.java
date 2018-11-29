@@ -10,13 +10,14 @@ import lombok.*;
 import org.hibernate.annotations.*;
 
 import javax.persistence.CascadeType;
+import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
 import javax.persistence.Table;
-import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.Iterator;
 import java.util.Set;
 
 @Setter
@@ -127,6 +128,9 @@ public class Equipment implements Visitable {
     @OneToOne(mappedBy = "equipment", cascade = CascadeType.ALL, orphanRemoval = true)
     private EquipmentLoan loan;
 
+    @OneToMany(mappedBy = "equipment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<FollowedEquipment> followedEquipments;
+
     public boolean isLoaned() {
         return loan != null;
     }
@@ -170,5 +174,23 @@ public class Equipment implements Visitable {
 
     private LocalDate getPrevReviewDate() {
         return (nextReviewDate != null) ? nextReviewDate.minus(approvalRate) : LocalDate.now();
+    }
+    public void addFollower(Employee employee, boolean forced) {
+        FollowedEquipment followedEquipment = new FollowedEquipment(employee, this, forced);
+        followedEquipments.add(followedEquipment);
+        employee.getFollowedEquipments().add(followedEquipment);
+    }
+
+    public void removeFollower(Employee employee) {
+        for (Iterator<FollowedEquipment> iterator = followedEquipments.iterator();
+             iterator.hasNext(); ) {
+            FollowedEquipment followedEquipment = iterator.next();
+
+            if (followedEquipment.getEquipment().equals(this) &&
+                    followedEquipment.getEmployee().equals(employee)) {
+                iterator.remove();
+                followedEquipment.getEmployee().getFollowedEquipments().remove(followedEquipment);
+            }
+        }
     }
 }

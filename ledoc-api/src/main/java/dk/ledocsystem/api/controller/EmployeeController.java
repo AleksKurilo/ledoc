@@ -2,19 +2,21 @@ package dk.ledocsystem.api.controller;
 
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.api.config.security.CurrentUser;
+import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.security.UserAuthorities;
+import dk.ledocsystem.service.api.CustomerService;
+import dk.ledocsystem.service.api.EmployeeService;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.ChangePasswordDTO;
 import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeCreateDTO;
 import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeDTO;
+import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeFollowDTO;
 import dk.ledocsystem.service.api.dto.inbound.review.ReviewDTO;
-import dk.ledocsystem.service.api.exceptions.NotFoundException;
-import dk.ledocsystem.data.model.employee.Employee;
-import dk.ledocsystem.service.api.CustomerService;
-import dk.ledocsystem.service.api.EmployeeService;
 import dk.ledocsystem.service.api.dto.outbound.employee.EmployeePreviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.employee.EmployeeSummaryDTO;
 import dk.ledocsystem.service.api.dto.outbound.employee.GetEmployeeDTO;
+import dk.ledocsystem.service.api.dto.outbound.employee.GetFollowedEmployeeDTO;
+import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -135,6 +137,17 @@ public class EmployeeController {
     @PostMapping(value = "/point-of-contact", consumes = MediaType.APPLICATION_JSON_VALUE)
     public GetEmployeeDTO createPointOfContact(@RequestBody EmployeeCreateDTO employeeCreateDTO, @CurrentUser UserDetails currentUser) {
         return employeeService.createPointOfContact(employeeCreateDTO, currentUser);
+    }
+
+    @PostMapping("/follow/{employeeId}")
+    public void follow(@PathVariable Long employeeId, @CurrentUser UserDetails currentUser, EmployeeFollowDTO employeeFollowDTO) {
+        employeeService.follow(employeeId, currentUser, employeeFollowDTO);
+    }
+
+    @GetMapping("/followed")
+    public Iterable<GetFollowedEmployeeDTO> getFollowedEmployees(@RequestParam("employeeId") Long employeeId,
+                                                                 Pageable pageable) {
+        return employeeService.getFollowedEmployees(employeeId, pageable);
     }
 
     private Long getCustomerId(UserDetails user) {

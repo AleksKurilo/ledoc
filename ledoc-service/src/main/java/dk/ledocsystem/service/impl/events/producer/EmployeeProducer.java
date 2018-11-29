@@ -2,7 +2,9 @@ package dk.ledocsystem.service.impl.events.producer;
 
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.logging.LogType;
+import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeCreateDTO;
 import dk.ledocsystem.service.impl.events.event.EntityEvents;
+import dk.ledocsystem.service.impl.events.event.MonitoringEvents;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -16,10 +18,9 @@ public class EmployeeProducer {
         this.publisher = publisher;
     }
 
-    public void create(Employee employee, Employee loggedInEmployee) {
+    public void create(EmployeeCreateDTO employee, Employee loggedInEmployee) {
         publisher.publishEvent(new EntityEvents(employee, loggedInEmployee, LogType.Create));
     }
-
 
     public void read(Employee employee, Employee loggedInEmployee, final boolean saveLog) {
         publisher.publishEvent(new EntityEvents(employee, loggedInEmployee, LogType.Read, saveLog));
@@ -39,5 +40,9 @@ public class EmployeeProducer {
 
     public void unarchive(Employee employee, Employee loggedInEmployee) {
         publisher.publishEvent(new EntityEvents(employee, loggedInEmployee, LogType.Unarchive));
+    }
+
+    public void follow(Employee employee, Employee follower, boolean forced, boolean followed) {
+        publisher.publishEvent(new MonitoringEvents(employee, follower, forced, followed));
     }
 }

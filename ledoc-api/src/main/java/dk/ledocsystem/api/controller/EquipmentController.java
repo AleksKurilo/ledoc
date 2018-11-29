@@ -2,17 +2,18 @@ package dk.ledocsystem.api.controller;
 
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.api.config.security.CurrentUser;
-import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
-import dk.ledocsystem.service.api.dto.inbound.equipment.*;
-import dk.ledocsystem.data.projections.IdAndLocalizedName;
-import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.data.model.equipment.AuthenticationType;
 import dk.ledocsystem.data.model.equipment.Equipment;
 import dk.ledocsystem.data.model.equipment.EquipmentCategory;
+import dk.ledocsystem.data.projections.IdAndLocalizedName;
 import dk.ledocsystem.service.api.CustomerService;
 import dk.ledocsystem.service.api.EquipmentService;
+import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
+import dk.ledocsystem.service.api.dto.inbound.equipment.*;
 import dk.ledocsystem.service.api.dto.outbound.equipment.EquipmentPreviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.equipment.GetEquipmentDTO;
+import dk.ledocsystem.service.api.dto.outbound.equipment.GetFollowedEquipmentDTO;
+import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -68,8 +69,9 @@ public class EquipmentController {
     }
 
     @GetMapping("/{equipmentId}/preview")
-    public EquipmentPreviewDTO getEquipmentByIdForPreview(@PathVariable Long equipmentId) {
-        return equipmentService.getPreviewDtoById(equipmentId)
+    public EquipmentPreviewDTO getEquipmentByIdForPreview(@PathVariable Long equipmentId, @RequestParam(value = "savelog", required = false) boolean isSaveLog,
+                                                          @CurrentUser UserDetails currentUser) {
+        return equipmentService.getPreviewDtoById(equipmentId, isSaveLog, currentUser)
                 .orElseThrow(() -> new NotFoundException(EQUIPMENT_ID_NOT_FOUND, equipmentId.toString()));
     }
 
@@ -108,8 +110,9 @@ public class EquipmentController {
     }
 
     @PostMapping("/{equipmentId}/archive")
-    public void changeArchivedStatus(@PathVariable Long equipmentId, @RequestBody ArchivedStatusDTO archivedStatusDTO) {
-        equipmentService.changeArchivedStatus(equipmentId, archivedStatusDTO);
+    public void changeArchivedStatus(@PathVariable Long equipmentId, @RequestBody ArchivedStatusDTO archivedStatusDTO,
+                                     @CurrentUser UserDetails currentUser) {
+        equipmentService.changeArchivedStatus(equipmentId, archivedStatusDTO, currentUser);
     }
 
     @PostMapping(value = "/loan/{equipmentId}", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -131,6 +134,17 @@ public class EquipmentController {
     @DeleteMapping
     public void deleteByIds(@RequestParam("ids") Collection<Long> ids) {
         equipmentService.deleteByIds(ids);
+    }
+
+    @PostMapping("/follow/{equipmentId}")
+    public void follow(@PathVariable Long equipmentId, @CurrentUser UserDetails currentUser, EquipmentFollowDTO equipmentFollowDTO) {
+        equipmentService.follow(equipmentId, currentUser, equipmentFollowDTO);
+    }
+
+    @GetMapping("/followed")
+    public Iterable<GetFollowedEquipmentDTO> getFollowedEquipment(@RequestParam("employeeId") Long employeeId,
+                                                                                          Pageable pageable) {
+        return equipmentService.getFollowedEquipment(employeeId, pageable);
     }
 
     private Long getCustomerId(UserDetails user) {

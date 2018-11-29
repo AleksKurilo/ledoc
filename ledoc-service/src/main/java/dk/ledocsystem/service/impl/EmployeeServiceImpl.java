@@ -1,14 +1,13 @@
 package dk.ledocsystem.service.impl;
 
-import com.google.common.collect.ImmutableMap;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.Expressions;
 import dk.ledocsystem.data.model.Customer;
 import dk.ledocsystem.data.model.Location;
-import dk.ledocsystem.data.model.email_notifications.EmailNotification;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.employee.EmployeeDetails;
+import dk.ledocsystem.data.model.employee.FollowedEmployees;
 import dk.ledocsystem.data.model.employee.QEmployee;
 import dk.ledocsystem.data.model.review.EmployeeReview;
 import dk.ledocsystem.data.model.review.EmployeeReviewQuestionAnswer;
@@ -25,18 +24,17 @@ import dk.ledocsystem.service.api.dto.inbound.ChangePasswordDTO;
 import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeCreateDTO;
 import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeDTO;
 import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeDetailsDTO;
+import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeFollowDTO;
 import dk.ledocsystem.service.api.dto.inbound.review.ReviewDTO;
 import dk.ledocsystem.service.api.dto.inbound.review.ReviewQuestionAnswerDTO;
-import dk.ledocsystem.service.api.dto.outbound.employee.EmployeeEditDTO;
-import dk.ledocsystem.service.api.dto.outbound.employee.EmployeePreviewDTO;
-import dk.ledocsystem.service.api.dto.outbound.employee.EmployeeSummaryDTO;
-import dk.ledocsystem.service.api.dto.outbound.employee.GetEmployeeDTO;
+import dk.ledocsystem.service.api.dto.outbound.employee.*;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.service.api.exceptions.ReviewNotApplicableException;
 import dk.ledocsystem.service.impl.events.producer.EmployeeProducer;
 import dk.ledocsystem.service.impl.property_maps.employee.EmployeeToEditDtoPropertyMap;
 import dk.ledocsystem.service.impl.property_maps.employee.EmployeeToGetEmployeeDtoPropertyMap;
 import dk.ledocsystem.service.impl.property_maps.employee.EmployeeToPreviewDtoPropertyMap;
+import dk.ledocsystem.service.impl.property_maps.employee.FollowedEmployeesToGetFollowedEmployeesDtoMap;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -87,6 +85,7 @@ class EmployeeServiceImpl implements EmployeeService {
         modelMapper.addMappings(new EmployeeToGetEmployeeDtoPropertyMap());
         modelMapper.addMappings(new EmployeeToEditDtoPropertyMap());
         modelMapper.addMappings(new EmployeeToPreviewDtoPropertyMap());
+        modelMapper.addMappings(new FollowedEmployeesToGetFollowedEmployeesDtoMap());
     }
 
     @Transactional
@@ -125,9 +124,8 @@ class EmployeeServiceImpl implements EmployeeService {
         employee = employeeRepository.save(employee);
 
         addAuthorities(employee, employeeCreateDTO);
-        sendMessages(employeeCreateDTO, responsible);
 
-        employeeProducer.create(employee, creator);
+        employeeProducer.create(employeeCreateDTO, creator);
         return mapToDto(employee);
     }
 
@@ -163,9 +161,6 @@ class EmployeeServiceImpl implements EmployeeService {
         if (responsibleChanged(employee.getResponsible(), responsibleId)) {
             Employee responsible = resolveResponsible(responsibleId);
             employee.setResponsible(responsible);
-            if (responsible != null) {
-                sendNotificationToResponsible(responsible);
-            }
         }
 
         employee.setLocations(resolveLocations(employeeDTO.getLocationIds()));
@@ -399,31 +394,6 @@ class EmployeeServiceImpl implements EmployeeService {
         return new HashSet<>(locationRepository.findAllById(locationIds));
     }
 
-    private void sendMessages(EmployeeCreateDTO employee, Employee responsible) {
-        if (employee.isWelcomeMessage()) {
-            sendWelcomeMessage(employee);
-        }
-
-        if (responsible != null) {
-            sendNotificationToResponsible(responsible);
-        }
-    }
-
-    private void sendWelcomeMessage(EmployeeCreateDTO employee) {
-        Map<String, Object> model = ImmutableMap.<String, Object>builder()
-                .put("username", employee.getUsername())
-                .put("password", employee.getPassword())
-                .build();
-        EmailNotification welcomeMessage = new EmailNotification(employee.getUsername(), "welcome", model);
-        emailNotificationRepository.save(welcomeMessage);
-    }
-
-    private void sendNotificationToResponsible(Employee responsible) {
-        EmailNotification notification =
-                new EmailNotification(responsible.getUsername(), "employee_created");
-        emailNotificationRepository.save(notification);
-    }
-
     //region GET/DELETE standard API
 
     @Transactional(readOnly = true)
@@ -528,6 +498,40 @@ class EmployeeServiceImpl implements EmployeeService {
     private EmployeePreviewDTO mapToPreviewDto(Employee employee) {
         return modelMapper.map(employee, EmployeePreviewDTO.class);
     }
+
+    private GetFollowedEmployeeDTO mapToFollowDto(FollowedEmployees employee) {
+        return modelMapper.map(employee, GetFollowedEmployeeDTO.class);
+    }
+
+    @Override
+    @Transactional
+    public void follow(Long employeeId, UserDetails currentUserDetails, EmployeeFollowDTO employeeFollowDTO) {
+        Employee followedEmployee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new NotFoundException(EQUIPMENT_ID_NOT_FOUND, employeeFollowDTO.toString()));
+
+        Employee follower;
+        boolean forced = false;
+        if (employeeFollowDTO.getFollowerId() != null) {
+            follower = employeeRepository.findById(employeeFollowDTO.getFollowerId()).orElseThrow(IllegalStateException::new);
+            forced = true;
+        } else {
+            follower = employeeRepository.findByUsername(currentUserDetails.getUsername()).orElseThrow(IllegalStateException::new);
+        }
+        if (employeeFollowDTO.isFollowed()) {
+            followedEmployee.addFollower(follower, forced);
+        } else {
+            followedEmployee.removeFollower(follower);
+        }
+        employeeProducer.follow(followedEmployee, follower, forced, employeeFollowDTO.isFollowed());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<GetFollowedEmployeeDTO> getFollowedEmployees(Long employeeId, Pageable pageable) {
+        return employeeRepository.findById(employeeId).orElseThrow(IllegalStateException::new).getFollowedEmployees()
+                .stream().map(this::mapToFollowDto).collect(Collectors.toList());
+    }
+
 
     //endregion
 }
