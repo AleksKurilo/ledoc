@@ -1,14 +1,17 @@
 package dk.ledocsystem.service.impl.events.producer;
 
 
+import com.google.common.collect.ImmutableMap;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.equipment.Equipment;
 import dk.ledocsystem.data.model.logging.LogType;
 import dk.ledocsystem.service.impl.events.event.EntityEvents;
-import dk.ledocsystem.service.impl.events.event.MonitoringEvents;
+import dk.ledocsystem.service.impl.events.event.NotificationEvents;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -17,6 +20,8 @@ public class EquipmentProducer {
 
     public void create(Equipment equipment, Employee loggedInEmployee) {
         publisher.publishEvent(new EntityEvents(equipment, loggedInEmployee, LogType.Create));
+        publisher.publishEvent(new NotificationEvents(loggedInEmployee.getUsername(), "equipment_created"));
+        publisher.publishEvent(new NotificationEvents(equipment.getResponsible().getUsername(), "equipment_created"));
     }
 
     public void read(Equipment equipment, Employee loggedInEmployee, final boolean saveLog) {
@@ -25,6 +30,7 @@ public class EquipmentProducer {
 
     public void edit(Equipment equipment, Employee loggedInEmployee) {
         publisher.publishEvent(new EntityEvents(equipment, loggedInEmployee, LogType.Edit));
+        publisher.publishEvent(new NotificationEvents(equipment.getResponsible().getUsername(), "equipment_edited"));
 
     }
 
@@ -41,6 +47,15 @@ public class EquipmentProducer {
     }
 
     public void follow(Equipment equipment, Employee follower, boolean forced, boolean followed) {
-        publisher.publishEvent(new MonitoringEvents(equipment, follower, forced, followed));
+        if (forced) {
+            Map<String, Object> model = ImmutableMap.<String, Object>builder()
+                    .put("equipment", equipment.getName())
+                    .build();
+            if (followed) {
+                publisher.publishEvent(new NotificationEvents(follower.getUsername(), "equipment_follow_forced", model));
+            } else {
+                publisher.publishEvent(new NotificationEvents(follower.getUsername(), "equipment_unfollow_forced", model));
+            }
+        }
     }
 }
