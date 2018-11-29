@@ -5,7 +5,7 @@ import dk.ledocsystem.data.model.email_notifications.EmailNotification;
 import dk.ledocsystem.data.model.email_notifications.EmailNotificationStatus;
 import dk.ledocsystem.data.repository.EmailNotificationRepository;
 import dk.ledocsystem.service.api.EmailTemplateService;
-import dk.ledocsystem.service.api.SimpleMailService;
+import dk.ledocsystem.service.api.MailSender;
 import freemarker.template.TemplateException;
 import lombok.RequiredArgsConstructor;
 import org.pmw.tinylog.Logger;
@@ -24,7 +24,7 @@ class EmailNotificationSender {
 
     private final EmailNotificationRepository emailNotificationRepository;
     private final EmailTemplateService emailTemplateService;
-    private final SimpleMailService simpleMailService;
+    private final MailSender mailSender;
 
     @Scheduled(initialDelay = 10000, fixedDelay = 10000)
     public void sendNotificationsScheduled() {
@@ -49,7 +49,7 @@ class EmailNotificationSender {
         EmailTemplateService.EmailTemplate template = emailTemplateService.getTemplateLocalized(emailKey);
         String html = template.parseTemplate(model);
         emailNotificationRepository.updateStatus(emailNotification, EmailNotificationStatus.PROCESSING);
-        return simpleMailService.sendMimeMessage(emailNotification.getRecipient(), template.getSubject(), html);
+        return mailSender.send(emailNotification.getRecipient(), template.getSubject(), html);
     }
 
     private void markAsSend(EmailNotification emailNotification) {

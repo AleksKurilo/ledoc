@@ -1,4 +1,4 @@
-package dk.ledocsystem.service.impl.excel.model.equipments;
+package dk.ledocsystem.service.impl.excel.model.equipment;
 
 public class BorrowedEquipmentSheet extends AbstractEquipmentSheet {
 
@@ -11,7 +11,7 @@ public class BorrowedEquipmentSheet extends AbstractEquipmentSheet {
             "  concat(empl.first_name, ' ', empl.last_name) as responsibleReview,\n" +
             "  CASE when eloans.equipment_id NOTNULL then 'Loaned' ELSE 'Not loaned' end as loanStatus,\n" +
             "  status,\n" +
-            "  '<not_implemented>' as dueDATE,\n" +
+            "  main.equipment.next_review_date as dueDATE,\n" +
             "  main.suppliers.name as supplier,\n" +
             "  '<not_implemented>' as reviewStatus,\n" +
             "  '<not_implemented>' as must_be_reviewed,\n" +

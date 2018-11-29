@@ -14,6 +14,6 @@ public class LocationsSheet extends AbstractLocationsSheet {
 
     @Override
     public String getName() {
-        return "locations";
+        return "Locations";
     }
 }

@@ -1,4 +1,4 @@
-package dk.ledocsystem.service.impl.excel.model.equipments;
+package dk.ledocsystem.service.impl.excel.model.equipment;
 
 import dk.ledocsystem.service.impl.excel.model.Sheet;
 

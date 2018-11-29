@@ -2,7 +2,6 @@ package dk.ledocsystem.data.repository;
 
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.dsl.*;
-import dk.ledocsystem.data.projections.EmployeeDataExcel;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.employee.QEmployee;
 import dk.ledocsystem.data.model.security.UserAuthorities;
@@ -70,19 +69,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Loggi
     @Modifying
     @Query("delete from Employee e where e.id in ?1")
     void deleteByIdIn(Iterable<Long> ids);
-
-    /**
-     * Get list of employees with the given IDs.
-     *
-     * @param ids The collection of employee IDs.
-     */
-    List<Employee> findByIdIn(Iterable<Long> ids);
-
-    /**
-     * @param authorities List of authorities
-     * @return All {@link Employee} employees that contains given authorities
-     */
-    List<EmployeeDataExcel> findAllByAuthoritiesIn(List<UserAuthorities> authorities);
 
     /**
      * @return All employees eligible for review

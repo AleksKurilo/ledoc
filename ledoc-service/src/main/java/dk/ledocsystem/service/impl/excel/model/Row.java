@@ -7,5 +7,5 @@ import java.util.List;
 
 @Getter
 public class Row {
-    private List<Object> values = new ArrayList<>();
+    private List<String> values = new ArrayList<>();
 }

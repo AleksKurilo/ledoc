@@ -14,6 +14,6 @@ public class ArchivedLocationsSheet extends AbstractLocationsSheet {
 
     @Override
     public String getName() {
-        return "archived";
+        return "Archived locations";
     }
 }

@@ -7,7 +7,7 @@ import com.google.api.client.util.Base64;
 import com.google.api.client.util.ExponentialBackOff;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Message;
-import dk.ledocsystem.service.api.SimpleMailService;
+import dk.ledocsystem.service.api.MailSender;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -25,13 +25,13 @@ import java.nio.charset.StandardCharsets;
 
 @Service
 @RequiredArgsConstructor
-class SimpleMailServiceImpl implements SimpleMailService {
+class MailSenderImpl implements MailSender {
     private final JavaMailSender javaMailSender;
     private final Gmail gmail;
 
     @Async
     @Override
-    public ListenableFuture<HttpResponse> sendMimeMessage(@NonNull String to, String subject, @NonNull String body) {
+    public ListenableFuture<HttpResponse> send(@NonNull String to, String subject, @NonNull String body) {
         try {
             MimeMessage mimeMessage = createMimeMessage(to, subject, body);
             Message gmailEmail = createGmailEmail(mimeMessage);
