@@ -12,7 +12,7 @@ import javax.validation.constraints.Size;
 public class EmployeeCreateDTO extends EmployeeDTO {
 
     @NotNull
-    @Size(min = 3, max = 40)
+    @Size(min = 5, max = 40)
     @OnlyAscii
     private String password;
 

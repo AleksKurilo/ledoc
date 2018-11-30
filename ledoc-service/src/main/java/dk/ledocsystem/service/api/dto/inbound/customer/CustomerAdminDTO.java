@@ -20,7 +20,7 @@ public class CustomerAdminDTO {
     private String username;
 
     @NotNull
-    @Size(min = 3, max = 40)
+    @Size(min = 5, max = 40)
     @OnlyAscii
     private String password;
 
@@ -37,7 +37,7 @@ public class CustomerAdminDTO {
     @OnlyAscii
     private String lastName;
 
-    @Size(min = 3, max = 40)
+    @Size(min = 1, max = 40)
     private String idNumber;
 
     @Size(min = 2, max = 40)

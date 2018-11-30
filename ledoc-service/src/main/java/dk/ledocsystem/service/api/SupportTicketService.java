@@ -14,7 +14,7 @@ public interface SupportTicketService {
     /**
      * Send email to responsible person and create ticket
      *
-     * @param supportTicketDTO Data required to reset password
+     * @param supportTicketDTO Data required to create support ticket
      */
     void createSupportTicket(SupportTicketDTO supportTicketDTO);
 }
