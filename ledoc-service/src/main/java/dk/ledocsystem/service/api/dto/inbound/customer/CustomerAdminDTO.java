@@ -2,6 +2,7 @@ package dk.ledocsystem.service.api.dto.inbound.customer;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.ledocsystem.service.api.validation.OnlyAscii;
+import dk.ledocsystem.service.api.validation.Password;
 import dk.ledocsystem.service.api.validation.PhoneNumber;
 import dk.ledocsystem.service.api.dto.inbound.employee.*;
 import lombok.Data;
@@ -20,8 +21,7 @@ public class CustomerAdminDTO {
     private String username;
 
     @NotNull
-    @Size(min = 3, max = 40)
-    @OnlyAscii
+    @Password
     private String password;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
@@ -37,7 +37,7 @@ public class CustomerAdminDTO {
     @OnlyAscii
     private String lastName;
 
-    @Size(min = 3, max = 40)
+    @Size(min = 1, max = 40)
     private String idNumber;
 
     @Size(min = 2, max = 40)

@@ -1,7 +1,6 @@
 package dk.ledocsystem.service.impl.events.event_listener;
 
 import dk.ledocsystem.data.model.employee.Employee;
-import dk.ledocsystem.data.repository.EmailNotificationRepository;
 import dk.ledocsystem.service.api.EmployeeLogService;
 import dk.ledocsystem.service.impl.events.event.EntityEvents;
 import lombok.AllArgsConstructor;
@@ -13,7 +12,6 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @AllArgsConstructor
 public class EmployeeEventListener {
     private final EmployeeLogService employeeLogService;
-    private final EmailNotificationRepository emailNotificationRepository;
 
     @Async
     @TransactionalEventListener(condition = "#event.saveLog")

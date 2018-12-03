@@ -21,7 +21,7 @@ import javax.validation.constraints.Pattern;
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
 @ReportAsSingleViolation
-@Pattern(regexp = "^\\+?[\\s0-9()-]{5,20}$")
+@Pattern(regexp = "^\\+?[\\s0-9()-]{8,20}$")
 public @interface PhoneNumber {
     String message() default "";
 
