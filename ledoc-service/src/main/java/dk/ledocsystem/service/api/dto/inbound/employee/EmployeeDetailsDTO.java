@@ -1,6 +1,6 @@
 package dk.ledocsystem.service.api.dto.inbound.employee;
 
-import dk.ledocsystem.service.api.validation.OnlyAscii;
+import dk.ledocsystem.service.api.validation.NonCyrillic;
 import dk.ledocsystem.service.api.validation.review.ReviewDetails;
 import lombok.Data;
 
@@ -11,7 +11,7 @@ import java.time.Period;
 @ReviewDetails
 public class EmployeeDetailsDTO {
 
-    @OnlyAscii
+    @NonCyrillic
     @Size(max = 400)
     private String comment;
 

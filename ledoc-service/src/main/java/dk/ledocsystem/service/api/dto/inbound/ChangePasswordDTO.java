@@ -1,6 +1,6 @@
 package dk.ledocsystem.service.api.dto.inbound;
 
-import dk.ledocsystem.service.api.validation.OnlyAscii;
+import dk.ledocsystem.service.api.validation.NonCyrillic;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
@@ -11,7 +11,7 @@ public class ChangePasswordDTO {
 
     @NotNull
     @Size(min = 3, max = 40)
-    @OnlyAscii
+    @NonCyrillic
     private String newPassword;
 
 }

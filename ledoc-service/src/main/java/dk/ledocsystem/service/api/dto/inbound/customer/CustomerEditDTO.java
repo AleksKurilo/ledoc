@@ -1,6 +1,6 @@
 package dk.ledocsystem.service.api.dto.inbound.customer;
 
-import dk.ledocsystem.service.api.validation.OnlyAscii;
+import dk.ledocsystem.service.api.validation.NonCyrillic;
 import dk.ledocsystem.service.api.validation.PhoneNumber;
 import lombok.Data;
 
@@ -15,11 +15,11 @@ public class CustomerEditDTO {
     @NotNull
     private Long id;
 
-    @OnlyAscii
+    @NonCyrillic
     @Size(min = 3, max = 40)
     private String name;
 
-    @OnlyAscii
+    @NonCyrillic
     @Size(min = 3, max = 40)
     private String cvr;
 

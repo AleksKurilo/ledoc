@@ -1,6 +1,6 @@
 package dk.ledocsystem.service.api.dto.inbound.equipment;
 
-import dk.ledocsystem.service.api.validation.OnlyAscii;
+import dk.ledocsystem.service.api.validation.NonCyrillic;
 import dk.ledocsystem.service.api.validation.review.ReviewDetails;
 import dk.ledocsystem.data.model.equipment.ApprovalType;
 import dk.ledocsystem.data.model.equipment.Status;
@@ -22,11 +22,11 @@ public class EquipmentDTO {
 
     @NotNull
     @Size(min = 3, max = 40)
-    @OnlyAscii
+    @NonCyrillic
     private String name;
 
     @Size(min = 3, max = 40)
-    @OnlyAscii
+    @NonCyrillic
     private String idNumber;
 
     private Long authTypeId;
@@ -50,18 +50,18 @@ public class EquipmentDTO {
     private Status status;
 
     @Size(min = 3, max = 40)
-    @OnlyAscii
+    @NonCyrillic
     private String manufacturer;
 
     @PastOrPresent
     private LocalDate purchaseDate = LocalDate.now();
 
     @Size(min = 3, max = 40)
-    @OnlyAscii
+    @NonCyrillic
     private String serialNumber;
 
     @Size(min = 3, max = 40)
-    @OnlyAscii
+    @NonCyrillic
     private String localId;
 
     @FutureOrPresent
@@ -71,7 +71,7 @@ public class EquipmentDTO {
     private BigDecimal price;
 
     @Size(max = 400)
-    @OnlyAscii
+    @NonCyrillic
     private String comment;
 
     private String avatar;

@@ -1,6 +1,6 @@
 package dk.ledocsystem.service.api.dto.inbound.employee;
 
-import dk.ledocsystem.service.api.validation.OnlyAscii;
+import dk.ledocsystem.service.api.validation.NonCyrillic;
 import dk.ledocsystem.service.api.validation.PhoneNumber;
 import lombok.Data;
 
@@ -33,7 +33,7 @@ public class EmployeePersonalInfoDTO {
 
     private LocalDate dayOfEmployment;
 
-    @OnlyAscii
+    @NonCyrillic
     @Size(max = 400)
     private String comment;
 }

@@ -1,6 +1,6 @@
 package dk.ledocsystem.service.api.dto.inbound.location;
 
-import dk.ledocsystem.service.api.validation.OnlyAscii;
+import dk.ledocsystem.service.api.validation.NonCyrillic;
 import dk.ledocsystem.service.api.validation.location.LocationCreator;
 import dk.ledocsystem.data.model.LocationType;
 import lombok.AccessLevel;
@@ -30,7 +30,7 @@ public class LocationDTO {
 
     @NotNull
     @Size(min = 3, max = 40)
-    @OnlyAscii
+    @NonCyrillic
     private String name;
 
     private Long responsibleId;

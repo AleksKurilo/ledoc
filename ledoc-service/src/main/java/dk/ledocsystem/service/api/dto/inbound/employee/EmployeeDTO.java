@@ -1,7 +1,7 @@
 package dk.ledocsystem.service.api.dto.inbound.employee;
 
 
-import dk.ledocsystem.service.api.validation.OnlyAscii;
+import dk.ledocsystem.service.api.validation.NonCyrillic;
 import dk.ledocsystem.service.api.validation.PhoneNumber;
 import lombok.Data;
 
@@ -24,12 +24,12 @@ public class EmployeeDTO {
 
     @NotNull
     @Size(min = 2, max = 40)
-    @OnlyAscii
+    @NonCyrillic
     private String firstName;
 
     @NotNull
     @Size(min = 2, max = 40)
-    @OnlyAscii
+    @NonCyrillic
     private String lastName;
 
     @Size(min = 3, max = 40)

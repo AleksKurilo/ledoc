@@ -1,6 +1,6 @@
 package dk.ledocsystem.service.api.dto.inbound.location;
 
-import dk.ledocsystem.service.api.validation.OnlyAscii;
+import dk.ledocsystem.service.api.validation.NonCyrillic;
 import dk.ledocsystem.data.model.AddressType;
 import lombok.Data;
 
@@ -12,7 +12,7 @@ import javax.validation.constraints.Size;
 public class AddressDTO {
 
     @NotNull
-    @OnlyAscii
+    @NonCyrillic
     @Size(min = 3, max = 40)
     private String street;
 
@@ -25,16 +25,16 @@ public class AddressDTO {
     private String postalCode;
 
     @NotNull
-    @OnlyAscii
+    @NonCyrillic
     @Size(min = 3, max = 40)
     private String city;
 
     @NotNull
-    @OnlyAscii
+    @NonCyrillic
     @Size(min = 3, max = 40)
     private String country;
 
-    @OnlyAscii
+    @NonCyrillic
     @Size(min = 3, max = 40)
     private String district;
 

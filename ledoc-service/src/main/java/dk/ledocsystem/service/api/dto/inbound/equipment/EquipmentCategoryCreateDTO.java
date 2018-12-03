@@ -1,6 +1,6 @@
 package dk.ledocsystem.service.api.dto.inbound.equipment;
 
-import dk.ledocsystem.service.api.validation.OnlyAscii;
+import dk.ledocsystem.service.api.validation.NonCyrillic;
 import dk.ledocsystem.service.api.validation.equipment.category.UniqueCategoryNameDa;
 import dk.ledocsystem.service.api.validation.equipment.category.UniqueCategoryNameEn;
 import lombok.Getter;
@@ -12,11 +12,11 @@ import java.time.Period;
 @Setter
 public class EquipmentCategoryCreateDTO {
 
-    @OnlyAscii
+    @NonCyrillic
     @UniqueCategoryNameEn
     private String nameEn;
 
-    @OnlyAscii
+    @NonCyrillic
     @UniqueCategoryNameDa
     private String nameDa;
 

@@ -1,6 +1,6 @@
 package dk.ledocsystem.service.api.dto.inbound.employee;
 
-import dk.ledocsystem.service.api.validation.OnlyAscii;
+import dk.ledocsystem.service.api.validation.NonCyrillic;
 import dk.ledocsystem.service.api.validation.PhoneNumber;
 import lombok.Data;
 
@@ -10,15 +10,15 @@ import javax.validation.constraints.Size;
 @Data
 public class EmployeeNearestRelativesDTO {
 
-    @OnlyAscii
+    @NonCyrillic
     @Size(min = 2, max = 40)
     private String firstName;
 
-    @OnlyAscii
+    @NonCyrillic
     @Size(min = 2, max = 40)
     private String lastName;
 
-    @OnlyAscii
+    @NonCyrillic
     @Size(max = 400)
     private String comment;
 

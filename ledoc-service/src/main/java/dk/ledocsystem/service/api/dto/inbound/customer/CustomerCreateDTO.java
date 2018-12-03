@@ -1,6 +1,6 @@
 package dk.ledocsystem.service.api.dto.inbound.customer;
 
-import dk.ledocsystem.service.api.validation.OnlyAscii;
+import dk.ledocsystem.service.api.validation.NonCyrillic;
 import dk.ledocsystem.service.api.validation.PhoneNumber;
 import dk.ledocsystem.service.api.validation.customer.UniqueCVR;
 import dk.ledocsystem.service.api.validation.customer.UniqueName;
@@ -19,13 +19,13 @@ public class CustomerCreateDTO {
 
     @NotNull
     @UniqueName
-    @OnlyAscii
+    @NonCyrillic
     @Size(min = 3, max = 40)
     private String name;
 
     @NotNull
     @UniqueCVR
-    @OnlyAscii
+    @NonCyrillic
     @Size(min = 3, max = 40)
     private String cvr;
 

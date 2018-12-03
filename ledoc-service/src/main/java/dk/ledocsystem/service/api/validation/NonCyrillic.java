@@ -14,15 +14,15 @@ import javax.validation.constraints.Pattern;
 
 
 /**
- * The annotated {@link CharSequence} must contain only ASCII characters.
+ * The annotated {@link CharSequence} mustn't contain Cyrillic characters.
  */
 @Documented
 @Constraint(validatedBy = {})
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
 @ReportAsSingleViolation
-@Pattern(regexp = "^\\p{ASCII}*$")
-public @interface OnlyAscii {
+@Pattern(regexp = "^(\\p{L})([^\\p{InCYRILLIC}])*$")
+public @interface NonCyrillic {
     String message() default "";
 
     Class<?>[] groups() default {};

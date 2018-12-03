@@ -1,7 +1,7 @@
 package dk.ledocsystem.service.api.dto.inbound.customer;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import dk.ledocsystem.service.api.validation.OnlyAscii;
+import dk.ledocsystem.service.api.validation.NonCyrillic;
 import dk.ledocsystem.service.api.validation.Password;
 import dk.ledocsystem.service.api.validation.PhoneNumber;
 import dk.ledocsystem.service.api.dto.inbound.employee.*;
@@ -29,12 +29,12 @@ public class CustomerAdminDTO {
 
     @NotNull
     @Size(min = 2, max = 40)
-    @OnlyAscii
+    @NonCyrillic
     private String firstName;
 
     @NotNull
     @Size(min = 2, max = 40)
-    @OnlyAscii
+    @NonCyrillic
     private String lastName;
 
     @Size(min = 1, max = 40)
