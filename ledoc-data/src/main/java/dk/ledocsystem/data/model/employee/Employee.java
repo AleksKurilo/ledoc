@@ -121,7 +121,7 @@ public class Employee implements Visitable {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Employee creator;
 
-    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "employee", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
     private Set<FollowedEmployees> followedEmployees;
 
     @OneToMany(mappedBy = "employee")

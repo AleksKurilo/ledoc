@@ -128,7 +128,7 @@ public class Equipment implements Visitable {
     @OneToOne(mappedBy = "equipment", cascade = CascadeType.ALL, orphanRemoval = true)
     private EquipmentLoan loan;
 
-    @OneToMany(mappedBy = "equipment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "equipment", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
     private Set<FollowedEquipment> followedEquipments;
 
     public boolean isLoaned() {
