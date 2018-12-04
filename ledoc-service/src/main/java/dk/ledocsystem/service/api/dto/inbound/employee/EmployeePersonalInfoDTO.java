@@ -11,13 +11,17 @@ import java.time.LocalDate;
 @Data
 public class EmployeePersonalInfoDTO {
 
+    @NonCyrillic
     private String address;
 
     @Size(min = 1, max = 40)
+    @NonCyrillic
     private String buildingNo;
 
+    @NonCyrillic
     private String postalCode;
 
+    @NonCyrillic
     private String city;
 
     @PhoneNumber

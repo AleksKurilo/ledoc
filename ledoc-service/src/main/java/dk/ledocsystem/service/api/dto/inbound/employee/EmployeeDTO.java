@@ -36,6 +36,7 @@ public class EmployeeDTO {
     private String idNumber;
 
     @Size(min = 2, max = 40)
+    @NonCyrillic
     private String initials;
 
     @PhoneNumber
@@ -45,6 +46,7 @@ public class EmployeeDTO {
     private String phoneNumber;
 
     @Size(min = 2, max = 40)
+    @NonCyrillic
     private String title;
 
     private Long responsibleId;
