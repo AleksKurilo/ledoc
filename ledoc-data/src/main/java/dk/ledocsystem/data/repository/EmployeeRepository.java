@@ -6,6 +6,7 @@ import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.employee.QEmployee;
 import dk.ledocsystem.data.model.security.UserAuthorities;
 import dk.ledocsystem.data.projections.EmployeeSummary;
+import dk.ledocsystem.data.util.LocalDateMultiValueBinding;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -15,6 +16,7 @@ import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.querydsl.binding.SingleValueBinding;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -82,14 +84,23 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Loggi
 
     @Override
     default void customize(QuerydslBindings bindings, QEmployee root) {
-        bindings.including(root.archived, root.responsible.id, root.creator.id, root.authorities, root.username, root.firstName,
-                root.lastName, root.cellPhone, root.idNumber, root.initials, root.phoneNumber, root.title,
-                root.nearestRelative.email, root.nearestRelative.phoneNumber, root.personalInfo.personalMobile,
-                root.personalInfo.privateEmail,
+        bindings.including(root.archived, root.responsible.id, root.creator.id, root.authorities, root.username,
+                root.firstName, root.lastName, root.cellPhone, root.idNumber, root.initials, root.phoneNumber,
+                root.title, root.nearestRelative.email, root.nearestRelative.phoneNumber, root.details.nextReviewDate,
+                root.personalInfo.personalPhone, root.personalInfo.personalMobile, root.personalInfo.privateEmail,
+                root.personalInfo.dateOfBirth, root.personalInfo.dayOfEmployment,
                 ExpressionUtils.path(Employee.class, root, "locations.id"),
-                ExpressionUtils.path(String.class, root, "name"));
+                ExpressionUtils.path(String.class, root, "name"),
+                ExpressionUtils.path(String.class, root, "responsible.name"),
+                ExpressionUtils.path(String.class, root, "nearestRelative.name"));
         bindings.bind(ExpressionUtils.path(String.class, root, "name"))
                 .first((path, val) -> root.firstName.concat(" ").concat(root.lastName).containsIgnoreCase(val));
+        bindings.bind(ExpressionUtils.path(String.class, root.responsible, "name"))
+                .first((path, val) -> root.responsible.firstName.concat(" ").concat(root.responsible.lastName).containsIgnoreCase(val));
+        bindings.bind(ExpressionUtils.path(String.class, root.nearestRelative, "name"))
+                .first((path, val) -> root.nearestRelative.firstName.coalesce("").asString().concat(" ")
+                        .concat(root.nearestRelative.lastName.coalesce("")).containsIgnoreCase(val));
         bindings.bind(String.class).first((SingleValueBinding<StringPath, String>) StringExpression::containsIgnoreCase);
+        bindings.bind(LocalDate.class).all(new LocalDateMultiValueBinding());
     }
 }
