@@ -1,10 +1,7 @@
 package dk.ledocsystem.service.impl.excel;
 
-import dk.ledocsystem.service.impl.excel.model.ExportRequest;
 import dk.ledocsystem.service.api.ExcelExportService;
-import dk.ledocsystem.service.impl.excel.model.Row;
-import dk.ledocsystem.service.impl.excel.model.Sheet;
-import dk.ledocsystem.service.impl.excel.model.Table;
+import dk.ledocsystem.service.impl.excel.model.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -32,10 +29,21 @@ class ExcelExportServiceImpl implements ExcelExportService {
         sheets.forEach(sheet -> fillSheet(workbook, sheet));
     }
 
+    private void fillSheetsFromEntity(Workbook workbook, List<EntitySheet> sheets) {
+        sheets.forEach(sheet -> fillSheetFromEntity(workbook, sheet));
+    }
+
     @Override
     public Workbook exportSheet(Sheet sheet) {
         Workbook workbook = new XSSFWorkbook();
         fillSheet(workbook, sheet);
+        return workbook;
+    }
+
+    @Override
+    public Workbook exportWorkbook(List<EntitySheet> sheets) {
+        Workbook workbook = new XSSFWorkbook();
+        fillSheetsFromEntity(workbook, sheets);
         return workbook;
     }
 
@@ -45,6 +53,13 @@ class ExcelExportServiceImpl implements ExcelExportService {
 
         fillHeaders(excelSheet, sheet.getHeaders());
         fillRows(excelSheet, rows);
+    }
+
+    private void fillSheetFromEntity(Workbook workbook, EntitySheet sheet) {
+        org.apache.poi.ss.usermodel.Sheet excelSheet = workbook.createSheet(sheet.getName());
+
+        fillHeaders(excelSheet, sheet.getHeaders());
+        fillRowsFromEntity(excelSheet, sheet.getRows());
     }
 
     private void fillHeaders(org.apache.poi.ss.usermodel.Sheet sheet, List<String> headers) {
@@ -60,8 +75,20 @@ class ExcelExportServiceImpl implements ExcelExportService {
         }
     }
 
+    private void fillRowsFromEntity(org.apache.poi.ss.usermodel.Sheet sheet, List<List<String>> rows) {
+        for (int i = 0, size = rows.size(); i < size; i++) {
+            fillRowFromEntity(sheet.createRow(i + 1), rows.get(i));
+        }
+    }
+
     private void fillRow(org.apache.poi.ss.usermodel.Row excelRow, Row row) {
         List<String> values = row.getValues();
+        for (int i = 0, size = values.size(); i < size; i++) {
+            excelRow.createCell(i).setCellValue(values.get(i));
+        }
+    }
+
+    private void fillRowFromEntity(org.apache.poi.ss.usermodel.Row excelRow, List<String> values) {
         for (int i = 0, size = values.size(); i < size; i++) {
             excelRow.createCell(i).setCellValue(values.get(i));
         }

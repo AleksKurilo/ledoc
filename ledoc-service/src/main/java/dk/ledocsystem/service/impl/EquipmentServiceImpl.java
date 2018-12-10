@@ -14,16 +14,14 @@ import dk.ledocsystem.service.api.EquipmentService;
 import dk.ledocsystem.service.api.ReviewTemplateService;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.equipment.*;
+import dk.ledocsystem.service.api.dto.outbound.employee.EquipmentExportDTO;
 import dk.ledocsystem.service.api.dto.outbound.equipment.EquipmentEditDto;
 import dk.ledocsystem.service.api.dto.outbound.equipment.EquipmentPreviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.equipment.GetEquipmentDTO;
 import dk.ledocsystem.service.api.dto.outbound.equipment.GetFollowedEquipmentDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.service.impl.events.producer.EquipmentProducer;
-import dk.ledocsystem.service.impl.property_maps.equipment.EquipmentToEditDtoPropertyMap;
-import dk.ledocsystem.service.impl.property_maps.equipment.EquipmentToGetEquipmentDtoPropertyMap;
-import dk.ledocsystem.service.impl.property_maps.equipment.EquipmentToPreviewDtoPropertyMap;
-import dk.ledocsystem.service.impl.property_maps.equipment.FollowedEquipmentToGetFollowedEquipmentDtoMap;
+import dk.ledocsystem.service.impl.property_maps.equipment.*;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -69,6 +67,7 @@ class EquipmentServiceImpl implements EquipmentService {
         modelMapper.addMappings(new EquipmentToEditDtoPropertyMap());
         modelMapper.addMappings(new EquipmentToPreviewDtoPropertyMap());
         modelMapper.addMappings(new FollowedEquipmentToGetFollowedEquipmentDtoMap());
+        modelMapper.addMappings(new EquipmentToExportDtoMap());
     }
 
     @Override
@@ -307,6 +306,19 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<List<String>> getAllForExport(UserDetails creatorDetails, Predicate predicate, boolean isNew) {
+        Employee employee = employeeRepository.findByUsername(creatorDetails.getUsername()).orElseThrow(IllegalStateException::new);
+        Long customerId = employee.getCustomer().getId();
+        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
+        if (isNew) {
+            combinePredicate = ExpressionUtils.allOf(combinePredicate,
+                    ExpressionUtils.notIn(Expressions.constant(employee), QEquipment.equipment.visitedBy));
+        }
+        return equipmentRepository.findAll(combinePredicate).stream().map(this::mapToExportDto).map(EquipmentExportDTO::getFields).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Optional<EquipmentPreviewDTO> getPreviewDtoById(@NonNull Long equipmentId, boolean isSaveLog, UserDetails creatorDetails) {
         Employee creator = employeeRepository.findByUsername(creatorDetails.getUsername()).orElseThrow(IllegalStateException::new);
         Equipment equipment = equipmentRepository.findById(equipmentId)
@@ -352,6 +364,10 @@ class EquipmentServiceImpl implements EquipmentService {
 
     private GetFollowedEquipmentDTO mapToFollowDto(FollowedEquipment equipment) {
         return modelMapper.map(equipment, GetFollowedEquipmentDTO.class);
+    }
+
+    private EquipmentExportDTO mapToExportDto(Equipment equipment) {
+        return modelMapper.map(equipment, EquipmentExportDTO.class);
     }
 
     @Override
