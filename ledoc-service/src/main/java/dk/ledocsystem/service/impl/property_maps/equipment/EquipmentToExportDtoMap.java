@@ -15,22 +15,10 @@ public class EquipmentToExportDtoMap extends PropertyMap<Equipment, EquipmentExp
         map().setCategoryName(source.getCategory().getId().toString());
         map().setHomeLocation(source.getLocation().getName());
 
-//        Converter<EquipmentLoan, String> locationNameConverter = context -> context.getSource() == null ? source.getLocation().getName() :
-//                context.getSource().getLocation() == null ? source.getLocation().getName() : context.getSource().getLocation().getName();
+        Converter<Equipment, String> locationNameConverter = context -> context.getSource().getLoan() == null ? context.getSource().getLocation().getName() :
+                context.getSource().getLoan().getLocation() == null ? context.getSource().getLocation().getName() : context.getSource().getLoan().getLocation().getName();
 
-        Converter<EquipmentLoan, String> locationNameConverter = context -> {
-            if (context.getSource() == null) {
-                return source.getLocation().getName();
-            } else {
-                if (context.getSource().getLocation() == null) {
-                    return source.getLocation().getName();
-                } else {
-                    return context.getSource().getLocation().getName();
-                }
-            }
-        };
-
-        using(locationNameConverter).map(source.getLoan(), destination.getCurrentLocation());
+        using(locationNameConverter).map(source, destination.getCurrentLocation());
         map().setLoanStatus(source.getLoan() != null ? "Away" : "Home");
         map().setReviewResponsible("Coming soon");
         map().setSupplier(source.getSupplier().getName());
