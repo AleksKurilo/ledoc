@@ -1,10 +1,12 @@
 package dk.ledocsystem.data.repository;
 
+import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.core.types.dsl.StringPath;
 import dk.ledocsystem.data.model.equipment.Equipment;
 import dk.ledocsystem.data.model.equipment.QEquipment;
+import dk.ledocsystem.data.util.LocalDateMultiValueBinding;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -16,6 +18,7 @@ import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.querydsl.binding.SingleValueBinding;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface EquipmentRepository extends JpaRepository<Equipment, Long>, LoggingRepository<Equipment, Long>,
@@ -46,9 +49,14 @@ public interface EquipmentRepository extends JpaRepository<Equipment, Long>, Log
 
     @Override
     default void customize(QuerydslBindings bindings, QEquipment root) {
-        bindings.including(root.name, root.localId, root.location.name, root.status,
-                root.responsible.id, root.creator.id, root.archived, root.location.id,
-                root.category.id, root.authenticationType.id, root.loan.borrower.id);
+        bindings.including(root.name, root.localId, root.location.id, root.location.name, root.status, root.readyToLoan,
+                root.idNumber, root.serialNumber, root.manufacturer, root.purchaseDate, root.warrantyDate,
+                root.price, root.comment, root.responsible.id, root.creator.id, root.archived, root.category.id,
+                root.category.nameEn, root.authenticationType.id, root.authenticationType.nameEn, root.loan.borrower.id,
+                ExpressionUtils.path(String.class, root, "responsible.name"));
         bindings.bind(String.class).first((SingleValueBinding<StringPath, String>) StringExpression::containsIgnoreCase);
+        bindings.bind(ExpressionUtils.path(String.class, root.responsible, "name"))
+                .first((path, val) -> root.responsible.firstName.concat(" ").concat(root.responsible.lastName).containsIgnoreCase(val));
+        bindings.bind(LocalDate.class).all(new LocalDateMultiValueBinding());
     }
 }
