@@ -12,6 +12,8 @@ public final class ErrorMessageKey {
     public static final String CUSTOMER_NAME_IS_ALREADY_IN_USE = "UniqueName.dk.ledocsystem.service.api.dto.inbound.customer.CustomerCreateDTO.name";
     public static final String CVR_IS_ALREADY_IN_USE = "UniqueCVR.dk.ledocsystem.service.api.dto.inbound.customer.CustomerCreateDTO.cvr";
     public static final String DOCUMENT_ID_NOT_FOUND = "document.id.not.found";
+    public static final String DOCUMENT_CATEGORY_ID_NOT_FOUND = "document.category.id.not.found";
+    public static final String DOCUMENT_SUBCATEGORY_ID_NOT_FOUND = "document.subcategory.id.not.found";
     public static final String EMPLOYEE_ID_NOT_FOUND = "employee.id.not.found";
     public static final String EMPLOYEE_USERNAME_NOT_FOUND = "employee.username.not.found";
     public static final String EMPLOYEE_REVIEW_NOT_APPLICABLE = "employee.review.not.applicable";
