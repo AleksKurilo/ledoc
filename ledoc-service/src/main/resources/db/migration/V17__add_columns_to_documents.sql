@@ -1,10 +1,5 @@
---Script V16(2)
 
 ------------ create 'document_categories' table -------------------
-
--- Table: main.document_categories
-
--- DROP TABLE main.document_categories;
 
 CREATE TABLE main.document_categories
 (
@@ -24,10 +19,6 @@ CREATE TABLE main.document_categories
 
 ALTER TABLE main.document_categories
   OWNER to ledoc;
-
--- Index: document_categories_id_uindex
-
--- DROP INDEX main.document_categories_id_uindex;
 
 CREATE UNIQUE INDEX document_categories_id_uindex
   ON main.document_categories USING btree
@@ -94,32 +85,3 @@ create table main.documents
 
 alter table main.documents
   owner to ledoc;
-
------------------- 'location' add foring key to 'document'-------------
---
--- ALTER TABLE main.documents
---   ADD COLUMN location_id bigint;
---
--- ALTER TABLE main.documents
---   ADD FOREIGN KEY (location_id)
---     REFERENCES main.locations (id) MATCH SIMPLE
---     ON UPDATE NO ACTION
---     ON DELETE NO ACTION;
---
--- ALTER TABLE main.documents
---   ALTER COLUMN location_id SET NOT NULL;
-
------------------- 'trade' add foring key to 'document'-------------
-
---
--- ALTER TABLE main.documents
---   ADD COLUMN trade_id bigint;
---
--- ALTER TABLE main.documents
---   ADD FOREIGN KEY (trade_id)
---     REFERENCES main.trades (id) MATCH SIMPLE
---     ON UPDATE NO ACTION
---     ON DELETE NO ACTION;
---
--- ALTER TABLE main.documents
---   ALTER COLUMN trade_id SET NOT NULL;

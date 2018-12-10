@@ -40,37 +40,28 @@ public class Document {
     @ColumnDefault("false")
     private boolean archived;
 
-    @Column(name = "archive_reason")
     private String archiveReason;
 
-    @Column(name = "comment", length = 255)
+    @Column(length = 255)
     private String comment;
 
-    @Column(name = "type")
     @Enumerated(EnumType.STRING)
     private DocumentType type;
 
-    @Column(name = "source")
     @Enumerated(EnumType.STRING)
     private DocumentSource source;
 
-    @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private DocumentStatus status;
 
-    @Column(name = "private")
     private boolean personal;
 
-    @Column(name = "approval_rate")
     private Period approvalRate;
 
-    @Column(name = "next_review_date")
     private LocalDate nextReviewDate;
 
-    @Column(name = "create_on")
     private LocalDate createOn;
 
-    @Column(name = "last_update")
     private LocalDate lastUpdate;
 
     @OneToOne(fetch = FetchType.LAZY)
@@ -78,12 +69,10 @@ public class Document {
 
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
-    //@OnDelete(action = OnDeleteAction.CASCADE)
     private DocumentCategory category;
 
     @ManyToOne
     @JoinColumn(name = "subcategory_id", nullable = false)
-    //@OnDelete(action = OnDeleteAction.CASCADE)
     private DocumentSubcategory subcategory;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -104,7 +93,7 @@ public class Document {
     private Trade trade;
 
     @PrePersist
-    public void setreateOn() {
+    public void setCreateOn() {
         this.createOn = LocalDate.now();
     }
 
