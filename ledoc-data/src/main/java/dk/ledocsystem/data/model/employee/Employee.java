@@ -2,7 +2,6 @@ package dk.ledocsystem.data.model.employee;
 
 import dk.ledocsystem.data.model.Customer;
 import dk.ledocsystem.data.model.Location;
-import dk.ledocsystem.data.model.Visitable;
 import dk.ledocsystem.data.model.equipment.FollowedEquipment;
 import dk.ledocsystem.data.model.security.UserAuthorities;
 import lombok.*;
@@ -26,7 +25,7 @@ import java.util.Set;
 @ToString(of = {"username", "firstName", "lastName"})
 @DynamicInsert
 @DynamicUpdate
-public class Employee implements Visitable {
+public class Employee {
 
     @EqualsAndHashCode.Include
     @Id

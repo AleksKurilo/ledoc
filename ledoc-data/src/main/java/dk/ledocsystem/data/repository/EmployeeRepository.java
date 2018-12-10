@@ -20,8 +20,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-public interface EmployeeRepository extends JpaRepository<Employee, Long>, LoggingRepository<Employee, Long>,
-        QuerydslPredicateExecutor<Employee>, QuerydslBinderCustomizer<QEmployee> {
+public interface EmployeeRepository extends JpaRepository<Employee, Long>, QuerydslPredicateExecutor<Employee>,
+        QuerydslBinderCustomizer<QEmployee> {
 
     /**
      * Assigns the provided authorities to {@link Employee} with the given ID.

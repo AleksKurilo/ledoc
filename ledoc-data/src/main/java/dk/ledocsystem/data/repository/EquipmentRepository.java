@@ -21,8 +21,8 @@ import org.springframework.data.querydsl.binding.SingleValueBinding;
 import java.time.LocalDate;
 import java.util.List;
 
-public interface EquipmentRepository extends JpaRepository<Equipment, Long>, LoggingRepository<Equipment, Long>,
-        QuerydslPredicateExecutor<Equipment>, QuerydslBinderCustomizer<QEquipment> {
+public interface EquipmentRepository extends JpaRepository<Equipment, Long>, QuerydslPredicateExecutor<Equipment>,
+        QuerydslBinderCustomizer<QEquipment> {
 
     @EntityGraph(attributePaths = {"loan"})
     @Override
