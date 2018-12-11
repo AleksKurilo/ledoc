@@ -18,5 +18,5 @@ public interface DashboardService {
 
     Workbook exportExcelEmployees();
 
-    Workbook exportExcelEquipment(UserDetails currentUserDetails, Predicate predicate, boolean isNew, boolean isArchived) throws UnsupportedEncodingException;
+    Workbook exportExcelEquipment(UserDetails currentUserDetails, Predicate predicate, boolean isNew, boolean isArchived);
 }
