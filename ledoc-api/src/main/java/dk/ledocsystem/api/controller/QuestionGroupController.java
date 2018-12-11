@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.security.RolesAllowed;
 import java.util.Collection;
 
 @RestController
@@ -28,15 +29,16 @@ public class QuestionGroupController {
     private final CustomerService customerService;
 
     @GetMapping
-    public Iterable<QuestionGroup> getAllQuestionGroups(@CurrentUser UserDetails currentUser, Pageable pageable) {
-        Long customerId = getCustomerId(currentUser);
-        return questionGroupService.getAllByCustomer(customerId, pageable);
+    @RolesAllowed("super_admin")
+    public Iterable<QuestionGroup> getAllQuestionGroups(@QuerydslPredicate(root = QuestionGroup.class) Predicate predicate,
+                                                        Pageable pageable) {
+        return questionGroupService.getAll(predicate, pageable);
     }
 
-    @GetMapping("/filter")
-    public Iterable<QuestionGroup> getAllFilteredQuestionGroups(@CurrentUser UserDetails currentUser,
-                                                                @QuerydslPredicate(root = QuestionGroup.class) Predicate predicate,
-                                                                Pageable pageable) {
+    @GetMapping("/customer")
+    public Iterable<QuestionGroup> getAllQuestionGroupsByCustomer(@CurrentUser UserDetails currentUser,
+                                                                  @QuerydslPredicate(root = QuestionGroup.class) Predicate predicate,
+                                                                  Pageable pageable) {
         Long customerId = getCustomerId(currentUser);
         return questionGroupService.getAllByCustomer(customerId, predicate, pageable);
     }

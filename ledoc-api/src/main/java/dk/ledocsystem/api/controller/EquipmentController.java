@@ -37,25 +37,14 @@ public class EquipmentController {
     private final CustomerService customerService;
 
     @GetMapping
-    public Iterable<GetEquipmentDTO> getAllEquipments(@CurrentUser UserDetails currentUser, Pageable pageable) {
-        Long customerId = getCustomerId(currentUser);
-        return equipmentService.getAllByCustomer(customerId, pageable);
-    }
-
-    @GetMapping("/filter")
-    public Iterable<GetEquipmentDTO> getAllFilteredEquipments(@CurrentUser UserDetails currentUser,
-                                                              @QuerydslPredicate(root = Equipment.class) Predicate predicate,
-                                                              @PageableDefault(sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
+    public Iterable<GetEquipmentDTO> getAllEquipments(@CurrentUser UserDetails currentUser,
+                                                      @QuerydslPredicate(root = Equipment.class) Predicate predicate,
+                                                      @PageableDefault(sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
         Long customerId = getCustomerId(currentUser);
         return equipmentService.getAllByCustomer(customerId, predicate, pageable);
     }
 
     @GetMapping("/new")
-    public Iterable<GetEquipmentDTO> getNewEquipmentsForCurrentUser(@CurrentUser UserDetails currentUser, Pageable pageable) {
-        return equipmentService.getNewEquipment(currentUser, pageable);
-    }
-
-    @GetMapping("/new/filter")
     public Iterable<GetEquipmentDTO> getNewEquipmentsForCurrentUser(@CurrentUser UserDetails currentUser,
                                                                     @QuerydslPredicate(root = Equipment.class) Predicate predicate,
                                                                     Pageable pageable) {
