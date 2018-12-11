@@ -2,6 +2,7 @@ package dk.ledocsystem.service.impl;
 
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
+import dk.ledocsystem.data.model.review.Module;
 import dk.ledocsystem.data.model.review.QReviewTemplate;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
 import dk.ledocsystem.data.repository.ReviewTemplateRepository;
@@ -24,6 +25,9 @@ import java.util.function.Function;
 class ReviewTemplateServiceImpl implements ReviewTemplateService {
     private static final Function<Long, Predicate> CUSTOMER_EQUALS_TO =
             customerId -> ExpressionUtils.eqConst(QReviewTemplate.reviewTemplate.customer.id, customerId);
+    private static final Predicate ONLY_GLOBAL = QReviewTemplate.reviewTemplate.isGlobal.eq(true);
+    private static final Function<Module, Predicate> MODULE_EQUALS =
+            module -> ExpressionUtils.eqConst(QReviewTemplate.reviewTemplate.module, module);
 
     private final ReviewTemplateRepository reviewTemplateRepository;
 
@@ -75,6 +79,20 @@ class ReviewTemplateServiceImpl implements ReviewTemplateService {
     public Page<ReviewTemplate> getAllByCustomer(@NonNull Long customerId, Predicate predicate, @NonNull Pageable pageable) {
         Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
         return reviewTemplateRepository.findAll(combinePredicate, pageable);
+    }
+
+    @Override
+    public Page<ReviewTemplate> getAllGlobal(Predicate predicate, @NonNull Pageable pageable) {
+        Predicate combinePredicate = ExpressionUtils.and(predicate, ONLY_GLOBAL);
+        return getAll(combinePredicate, pageable);
+    }
+
+    @Override
+    public List<ReviewTemplate> getAllByModule(Long customerId, String moduleString) {
+        Module module = Module.fromString(moduleString);
+        Predicate combinePredicate = ExpressionUtils.and(MODULE_EQUALS.apply(module),
+                ExpressionUtils.or(ONLY_GLOBAL, CUSTOMER_EQUALS_TO.apply(customerId)));
+        return getAll(combinePredicate);
     }
 
     @Override

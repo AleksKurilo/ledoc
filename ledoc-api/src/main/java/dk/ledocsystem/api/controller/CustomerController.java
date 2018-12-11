@@ -34,7 +34,7 @@ public class CustomerController {
     }
 
     @GetMapping("/filter")
-    public Iterable<GetCustomerDTO> getAllFilteredEmployees(@QuerydslPredicate(root = Customer.class) Predicate predicate,
+    public Iterable<GetCustomerDTO> getAllFilteredCustomers(@QuerydslPredicate(root = Customer.class) Predicate predicate,
                                                             Pageable pageable) {
         return customerService.getAll(predicate, pageable);
     }
