@@ -1,6 +1,7 @@
 package dk.ledocsystem.api.controller;
 
 import dk.ledocsystem.api.config.security.CurrentUser;
+import dk.ledocsystem.service.api.CustomerService;
 import dk.ledocsystem.service.api.DocumentService;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.document.DocumentCategoryDTO;
@@ -10,6 +11,7 @@ import dk.ledocsystem.service.api.dto.outbound.document.GetDocumentDTO;
 import dk.ledocsystem.service.api.dto.outbound.document.GetDocumentSubcategoryDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +28,7 @@ import static dk.ledocsystem.service.impl.constant.ErrorMessageKey.DOCUMENT_ID_N
 public class DocumentController {
 
     private final DocumentService documentService;
+    private final CustomerService customerService;
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public GetDocumentDTO create(@RequestBody DocumentDTO documentDTO, @CurrentUser UserDetails currentUser) {
@@ -57,6 +60,12 @@ public class DocumentController {
     @GetMapping(path = "/equipmentId/{equipmentId}")
     public Set<GetDocumentDTO> getByEquipmentId(@PathVariable long equipmentId) {
         return documentService.getByEquipmentId(equipmentId);
+    }
+
+    @GetMapping
+    public Iterable<GetDocumentDTO> getAllDocument(@CurrentUser UserDetails currentUser, Pageable pageable) {
+        Long customerId = getCustomerId(currentUser);
+        return documentService.getAllByCustomer(customerId, pageable);
     }
 
     @DeleteMapping(path = "/{id}")
@@ -114,5 +123,9 @@ public class DocumentController {
     @DeleteMapping(path = "/category/subcategory/{id}")
     public void deleteSubcategory(@PathVariable Long id) {
         documentService.deleteSubcategory(id);
+    }
+
+    private Long getCustomerId(UserDetails user) {
+        return customerService.getByUsername(user.getUsername()).getId();
     }
 }
