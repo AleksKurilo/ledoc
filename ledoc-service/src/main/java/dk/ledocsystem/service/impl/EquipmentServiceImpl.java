@@ -309,7 +309,7 @@ class EquipmentServiceImpl implements EquipmentService {
     public List<List<String>> getAllForExport(UserDetails creatorDetails, Predicate predicate, boolean isNew) {
         Employee employee = employeeRepository.findByUsername(creatorDetails.getUsername()).orElseThrow(IllegalStateException::new);
         Long customerId = employee.getCustomer().getId();
-        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(102L));
+        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
         if (isNew) {
             combinePredicate = ExpressionUtils.allOf(combinePredicate,
                     ExpressionUtils.notIn(Expressions.constant(employee), QEquipment.equipment.visitedBy));
