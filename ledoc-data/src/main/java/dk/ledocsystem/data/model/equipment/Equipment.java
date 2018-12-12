@@ -135,11 +135,12 @@ public class Equipment {
     }
 
     @ManyToMany
-    @JoinTable(name = "equipment_log",
+    @JoinTable(name = "equipment_logs",
             joinColumns = { @JoinColumn(name = "equipment_id")},
             inverseJoinColumns = { @JoinColumn(name = "employee_id",
                     foreignKey = @ForeignKey(foreignKeyDefinition = "foreign key (employee_id) references employees on delete cascade")) })
     @OnDelete(action = OnDeleteAction.CASCADE)
+    @WhereJoinTable(clause = "type = 'Read' OR type = 'Archive'")
     private Set<Employee> visitedBy;
 
     public void setLoan(@NonNull EquipmentLoan equipmentLoan) {

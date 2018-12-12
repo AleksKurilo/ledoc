@@ -1,6 +1,7 @@
 package dk.ledocsystem.data.repository;
 
 import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.*;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.employee.QEmployee;
@@ -22,6 +23,8 @@ import java.util.Optional;
 
 public interface EmployeeRepository extends JpaRepository<Employee, Long>, QuerydslPredicateExecutor<Employee>,
         QuerydslBinderCustomizer<QEmployee> {
+
+    List<Employee> findAll(Predicate predicate);
 
     /**
      * Assigns the provided authorities to {@link Employee} with the given ID.

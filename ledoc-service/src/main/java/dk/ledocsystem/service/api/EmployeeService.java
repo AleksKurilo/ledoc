@@ -116,4 +116,6 @@ public interface EmployeeService extends CustomerBasedDomainService<GetEmployeeD
     void follow(Long employeeId, UserDetails currentUser, EmployeeFollowDTO employeeFollowDTO);
 
     List<GetFollowedEmployeeDTO> getFollowedEmployees(Long employeeId, Pageable pageable);
+
+    List<List<String>> getAllForExport(UserDetails user, Predicate predicate, boolean isNew);
 }

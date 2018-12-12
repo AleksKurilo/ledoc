@@ -102,11 +102,12 @@ public class Employee {
     private Set<UserAuthorities> authorities = new HashSet<>();
 
     @ManyToMany
-    @JoinTable(name = "employee_log",
-            joinColumns = {@JoinColumn(name = "visited_id")},
+    @JoinTable(name = "employee_logs",
+            joinColumns = {@JoinColumn(name = "target_employee_id")},
             inverseJoinColumns = {@JoinColumn(name = "employee_id",
                     foreignKey = @ForeignKey(foreignKeyDefinition = "foreign key (employee_id) references employees on delete cascade"))})
     @OnDelete(action = OnDeleteAction.CASCADE)
+    @WhereJoinTable(clause = "type = 'Read' OR type = 'Archive'")
     private Set<Employee> visitedBy;
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
