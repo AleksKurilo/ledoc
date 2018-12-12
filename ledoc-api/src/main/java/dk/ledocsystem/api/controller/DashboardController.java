@@ -16,8 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.annotation.security.RolesAllowed;
-import javax.servlet.http.HttpServletResponse;
-import java.io.UnsupportedEncodingException;
 import java.util.function.Supplier;
 
 @RestController
@@ -55,11 +53,11 @@ public class DashboardController {
     }
 
     @GetMapping("/export/equipment")
-    public ResponseEntity<StreamingResponseBody> exportEquipment(HttpServletResponse response, @CurrentUser UserDetails currentUser, @QuerydslPredicate(root = Equipment.class) Predicate predicate,
+    public ResponseEntity<StreamingResponseBody> exportEquipment(@CurrentUser UserDetails currentUser, @QuerydslPredicate(root = Equipment.class) Predicate predicate,
                                                                  @RequestParam(value = "new", required = false, defaultValue = "false") boolean isNew,
                                                                  @RequestParam(value = "isarchived", required = false, defaultValue = "false") boolean isArchived) {
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_TYPE, "application/vnd.ms-excel")
+                .header(HttpHeaders.CONTENT_TYPE, "application/ms-excel")
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"All equipment.xlsx\"")
                 .body(streamBody(() -> dashboardService.exportExcelEquipment(currentUser, predicate, isNew, isArchived)));
     }
