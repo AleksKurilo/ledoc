@@ -14,7 +14,8 @@ import dk.ledocsystem.service.api.*;
 import dk.ledocsystem.service.api.dto.outbound.employee.GetEmployeeDTO;
 import dk.ledocsystem.service.impl.excel.model.EntitySheet;
 import dk.ledocsystem.service.impl.excel.model.Sheet;
-import lombok.AllArgsConstructor;
+import dk.ledocsystem.service.impl.excel.model.employees.EmployeesEntitySheet;
+import dk.ledocsystem.service.impl.excel.model.equipment.EquipmentEntitySheet;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.data.domain.Pageable;
@@ -86,10 +87,10 @@ class DashboardServiceImpl implements DashboardService {
     public Workbook exportExcelEmployees(UserDetails currentUserDetails, Predicate predicate, boolean isNew, boolean isArchived) {
         List<EntitySheet> employeesSheets = new ArrayList<>();
         Predicate predicateForEmloyees = ExpressionUtils.and(predicate, EMPLOYEES_ARCHIVED.apply(false));
-        employeesSheets.add(new EmployeesSheet(currentUserDetails, predicateForEmloyees, isNew));
+        employeesSheets.add(new EmployeesEntitySheet(employeeService, currentUserDetails, predicateForEmloyees, isNew, "Employees"));
         if (isArchived) {
             Predicate predicateForArchived = ExpressionUtils.and(predicate, EMPLOYEES_ARCHIVED.apply(isArchived));
-            employeesSheets.add(new EmployeesSheet(currentUserDetails, predicateForArchived, isNew, "Archived"));
+            employeesSheets.add(new EmployeesEntitySheet(employeeService, currentUserDetails, predicateForArchived, isNew, "Archived"));
         }
         return excelExportService.exportWorkbook(employeesSheets);
     }
@@ -98,10 +99,10 @@ class DashboardServiceImpl implements DashboardService {
     public Workbook exportExcelEquipment(UserDetails currentUserDetails, Predicate predicate, boolean isNew, boolean isArchived) {
         List<EntitySheet> equipmentSheets = new ArrayList<>();
         Predicate predicateforEquipment = ExpressionUtils.and(predicate, EQUIPMENT_ARCHIVED.apply(false));
-        equipmentSheets.add(new EquipmentSheet(currentUserDetails, predicateforEquipment, isNew));
+        equipmentSheets.add(new EquipmentEntitySheet(equipmentService, currentUserDetails, predicateforEquipment, isNew, "Equipment"));
         if (isArchived) {
             Predicate predicateForArchived = ExpressionUtils.and(predicate, EQUIPMENT_ARCHIVED.apply(isArchived));
-            equipmentSheets.add(new EquipmentSheet(currentUserDetails, predicateForArchived, isNew, "Archived"));
+            equipmentSheets.add(new EquipmentEntitySheet(equipmentService, currentUserDetails, predicateForArchived, isNew, "Archived"));
         }
         return excelExportService.exportWorkbook(equipmentSheets);
     }
@@ -128,7 +129,7 @@ class DashboardServiceImpl implements DashboardService {
         }
     }
 
-    /*private static class EmployeesSheet implements Sheet {
+    private static class EmployeesSheet implements Sheet {
         private static final String QUERY = "select first_name, last_name, username " +
                 "from employees left outer join employee_authorities on employees.id=employee_authorities.employee_id " +
                 "where employee_authorities.authority in (?, ?)";
@@ -151,78 +152,6 @@ class DashboardServiceImpl implements DashboardService {
         @Override
         public Object[] getParams() {
             return new Object[] {UserAuthorities.USER.getCode(), UserAuthorities.ADMIN.getCode()};
-        }
-    }*/
-
-    @AllArgsConstructor
-    private class EquipmentSheet implements EntitySheet {
-
-        private UserDetails currentUserDetails;
-        private Predicate predicate;
-        private boolean isNew;
-        private String name;
-
-        public EquipmentSheet(UserDetails currentUserDetails, Predicate predicate, boolean isNew) {
-            this.currentUserDetails = currentUserDetails;
-            this.predicate = predicate;
-            this.isNew = isNew;
-            this.name = "Equipment";
-        }
-
-        @Override
-        public List<String> getHeaders() {
-            return Arrays.asList("NAME", "CATEGORY", "ID NUMBER", "SERIAL NUMBER", "HOME LOCATION", "CURRENT LOCATION",
-                    "REVIEW RESPONSIBLE", "LOAN STATUS", "STATUS", "DUE DATE", "SUPPLIER", "REVIEW STATUS",
-                    "MUST BE REVIEWED", "AUTHENTICATION TYPE", "RESPONSIBLE", "LOCAL ID");
-        }
-
-        @Override
-        public List<List<String>> getRows() {
-            return equipmentService.getAllForExport(currentUserDetails, predicate, isNew);
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-    }
-
-    @AllArgsConstructor
-    private class EmployeesSheet implements EntitySheet {
-
-        private UserDetails currentUserDetails;
-        private Predicate predicate;
-        private boolean isNew;
-        private String name;
-
-        public EmployeesSheet(UserDetails currentUserDetails, Predicate predicate, boolean isNew) {
-            this.currentUserDetails = currentUserDetails;
-            this.predicate = predicate;
-            this.isNew = isNew;
-            this.name = "Employees";
-        }
-
-        @Override
-        public List<String> getHeaders() {
-            return Arrays.asList("NAME", "TITLE", "USERNAME", "CELL_PHONE", "PHONE_NUMBER", "LOCATIONS");
-        }
-
-        @Override
-        public List<List<String>> getRows() {
-            return employeeService.getAllForExport(currentUserDetails, predicate, isNew);
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
         }
     }
 }
