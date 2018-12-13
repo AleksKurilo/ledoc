@@ -1,30 +1,20 @@
 
 ------------ create 'document_categories' table -------------------
 
-CREATE TABLE main.document_categories
+create table main.document_categories
 (
-  id        bigint                                              NOT NULL,
-  name      character varying(255) COLLATE pg_catalog."default" NOT NULL,
-  parent_id bigint,
-  CONSTRAINT document_categories_pk PRIMARY KEY (id),
-  CONSTRAINT parent_id FOREIGN KEY (parent_id)
-    REFERENCES main.document_categories (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE
-)
-  WITH (
-    OIDS = FALSE
-  )
-  TABLESPACE pg_default;
+  id   bigint       not null
+    constraint document_categories_pk
+      primary key,
+  name varchar(255) not null,
+  type varchar(25)  not null
+);
 
-ALTER TABLE main.document_categories
-  OWNER to ledoc;
+alter table main.document_categories
+  owner to ledoc;
 
-CREATE UNIQUE INDEX document_categories_id_uindex
-  ON main.document_categories USING btree
-    (id)
-  TABLESPACE pg_default;
-
+create unique index document_categories_id_uindex
+  on main.document_categories (id);
 -- auto-generated definition
 create sequence document_categories_seq
   increment by 50;
@@ -35,7 +25,7 @@ alter sequence document_categories_seq owner to ledoc;
 
 DROP table IF EXISTS main.documents CASCADE;
 
-create table main.documents
+create table documents
 (
   id               bigint                not null
     constraint documents_pkey
@@ -77,11 +67,14 @@ create table main.documents
   responsible_id   bigint
     constraint documents_responsible_id_fkey
       references employees,
+  creator_id       bigint                not null
+    constraint documents_creator_id_fkey
+      references employees,
   constraint documents_name_customer_unique
     unique (name, customer_id),
   constraint documents_check
     check ((equipment_id IS NOT NULL) OR (employee_id IS NOT NULL))
 );
 
-alter table main.documents
+alter table documents
   owner to ledoc;

@@ -4,11 +4,6 @@ import dk.ledocsystem.data.model.document.DocumentSource;
 import dk.ledocsystem.data.model.document.DocumentStatus;
 import dk.ledocsystem.data.model.document.DocumentType;
 import dk.ledocsystem.data.model.equipment.ApprovalType;
-import dk.ledocsystem.service.api.dto.inbound.document.DocumentCategoryDTO;
-import dk.ledocsystem.service.api.dto.inbound.document.DocumentSubcategoryDTO;
-import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeDTO;
-import dk.ledocsystem.service.api.dto.inbound.equipment.EquipmentDTO;
-import dk.ledocsystem.service.api.dto.inbound.location.LocationDTO;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -20,6 +15,8 @@ public class GetDocumentDTO {
     private Long id;
 
     private String name;
+
+    private String file;
 
     private String archiveReason;
 
@@ -39,17 +36,17 @@ public class GetDocumentDTO {
 
     private boolean personal;
 
-    private EmployeeDTO employee;
+    private String employee;
 
-    private EquipmentDTO equipment;
+    private String equipment;
 
-    private EmployeeDTO responsible;
+    private String responsible;
 
-    private DocumentCategoryDTO category;
+    private String category;
 
-    private DocumentSubcategoryDTO subcategory;
+    private String subcategory;
 
-    private LocationDTO location;
+    private String location;
 
     private LocalDate createOn;
 }

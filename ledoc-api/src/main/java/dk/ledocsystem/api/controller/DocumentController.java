@@ -1,17 +1,21 @@
 package dk.ledocsystem.api.controller;
 
+import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.api.config.security.CurrentUser;
+import dk.ledocsystem.data.model.document.Document;
+import dk.ledocsystem.data.model.document.DocumentCategoryType;
 import dk.ledocsystem.service.api.CustomerService;
 import dk.ledocsystem.service.api.DocumentService;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.document.DocumentCategoryDTO;
 import dk.ledocsystem.service.api.dto.inbound.document.DocumentDTO;
-import dk.ledocsystem.service.api.dto.inbound.document.DocumentSubcategoryDTO;
 import dk.ledocsystem.service.api.dto.outbound.document.GetDocumentDTO;
-import dk.ledocsystem.service.api.dto.outbound.document.GetDocumentSubcategoryDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.querydsl.binding.QuerydslPredicate;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -63,9 +67,11 @@ public class DocumentController {
     }
 
     @GetMapping
-    public Iterable<GetDocumentDTO> getAllDocument(@CurrentUser UserDetails currentUser, Pageable pageable) {
+    public Iterable<GetDocumentDTO> getAllDocument(@CurrentUser UserDetails currentUser,
+                                                   @QuerydslPredicate(root = Document.class) Predicate predicate,
+                                                   @PageableDefault(sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
         Long customerId = getCustomerId(currentUser);
-        return documentService.getAllByCustomer(customerId, pageable);
+        return documentService.getAllByCustomer(customerId, predicate, pageable);
     }
 
     @DeleteMapping(path = "/{id}")
@@ -76,6 +82,7 @@ public class DocumentController {
     @RolesAllowed("super_admin")
     @PostMapping(path = "/category")
     public DocumentCategoryDTO createCategory(@RequestBody DocumentCategoryDTO category) {
+        category.setType(DocumentCategoryType.CATEGORY);
         return documentService.createCategory(category);
     }
 
@@ -83,12 +90,23 @@ public class DocumentController {
     @PutMapping(path = "/category/{id}")
     public DocumentCategoryDTO updateCategory(@RequestBody DocumentCategoryDTO category, @PathVariable Long id) {
         category.setId(id);
+        category.setType(DocumentCategoryType.CATEGORY);
         return documentService.updateCategory(category);
     }
 
     @GetMapping(path = "/category/{id}")
     public DocumentCategoryDTO getCategory(@PathVariable Long id) {
         return documentService.getCategory(id);
+    }
+
+    @GetMapping(path = "/category")
+    public Set<DocumentCategoryDTO> getAllCategory() {
+        return documentService.getAllCategory();
+    }
+
+    @GetMapping(path = "/subcategory")
+    public Set<DocumentCategoryDTO> getAllSubCategory() {
+        return documentService.getAllSubcategory();
     }
 
     @RolesAllowed("super_admin")
@@ -98,31 +116,30 @@ public class DocumentController {
     }
 
     @RolesAllowed("super_admin")
-    @PostMapping(path = "/category/{categoryId}/subcategory")
-    public GetDocumentSubcategoryDTO createSubcategory(@RequestBody DocumentSubcategoryDTO subcategory, @PathVariable Long categoryId) {
-        subcategory.setCategoryId(categoryId);
-        return documentService.createSubcategory(subcategory);
+    @PostMapping(path = "/subcategory")
+    public DocumentCategoryDTO createSubcategory(@RequestBody DocumentCategoryDTO subcategory) {
+        subcategory.setType(DocumentCategoryType.SUBCATEGORY);
+        return documentService.createCategory(subcategory);
     }
 
     @RolesAllowed("super_admin")
-    @PutMapping(path = "/category/{categoryId}/subcategory/{id}")
-    public GetDocumentSubcategoryDTO updateSubcategory(@RequestBody DocumentSubcategoryDTO subcategory,
-                                                       @PathVariable Long id,
-                                                       @PathVariable Long categoryId) {
+    @PutMapping(path = "/subcategory/{id}")
+    public DocumentCategoryDTO updateSubcategory(@RequestBody DocumentCategoryDTO subcategory,
+                                                 @PathVariable Long id) {
         subcategory.setId(id);
-        subcategory.setCategoryId(categoryId);
-        return documentService.updateSubcategory(subcategory);
+        subcategory.setType(DocumentCategoryType.SUBCATEGORY);
+        return documentService.updateCategory(subcategory);
     }
 
-    @GetMapping(path = "/category/subcategory/{id}")
-    public GetDocumentSubcategoryDTO getSubcategory(@PathVariable Long id) {
-        return documentService.getSubcategory(id);
+    @GetMapping(path = "subcategory/{id}")
+    public DocumentCategoryDTO getSubcategory(@PathVariable Long id) {
+        return documentService.getCategory(id);
     }
 
     @RolesAllowed("super_admin")
-    @DeleteMapping(path = "/category/subcategory/{id}")
+    @DeleteMapping(path = "subcategory/{id}")
     public void deleteSubcategory(@PathVariable Long id) {
-        documentService.deleteSubcategory(id);
+        documentService.deleteCategory(id);
     }
 
     private Long getCustomerId(UserDetails user) {

@@ -54,6 +54,7 @@ public class Document {
     @Enumerated(EnumType.STRING)
     private DocumentStatus status;
 
+    @Column(name = "private")
     private boolean personal;
 
     private Period approvalRate;
@@ -67,13 +68,17 @@ public class Document {
     @OneToOne(fetch = FetchType.LAZY)
     private Employee responsible;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "creator_id", nullable = false)
+    private Employee creator;
+
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
     private DocumentCategory category;
 
     @ManyToOne
     @JoinColumn(name = "subcategory_id", nullable = false)
-    private DocumentSubcategory subcategory;
+    private DocumentCategory subcategory;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Employee employee;
