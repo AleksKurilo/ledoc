@@ -12,6 +12,7 @@ import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.security.RolesAllowed;
 import java.util.Collection;
 
 import static dk.ledocsystem.service.impl.constant.ErrorMessageKey.REVIEW_QUESTION_ID_NOT_FOUND;
@@ -25,15 +26,16 @@ public class ReviewQuestionController {
     private final CustomerService customerService;
 
     @GetMapping
-    public Iterable<ReviewQuestion> getAllReviewQuestions(@CurrentUser UserDetails currentUser, Pageable pageable) {
-        Long customerId = getCustomerId(currentUser);
-        return reviewQuestionService.getAllByCustomer(customerId, pageable);
+    @RolesAllowed("super_admin")
+    public Iterable<ReviewQuestion> getAllReviewQuestions(@QuerydslPredicate(root = ReviewQuestion.class) Predicate predicate,
+                                                          Pageable pageable) {
+        return reviewQuestionService.getAll(predicate, pageable);
     }
 
-    @GetMapping("/filter")
-    public Iterable<ReviewQuestion> getAllFilteredReviewQuestions(@CurrentUser UserDetails currentUser,
-                                                                  @QuerydslPredicate(root = ReviewQuestion.class) Predicate predicate,
-                                                                  Pageable pageable) {
+    @GetMapping("/customer")
+    public Iterable<ReviewQuestion> getAllReviewQuestionsByCustomer(@CurrentUser UserDetails currentUser,
+                                                                    @QuerydslPredicate(root = ReviewQuestion.class) Predicate predicate,
+                                                                    Pageable pageable) {
         Long customerId = getCustomerId(currentUser);
         return reviewQuestionService.getAllByCustomer(customerId, predicate, pageable);
     }

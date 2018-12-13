@@ -1,11 +1,11 @@
 package dk.ledocsystem.service.api;
 
 import com.querydsl.core.types.Predicate;
-import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
-import dk.ledocsystem.service.api.dto.inbound.equipment.*;
-import dk.ledocsystem.data.projections.IdAndLocalizedName;
 import dk.ledocsystem.data.model.equipment.AuthenticationType;
 import dk.ledocsystem.data.model.equipment.EquipmentCategory;
+import dk.ledocsystem.data.projections.IdAndLocalizedName;
+import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
+import dk.ledocsystem.service.api.dto.inbound.equipment.*;
 import dk.ledocsystem.service.api.dto.outbound.equipment.EquipmentPreviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.equipment.GetEquipmentDTO;
 import dk.ledocsystem.service.api.dto.outbound.equipment.GetFollowedEquipmentDTO;
@@ -66,4 +66,6 @@ public interface EquipmentService extends CustomerBasedDomainService<GetEquipmen
     void follow(Long equipmentId, UserDetails currentUser, EquipmentFollowDTO equipmentFollowDTO);
 
     List<GetFollowedEquipmentDTO> getFollowedEquipment(Long employeeId, Pageable pageable);
+
+    List<List<String>> getAllForExport(UserDetails user, Predicate predicate, boolean isNew);
 }

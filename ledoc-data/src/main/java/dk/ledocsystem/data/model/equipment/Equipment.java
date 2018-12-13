@@ -3,7 +3,6 @@ package dk.ledocsystem.data.model.equipment;
 import dk.ledocsystem.data.model.Customer;
 import dk.ledocsystem.data.model.Location;
 import dk.ledocsystem.data.model.Supplier;
-import dk.ledocsystem.data.model.Visitable;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
 import lombok.*;
@@ -27,7 +26,7 @@ import java.util.Set;
 @ToString(of = {"id", "name"})
 @DynamicInsert
 @DynamicUpdate
-public class Equipment implements Visitable {
+public class Equipment {
 
     @EqualsAndHashCode.Include
     @Id
@@ -136,11 +135,12 @@ public class Equipment implements Visitable {
     }
 
     @ManyToMany
-    @JoinTable(name = "equipment_log",
+    @JoinTable(name = "equipment_logs",
             joinColumns = { @JoinColumn(name = "equipment_id")},
             inverseJoinColumns = { @JoinColumn(name = "employee_id",
                     foreignKey = @ForeignKey(foreignKeyDefinition = "foreign key (employee_id) references employees on delete cascade")) })
     @OnDelete(action = OnDeleteAction.CASCADE)
+    @WhereJoinTable(clause = "type = 'Read' OR type = 'Archive'")
     private Set<Employee> visitedBy;
 
     public void setLoan(@NonNull EquipmentLoan equipmentLoan) {

@@ -41,15 +41,9 @@ public class EmployeeController {
     private final CustomerService customerService;
 
     @GetMapping
-    public Iterable<GetEmployeeDTO> getAllEmployees(@CurrentUser UserDetails currentUser, Pageable pageable) {
-        Long customerId = getCustomerId(currentUser);
-        return employeeService.getAllByCustomer(customerId, pageable);
-    }
-
-    @GetMapping("/filter")
-    public Iterable<GetEmployeeDTO> getAllFilteredEmployees(@CurrentUser UserDetails currentUser,
-                                                            @QuerydslPredicate(root = Employee.class) Predicate predicate,
-                                                            @PageableDefault(sort = "lastName", direction = Sort.Direction.ASC) Pageable pageable) {
+    public Iterable<GetEmployeeDTO> getAllEmployees(@CurrentUser UserDetails currentUser,
+                                                    @QuerydslPredicate(root = Employee.class) Predicate predicate,
+                                                    @PageableDefault(sort = "lastName", direction = Sort.Direction.ASC) Pageable pageable) {
         Long customerId = getCustomerId(currentUser);
         return employeeService.getAllByCustomer(customerId, predicate, pageable);
     }
@@ -61,11 +55,6 @@ public class EmployeeController {
     }
 
     @GetMapping("/new")
-    public Iterable<GetEmployeeDTO> getNewEmployeesForCurrentUser(@CurrentUser UserDetails currentUser, Pageable pageable) {
-        return employeeService.getNewEmployees(currentUser, pageable);
-    }
-
-    @GetMapping("/new/filter")
     public Iterable<GetEmployeeDTO> getNewEmployeesForCurrentUser(@CurrentUser UserDetails currentUser,
                                                                   @QuerydslPredicate(root = Employee.class) Predicate predicate,
                                                                   @PageableDefault(sort = "firstName", direction = Sort.Direction.ASC) Pageable pageable) {

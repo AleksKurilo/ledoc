@@ -28,4 +28,11 @@ public class EmployeeNearestRelative {
     @Column(name = "rel_phone_number", length = 25)
     private String phoneNumber;
 
+    public String getName() {
+        return (firstName == null && lastName == null) ? null
+                : (firstName == null) ? lastName
+                : (lastName == null) ? firstName
+                : firstName + " " + lastName;
+    }
+
 }

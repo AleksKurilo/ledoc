@@ -34,10 +34,7 @@ import dk.ledocsystem.service.api.dto.outbound.employee.*;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.service.api.exceptions.ReviewNotApplicableException;
 import dk.ledocsystem.service.impl.events.producer.EmployeeProducer;
-import dk.ledocsystem.service.impl.property_maps.employee.EmployeeToEditDtoPropertyMap;
-import dk.ledocsystem.service.impl.property_maps.employee.EmployeeToGetEmployeeDtoPropertyMap;
-import dk.ledocsystem.service.impl.property_maps.employee.EmployeeToPreviewDtoPropertyMap;
-import dk.ledocsystem.service.impl.property_maps.employee.FollowedEmployeesToGetFollowedEmployeesDtoMap;
+import dk.ledocsystem.service.impl.property_maps.employee.*;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -88,6 +85,7 @@ class EmployeeServiceImpl implements EmployeeService {
         modelMapper.addMappings(new EmployeeToEditDtoPropertyMap());
         modelMapper.addMappings(new EmployeeToPreviewDtoPropertyMap());
         modelMapper.addMappings(new FollowedEmployeesToGetFollowedEmployeesDtoMap());
+        modelMapper.addMappings(new EmployeeToExportDtoMap());
     }
 
     @Transactional
@@ -463,6 +461,19 @@ class EmployeeServiceImpl implements EmployeeService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<List<String>> getAllForExport(UserDetails creatorDetails, Predicate predicate, boolean isNew) {
+        Employee employee = employeeRepository.findByUsername(creatorDetails.getUsername()).orElseThrow(IllegalStateException::new);
+        Long customerId = employee.getCustomer().getId();
+        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
+        if (isNew) {
+            combinePredicate = ExpressionUtils.allOf(combinePredicate,
+                    ExpressionUtils.notIn(Expressions.constant(employee), QEmployee.employee.visitedBy));
+        }
+        return employeeRepository.findAll(combinePredicate).stream().map(this::mapToExportDto).map(EmployeeExportDTO::getFields).collect(Collectors.toList());
+    }
+
     @Transactional(readOnly = true)
     @Override
     public Optional<GetEmployeeDTO> getById(@NonNull Long id) {
@@ -503,6 +514,10 @@ class EmployeeServiceImpl implements EmployeeService {
 
     private GetFollowedEmployeeDTO mapToFollowDto(FollowedEmployees employee) {
         return modelMapper.map(employee, GetFollowedEmployeeDTO.class);
+    }
+
+    private EmployeeExportDTO mapToExportDto(Employee employee) {
+        return modelMapper.map(employee, EmployeeExportDTO.class);
     }
 
     @Override

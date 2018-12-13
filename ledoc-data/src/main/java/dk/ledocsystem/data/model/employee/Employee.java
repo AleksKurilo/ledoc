@@ -2,7 +2,6 @@ package dk.ledocsystem.data.model.employee;
 
 import dk.ledocsystem.data.model.Customer;
 import dk.ledocsystem.data.model.Location;
-import dk.ledocsystem.data.model.Visitable;
 import dk.ledocsystem.data.model.equipment.FollowedEquipment;
 import dk.ledocsystem.data.model.security.UserAuthorities;
 import lombok.*;
@@ -26,7 +25,7 @@ import java.util.Set;
 @ToString(of = {"username", "firstName", "lastName"})
 @DynamicInsert
 @DynamicUpdate
-public class Employee implements Visitable {
+public class Employee {
 
     @EqualsAndHashCode.Include
     @Id
@@ -103,11 +102,12 @@ public class Employee implements Visitable {
     private Set<UserAuthorities> authorities = new HashSet<>();
 
     @ManyToMany
-    @JoinTable(name = "employee_log",
-            joinColumns = {@JoinColumn(name = "visited_id")},
+    @JoinTable(name = "employee_logs",
+            joinColumns = {@JoinColumn(name = "target_employee_id")},
             inverseJoinColumns = {@JoinColumn(name = "employee_id",
                     foreignKey = @ForeignKey(foreignKeyDefinition = "foreign key (employee_id) references employees on delete cascade"))})
     @OnDelete(action = OnDeleteAction.CASCADE)
+    @WhereJoinTable(clause = "type = 'Read' OR type = 'Archive'")
     private Set<Employee> visitedBy;
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
