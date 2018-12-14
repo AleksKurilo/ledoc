@@ -46,8 +46,8 @@ public class DocumentController {
     }
 
     @PostMapping("/{documentId}/archive")
-    public void changeArchivedStatus(@PathVariable Long documentId, @RequestBody ArchivedStatusDTO archivedStatusDTO) {
-        documentService.changeArchivedStatus(documentId, archivedStatusDTO);
+    public void changeArchivedStatus(@PathVariable Long documentId, @RequestBody ArchivedStatusDTO archivedStatusDTO, @CurrentUser UserDetails currentUser) {
+        documentService.changeArchivedStatus(documentId, archivedStatusDTO, currentUser);
     }
 
     @GetMapping(path = "/{id}")
@@ -64,6 +64,13 @@ public class DocumentController {
     @GetMapping(path = "/equipmentId/{equipmentId}")
     public Set<GetDocumentDTO> getByEquipmentId(@PathVariable long equipmentId) {
         return documentService.getByEquipmentId(equipmentId);
+    }
+
+    @GetMapping("/new")
+    public Iterable<GetDocumentDTO> getNewEquipmentsForCurrentUser(@CurrentUser UserDetails currentUser,
+                                                                   @QuerydslPredicate(root = Document.class) Predicate predicate,
+                                                                   Pageable pageable) {
+        return documentService.getNewDocument(currentUser, pageable, predicate);
     }
 
     @GetMapping

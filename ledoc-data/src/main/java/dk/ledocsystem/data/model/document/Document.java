@@ -12,10 +12,12 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.WhereJoinTable;
 
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.Set;
 
 @Setter
 @Getter
@@ -96,6 +98,17 @@ public class Document {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Trade trade;
+
+    @ManyToMany
+    @JoinTable(name = "document_logs",
+            joinColumns = {@JoinColumn(name = "document_id")},
+            inverseJoinColumns = {@JoinColumn(name = "employee_id",
+                    foreignKey = @ForeignKey(foreignKeyDefinition = "foreign key (employee_id) references employees on delete cascade"))})
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @WhereJoinTable(clause = "type = 'Read' OR type = 'Archive'")
+    private Set<Employee> visitedBy;
+
+
 
     @PrePersist
     public void setCreateOn() {

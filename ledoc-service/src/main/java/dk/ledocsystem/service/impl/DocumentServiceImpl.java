@@ -2,12 +2,14 @@ package dk.ledocsystem.service.impl;
 
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.Expressions;
 import dk.ledocsystem.data.model.Customer;
 import dk.ledocsystem.data.model.Location;
 import dk.ledocsystem.data.model.Trade;
 import dk.ledocsystem.data.model.document.Document;
 import dk.ledocsystem.data.model.document.DocumentCategory;
 import dk.ledocsystem.data.model.document.DocumentCategoryType;
+import dk.ledocsystem.data.model.document.QDocument;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.employee.QEmployee;
 import dk.ledocsystem.data.model.equipment.Equipment;
@@ -18,6 +20,7 @@ import dk.ledocsystem.service.api.dto.inbound.document.DocumentCategoryDTO;
 import dk.ledocsystem.service.api.dto.inbound.document.DocumentDTO;
 import dk.ledocsystem.service.api.dto.outbound.document.GetDocumentDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
+import dk.ledocsystem.service.impl.events.producer.DocumentProducer;
 import dk.ledocsystem.service.impl.property_maps.document.DocumentToGetDocumentDtoPropertyMap;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
@@ -52,6 +55,8 @@ class DocumentServiceImpl implements DocumentService {
     private final DocumentCategoryRepository categoryRepository;
     private final LocationRepository locationRepository;
     private final TradeRepository tradeRepository;
+    private final DocumentProducer documentProducer;
+
     private final ModelMapper modelMapper;
     private final BaseValidator<DocumentDTO> documentDtoValidator;
     private final BaseValidator<DocumentCategoryDTO> categoryDtoValidator;
@@ -94,21 +99,21 @@ class DocumentServiceImpl implements DocumentService {
         }
 
         Long responsibleId = documentDTO.getResponsibleId();
-        Employee responsible = null;
-        if (responsibleId != null) {
-            responsible = employeeRepository.findById(responsibleId)
-                    .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
-        }
+        Employee responsible = employeeRepository.findById(responsibleId)
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
 
         Location location = locationRepository.findById(documentDTO.getLocationId())
-                .orElseThrow(() -> new NotFoundException(LOCATION_ID_NOT_FOUND, documentDTO.getSubcategoryId().toString()));
+                .orElseThrow(() -> new NotFoundException(LOCATION_ID_NOT_FOUND, documentDTO.getLocationId().toString()));
         Trade trade = tradeRepository.findById(documentDTO.getTradeId())
-                .orElseThrow(() -> new NotFoundException(LOCATION_ID_NOT_FOUND, documentDTO.getSubcategoryId().toString()));
+                .orElseThrow(() -> new NotFoundException(LOCATION_ID_NOT_FOUND, documentDTO.getTradeId().toString()));
 
         document.setResponsible(responsible);
         document.setLocation(location);
         document.setTrade(trade);
         setCategoryToDocument(document, documentDTO.getCategoryId(), documentDTO.getSubcategoryId());
+
+        documentProducer.create(document, creator);
+
         return mapToDto(documentRepository.save(document));
     }
 
@@ -124,13 +129,20 @@ class DocumentServiceImpl implements DocumentService {
 
     @Override
     @Transactional
-    public void changeArchivedStatus(@NonNull Long documentId, @NonNull ArchivedStatusDTO archivedStatusDTO) {
+    public void changeArchivedStatus(@NonNull Long documentId, @NonNull ArchivedStatusDTO archivedStatusDTO, UserDetails creatorDetails) {
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new NotFoundException(DOCUMENT_ID_NOT_FOUND, documentId.toString()));
+
+        Employee creator = employeeRepository.findByUsername(creatorDetails.getUsername()).orElseThrow(IllegalStateException::new);
 
         document.setArchived(archivedStatusDTO.isArchived());
         document.setArchiveReason(archivedStatusDTO.getArchiveReason());
         documentRepository.save(document);
+        if (archivedStatusDTO.isArchived()) {
+            documentProducer.archive(document, creator);
+        } else {
+            documentProducer.unarchive(document, creator);
+        }
     }
 
     @Override
@@ -143,6 +155,26 @@ class DocumentServiceImpl implements DocumentService {
     @Transactional(readOnly = true)
     public Set<GetDocumentDTO> getByEquipmentId(long equipmentId) {
         return documentRepository.findByEquipmentId(equipmentId).stream().map(this::mapToDto).collect(Collectors.toSet());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<GetDocumentDTO> getNewDocument(@NonNull UserDetails user, @NonNull Pageable pageable) {
+        return getNewDocument(user, pageable, null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<GetDocumentDTO> getNewDocument(@NonNull UserDetails user, @NonNull Pageable pageable, Predicate predicate) {
+        Employee employee = employeeRepository.findByUsername(user.getUsername())
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, user.getUsername()));
+        Long customerId = employee.getCustomer().getId();
+
+        Predicate newEquipmentPredicate = ExpressionUtils.allOf(
+                predicate,
+                QDocument.document.archived.eq(Boolean.FALSE),
+                ExpressionUtils.notIn(Expressions.constant(employee), QDocument.document.visitedBy));
+        return getAllByCustomer(customerId, newEquipmentPredicate, pageable);
     }
 
     @Override

@@ -78,3 +78,28 @@ create table documents
 
 alter table documents
   owner to ledoc;
+
+--------------- drop unused tables -------
+DROP table IF EXISTS main.employee_log CASCADE;
+DROP table IF EXISTS main.equipment_log CASCADE;
+
+
+------------------ create document_logs -----------
+create table main.document_logs
+(
+  id          bigint                              not null
+    constraint document_logs_pkey
+      primary key,
+  created     timestamp default CURRENT_TIMESTAMP not null,
+  employee_id bigint                              not null
+    constraint employee_logs_fk_1
+      references employees,
+  type        varchar(255)                        not null,
+  document_id bigint                              not null
+    constraint employee_logs_fk_2
+      references documents
+);
+
+alter table main.document_logs
+  owner to ledoc;
+
