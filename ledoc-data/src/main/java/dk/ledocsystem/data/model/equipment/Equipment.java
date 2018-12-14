@@ -130,10 +130,6 @@ public class Equipment {
     @OneToMany(mappedBy = "equipment", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
     private Set<FollowedEquipment> followedEquipments;
 
-    public boolean isLoaned() {
-        return loan != null;
-    }
-
     @ManyToMany
     @JoinTable(name = "equipment_logs",
             joinColumns = { @JoinColumn(name = "equipment_id")},

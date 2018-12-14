@@ -9,9 +9,10 @@ public class EquipmentToGetEquipmentDtoPropertyMap extends PropertyMap<Equipment
     @Override
     protected void configure() {
         map().setLocation(source.getLocation().getName());
-        map().setBorrowerAvatar(source.getLoan().getBorrower().getAvatar());
         map().setResponsible(source.getResponsible().getName());
         map().setCategory(source.getCategory().getNameEn());
         map().setAuthenticationType(source.getAuthenticationType().getNameEn());
+        map().getLoan().setBorrower(source.getLoan().getBorrower().getName());
+        map().getLoan().setBorrowerAvatar(source.getLoan().getBorrower().getAvatar());
     }
 }
