@@ -1,8 +1,12 @@
 package dk.ledocsystem.service.api;
 
+import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
-import dk.ledocsystem.service.api.dto.inbound.DocumentDTO;
-import dk.ledocsystem.service.api.dto.outbound.GetDocumentDTO;
+import dk.ledocsystem.service.api.dto.inbound.document.DocumentCategoryDTO;
+import dk.ledocsystem.service.api.dto.inbound.document.DocumentDTO;
+import dk.ledocsystem.service.api.dto.outbound.document.GetDocumentDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Set;
@@ -14,9 +18,25 @@ public interface DocumentService extends CustomerBasedDomainService<GetDocumentD
     /**
      * Changes the archived status according to data from {@code archivedStatusDTO}.
      */
-    void changeArchivedStatus(Long documentId, ArchivedStatusDTO archivedStatusDTO);
+    void changeArchivedStatus(Long documentId, ArchivedStatusDTO archivedStatusDTO, UserDetails creatorDetails);
 
     Set<GetDocumentDTO> getByEmployeeId(long employeeId);
 
     Set<GetDocumentDTO> getByEquipmentId(long equipmentId);
+
+    Page<GetDocumentDTO> getNewDocument(UserDetails user, Pageable pageable);
+
+    Page<GetDocumentDTO> getNewDocument(UserDetails user, Pageable pageable, Predicate predicate);
+
+    DocumentCategoryDTO createCategory(DocumentCategoryDTO category);
+
+    DocumentCategoryDTO updateCategory(DocumentCategoryDTO category);
+
+    DocumentCategoryDTO getCategory(Long id);
+
+    Set<DocumentCategoryDTO> getAllCategory();
+
+    Set<DocumentCategoryDTO> getAllSubcategory();
+
+    void deleteCategory(Long id);
 }

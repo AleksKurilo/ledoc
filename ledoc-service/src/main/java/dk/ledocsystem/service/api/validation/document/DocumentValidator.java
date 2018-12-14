@@ -1,6 +1,6 @@
 package dk.ledocsystem.service.api.validation.document;
 
-import dk.ledocsystem.service.api.dto.inbound.DocumentDTO;
+import dk.ledocsystem.service.api.dto.inbound.document.DocumentDTO;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
