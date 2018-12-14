@@ -2,6 +2,7 @@ package dk.ledocsystem.api.controller;
 
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.api.config.security.CurrentUser;
+import dk.ledocsystem.data.model.Document;
 import dk.ledocsystem.data.model.dashboard.Dashboard;
 import dk.ledocsystem.data.model.dashboard.SuperAdminStatistic;
 import dk.ledocsystem.data.model.equipment.Equipment;
@@ -65,6 +66,16 @@ public class DashboardController {
                 .header(HttpHeaders.CONTENT_TYPE, "application/ms-excel")
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"All employees.xlsx\"")
                 .body(streamBody(() -> dashboardService.exportExcelEmployees(currentUser, predicate, isNew, isArchived)));
+    }
+
+    @GetMapping("/export/documents")
+    public ResponseEntity<StreamingResponseBody> exportDocuments(@CurrentUser UserDetails currentUser, @QuerydslPredicate(root = Document.class) Predicate predicate,
+                                                                 @RequestParam(value = "new", required = false, defaultValue = "false") boolean isNew,
+                                                                 @RequestParam(value = "isarchived", required = false, defaultValue = "false") boolean isArchived) {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, "application/ms-excel")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"All documents.xlsx\"")
+                .body(streamBody(() -> dashboardService.exportExcelDocuments(currentUser, predicate, isNew, isArchived)));
     }
 
     private StreamingResponseBody streamBody(Supplier<Workbook> workbook) {

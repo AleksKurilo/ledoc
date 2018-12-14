@@ -2,6 +2,7 @@ package dk.ledocsystem.service.impl;
 
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
+import dk.ledocsystem.data.model.QDocument;
 import dk.ledocsystem.data.model.dashboard.Dashboard;
 import dk.ledocsystem.data.model.dashboard.SuperAdminStatistic;
 import dk.ledocsystem.data.model.dashboard.UserStat;
@@ -14,6 +15,7 @@ import dk.ledocsystem.service.api.*;
 import dk.ledocsystem.service.api.dto.outbound.employee.GetEmployeeDTO;
 import dk.ledocsystem.service.impl.excel.model.EntitySheet;
 import dk.ledocsystem.service.impl.excel.model.Sheet;
+import dk.ledocsystem.service.impl.excel.model.documents.DocumentsEntitySheet;
 import dk.ledocsystem.service.impl.excel.model.employees.EmployeesEntitySheet;
 import dk.ledocsystem.service.impl.excel.model.equipment.EquipmentEntitySheet;
 import lombok.RequiredArgsConstructor;
@@ -39,8 +41,12 @@ class DashboardServiceImpl implements DashboardService {
     private static final Function<Boolean, Predicate> EQUIPMENT_ARCHIVED =
             archived -> ExpressionUtils.eqConst(QEquipment.equipment.archived, archived);
 
+    private static final Function<Boolean, Predicate> DOCUMENTS_ARCHIVED =
+            archived -> ExpressionUtils.eqConst(QDocument.document.archived, archived);
+
     private final EmployeeService employeeService;
     private final EquipmentService equipmentService;
+    private final DocumentService documentService;
     private final LocationService locationService;
     private final EmployeeRepository employeeRepository;
     private final CustomerRepository customerRepository;
@@ -105,6 +111,18 @@ class DashboardServiceImpl implements DashboardService {
             equipmentSheets.add(new EquipmentEntitySheet(equipmentService, currentUserDetails, predicateForArchived, isNew, "Archived"));
         }
         return excelExportService.exportWorkbook(equipmentSheets);
+    }
+
+    @Override
+    public Workbook exportExcelDocuments(UserDetails currentUserDetails, Predicate predicate, boolean isNew, boolean isArchived) {
+        List<EntitySheet> documentSheets = new ArrayList<>();
+        Predicate predicateforDocuments = ExpressionUtils.and(predicate, DOCUMENTS_ARCHIVED.apply(false));
+        documentSheets.add(new DocumentsEntitySheet(documentService, currentUserDetails, predicateforDocuments, isNew, "Documents"));
+        if (isArchived) {
+            Predicate predicateForArchived = ExpressionUtils.and(predicate, DOCUMENTS_ARCHIVED.apply(isArchived));
+            documentSheets.add(new DocumentsEntitySheet(documentService, currentUserDetails, predicateForArchived, isNew, "Archived"));
+        }
+        return excelExportService.exportWorkbook(documentSheets);
     }
 
     private static class CustomersSheet implements Sheet {

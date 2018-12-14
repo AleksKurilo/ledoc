@@ -2,19 +2,22 @@ package dk.ledocsystem.service.impl;
 
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
-import dk.ledocsystem.data.repository.EmployeeRepository;
-import dk.ledocsystem.data.repository.EquipmentRepository;
-import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
-import dk.ledocsystem.service.api.dto.inbound.DocumentDTO;
-import dk.ledocsystem.service.api.dto.outbound.GetDocumentDTO;
-import dk.ledocsystem.service.api.exceptions.NotFoundException;
+import com.querydsl.core.types.dsl.Expressions;
 import dk.ledocsystem.data.model.Customer;
 import dk.ledocsystem.data.model.Document;
+import dk.ledocsystem.data.model.QDocument;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.employee.QEmployee;
 import dk.ledocsystem.data.model.equipment.Equipment;
 import dk.ledocsystem.data.repository.DocumentRepository;
+import dk.ledocsystem.data.repository.EmployeeRepository;
+import dk.ledocsystem.data.repository.EquipmentRepository;
 import dk.ledocsystem.service.api.DocumentService;
+import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
+import dk.ledocsystem.service.api.dto.inbound.DocumentDTO;
+import dk.ledocsystem.service.api.dto.outbound.GetDocumentDTO;
+import dk.ledocsystem.service.api.dto.outbound.document.DocumentExportDTO;
+import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -31,9 +34,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static dk.ledocsystem.service.impl.constant.ErrorMessageKey.DOCUMENT_ID_NOT_FOUND;
-import static dk.ledocsystem.service.impl.constant.ErrorMessageKey.EMPLOYEE_ID_NOT_FOUND;
-import static dk.ledocsystem.service.impl.constant.ErrorMessageKey.USER_NAME_NOT_FOUND;
+import static dk.ledocsystem.service.impl.constant.ErrorMessageKey.*;
 
 @Service
 @RequiredArgsConstructor
@@ -152,6 +153,19 @@ class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<List<String>> getAllForExport(UserDetails creatorDetails, Predicate predicate, boolean isNew) {
+        Employee employee = employeeRepository.findByUsername(creatorDetails.getUsername()).orElseThrow(IllegalStateException::new);
+        Long customerId = employee.getCustomer().getId();
+        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
+        if (isNew) {
+            combinePredicate = ExpressionUtils.allOf(combinePredicate,
+                    ExpressionUtils.notIn(Expressions.constant(employee), QDocument.document.visitedBy));
+        }
+        return documentRepository.findAll(combinePredicate).stream().map(this::mapToExportDto).map(DocumentExportDTO::getFields).collect(Collectors.toList());
+    }
+
+    @Override
     public Optional<GetDocumentDTO> getById(@NonNull Long id) {
         return documentRepository.findById(id).map(this::mapToDto);
     }
@@ -173,6 +187,10 @@ class DocumentServiceImpl implements DocumentService {
 
     private GetDocumentDTO mapToDto(Document document) {
         return modelMapper.map(document, GetDocumentDTO.class);
+    }
+
+    private DocumentExportDTO mapToExportDto(Document document) {
+        return modelMapper.map(document, DocumentExportDTO.class);
     }
 
     //endregion

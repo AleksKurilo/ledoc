@@ -17,4 +17,6 @@ public interface DashboardService {
     Workbook exportExcelEmployees(UserDetails currentUserDetails, Predicate predicate, boolean isNew, boolean isArchived);
 
     Workbook exportExcelEquipment(UserDetails currentUserDetails, Predicate predicate, boolean isNew, boolean isArchived);
+
+    Workbook exportExcelDocuments(UserDetails currentUserDetails, Predicate predicate, boolean isNew, boolean isArchived);
 }

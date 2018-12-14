@@ -1,17 +1,22 @@
 package dk.ledocsystem.data.repository;
 
 
+import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.data.model.Document;
+import dk.ledocsystem.data.model.equipment.Equipment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 
 public interface DocumentRepository extends JpaRepository<Document, Long>, QuerydslPredicateExecutor<Document> {
+
+    List<Document> findAll(Predicate predicate);
 
     Optional<Document> findById(long id);
 
