@@ -25,6 +25,8 @@ public interface DocumentRepository extends JpaRepository<Document, Long>, Query
 
     Set<Document> findByEquipmentId(long equipmentId);
 
+    boolean existsByNameAndCustomerId(String name, Long customerId);
+
     /**
      * Deletes documents with the given IDs.
      *

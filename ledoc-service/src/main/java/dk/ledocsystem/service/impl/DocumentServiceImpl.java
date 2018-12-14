@@ -69,19 +69,22 @@ class DocumentServiceImpl implements DocumentService {
     @Override
     @Transactional
     public GetDocumentDTO createOrUpdate(@NonNull DocumentDTO documentDTO, @NonNull UserDetails userDetails) {
-        documentDtoValidator.validate(documentDTO);
-
         Document document = modelMapper.map(documentDTO, Document.class);
         Customer customer = resolveCustomerByUsername(userDetails.getUsername());
+        documentDTO.setCustomerId(customer.getId());
+        documentDtoValidator.validate(documentDTO);
+
         document.setCustomer(customer);
         Employee creator = employeeRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, userDetails.getUsername()));
         document.setCreator(creator);
 
         Long documentId = documentDTO.getId();
+        Long responsibleExistId = null;
         if (documentId != null) {
-            documentRepository.findById(documentId)
+            Document documentExist = documentRepository.findById(documentId)
                     .orElseThrow(() -> new NotFoundException(DOCUMENT_ID_NOT_FOUND, documentId.toString()));
+            responsibleExistId = documentExist.getResponsible().getId();
         }
 
         Long employeeId = documentDTO.getEmployeeId();
@@ -112,8 +115,11 @@ class DocumentServiceImpl implements DocumentService {
         document.setTrade(trade);
         setCategoryToDocument(document, documentDTO.getCategoryId(), documentDTO.getSubcategoryId());
 
-        documentProducer.create(document, creator);
-
+        if (!responsibleId.equals(responsibleExistId)) {
+            documentProducer.edit(document, creator);
+        } else {
+            documentProducer.create(document, creator);
+        }
         return mapToDto(documentRepository.save(document));
     }
 
