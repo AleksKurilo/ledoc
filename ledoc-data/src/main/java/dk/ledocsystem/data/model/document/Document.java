@@ -5,6 +5,7 @@ import dk.ledocsystem.data.model.Location;
 import dk.ledocsystem.data.model.Trade;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.equipment.Equipment;
+import dk.ledocsystem.data.model.review.ReviewTemplate;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -92,6 +93,10 @@ public class Document {
     @JoinColumn(name = "customer_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Customer customer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "review_template_id")
+    private ReviewTemplate reviewTemplate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Location location;

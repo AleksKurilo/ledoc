@@ -9,6 +9,7 @@ import dk.ledocsystem.service.api.DocumentService;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.document.DocumentCategoryDTO;
 import dk.ledocsystem.service.api.dto.inbound.document.DocumentDTO;
+import dk.ledocsystem.service.api.dto.outbound.document.DocumentPreviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.document.GetDocumentDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +55,13 @@ public class DocumentController {
     public GetDocumentDTO getById(@PathVariable long id) {
         return documentService.getById(id)
                 .orElseThrow(() -> new NotFoundException(DOCUMENT_ID_NOT_FOUND, id));
+    }
+
+    @GetMapping("/{id}/preview")
+    public DocumentPreviewDTO getEquipmentByIdForPreview(@PathVariable Long id, @RequestParam(value = "savelog", required = false) boolean isSaveLog,
+                                                         @CurrentUser UserDetails currentUser) {
+        return documentService.getPreviewDtoById(id, isSaveLog, currentUser)
+                .orElseThrow(() -> new NotFoundException(DOCUMENT_ID_NOT_FOUND, id.toString()));
     }
 
     @GetMapping(path = "/employeeId/{employeeId}")
