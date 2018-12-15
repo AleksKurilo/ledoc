@@ -87,50 +87,50 @@ public class DocumentController {
     }
 
     @RolesAllowed("super_admin")
-    @PostMapping(path = "/category")
+    @PostMapping(path = "/categories")
     public DocumentCategoryDTO createCategory(@RequestBody DocumentCategoryDTO category) {
         category.setType(DocumentCategoryType.CATEGORY);
         return documentService.createCategory(category);
     }
 
     @RolesAllowed("super_admin")
-    @PutMapping(path = "/category/{id}")
+    @PutMapping(path = "/categories/{id}")
     public DocumentCategoryDTO updateCategory(@RequestBody DocumentCategoryDTO category, @PathVariable Long id) {
         category.setId(id);
         category.setType(DocumentCategoryType.CATEGORY);
         return documentService.updateCategory(category);
     }
 
-    @GetMapping(path = "/category/{id}")
+    @GetMapping(path = "/categories/{id}")
     public DocumentCategoryDTO getCategory(@PathVariable Long id) {
         return documentService.getCategory(id);
     }
 
-    @GetMapping(path = "/category")
+    @GetMapping(path = "/categories")
     public Set<DocumentCategoryDTO> getAllCategory() {
         return documentService.getAllCategory();
     }
 
-    @GetMapping(path = "/subcategory")
+    @GetMapping(path = "/subcategories")
     public Set<DocumentCategoryDTO> getAllSubCategory() {
         return documentService.getAllSubcategory();
     }
 
     @RolesAllowed("super_admin")
-    @DeleteMapping(path = "/category/{id}")
+    @DeleteMapping(path = "/categories/{id}")
     public void deleteCategory(@PathVariable Long id) {
         documentService.deleteCategory(id);
     }
 
     @RolesAllowed("super_admin")
-    @PostMapping(path = "/subcategory")
+    @PostMapping(path = "/subcategories")
     public DocumentCategoryDTO createSubcategory(@RequestBody DocumentCategoryDTO subcategory) {
         subcategory.setType(DocumentCategoryType.SUBCATEGORY);
         return documentService.createCategory(subcategory);
     }
 
     @RolesAllowed("super_admin")
-    @PutMapping(path = "/subcategory/{id}")
+    @PutMapping(path = "/subcategories/{id}")
     public DocumentCategoryDTO updateSubcategory(@RequestBody DocumentCategoryDTO subcategory,
                                                  @PathVariable Long id) {
         subcategory.setId(id);
@@ -138,13 +138,13 @@ public class DocumentController {
         return documentService.updateCategory(subcategory);
     }
 
-    @GetMapping(path = "subcategory/{id}")
+    @GetMapping(path = "subcategories/{id}")
     public DocumentCategoryDTO getSubcategory(@PathVariable Long id) {
         return documentService.getCategory(id);
     }
 
     @RolesAllowed("super_admin")
-    @DeleteMapping(path = "subcategory/{id}")
+    @DeleteMapping(path = "subcategories/{id}")
     public void deleteSubcategory(@PathVariable Long id) {
         documentService.deleteCategory(id);
     }

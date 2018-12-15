@@ -45,5 +45,4 @@ public class BaseValidator<T> {
     protected final Locale getLocale() {
         return LocaleContextHolder.getLocale();
     }
-
 }
