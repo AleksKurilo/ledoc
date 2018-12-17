@@ -1,5 +1,6 @@
 package dk.ledocsystem.data.model;
 
+import dk.ledocsystem.data.model.document.Document;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -33,4 +34,8 @@ public class Trade {
     @ManyToMany(mappedBy = "trades")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Customer> customer = new HashSet<>();
+
+    @ManyToMany(mappedBy = "trades")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Set<Document> documents;
 }

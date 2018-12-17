@@ -15,6 +15,7 @@ import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.employee.QEmployee;
 import dk.ledocsystem.data.model.equipment.Equipment;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
+import dk.ledocsystem.data.projections.IdAndLocalizedName;
 import dk.ledocsystem.data.repository.*;
 import dk.ledocsystem.service.api.DocumentService;
 import dk.ledocsystem.service.api.ReviewTemplateService;
@@ -40,6 +41,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -98,8 +100,8 @@ class DocumentServiceImpl implements DocumentService {
         assignDocumentToEquipmentOrEmployee(documentDTO, document);
 
         document.setCreator(creator);
-        document.setTrade(resolveTrade(documentDTO.getTradeId()));
-        document.setLocation(resolveLocation(documentDTO.getLocationId()));
+        document.setTrades(resolveTrade(documentDTO.getTradeIds()));
+        document.setLocations(resolveLocations(documentDTO.getLocationIds()));
         document.setCategory(resolveCategory(documentDTO.getCategoryId()));
         document.setResponsible(resolveResponsible(documentDTO.getResponsibleId()));
         document.setSubcategory(resolveSubcategory(documentDTO.getSubcategoryId()));
@@ -125,14 +127,12 @@ class DocumentServiceImpl implements DocumentService {
         }
     }
 
-    private Trade resolveTrade(@NonNull Long tradeId) {
-        return tradeRepository.findById(tradeId)
-                .orElseThrow(() -> new NotFoundException(LOCATION_ID_NOT_FOUND, tradeId.toString()));
+    private Set<Trade> resolveTrade(Set<Long> tradeIds) {
+        return new HashSet<>(tradeRepository.findAllById(tradeIds));
     }
 
-    private Location resolveLocation(@NonNull Long locationId) {
-        return locationRepository.findById(locationId)
-                .orElseThrow(() -> new NotFoundException(LOCATION_ID_NOT_FOUND, locationId.toString()));
+    private Set<Location> resolveLocations(Set<Long> locationIds) {
+        return new HashSet<>(locationRepository.findAllById(locationIds));
     }
 
     private DocumentCategory resolveCategory(@NonNull Long categoryId) {
@@ -253,15 +253,13 @@ class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
-    public List<DocumentCategoryDTO> getAllCategory() {
-        return categoryRepository.findAllByType(DocumentCategoryType.CATEGORY)
-                .stream().map(e -> modelMapper.map(e, DocumentCategoryDTO.class)).collect(Collectors.toList());
+    public List<IdAndLocalizedName> getAllCategory() {
+        return categoryRepository.findAllByType(DocumentCategoryType.CATEGORY);
     }
 
     @Override
-    public List<DocumentCategoryDTO> getAllSubcategory() {
-        return categoryRepository.findAllByType(DocumentCategoryType.SUBCATEGORY)
-                .stream().map(e -> modelMapper.map(e, DocumentCategoryDTO.class)).collect(Collectors.toList());
+    public List<IdAndLocalizedName> getAllSubcategory() {
+        return categoryRepository.findAllByType(DocumentCategoryType.SUBCATEGORY);
     }
 
     @Override

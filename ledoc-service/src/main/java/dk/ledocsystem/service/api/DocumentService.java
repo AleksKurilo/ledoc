@@ -1,6 +1,7 @@
 package dk.ledocsystem.service.api;
 
 import com.querydsl.core.types.Predicate;
+import dk.ledocsystem.data.projections.IdAndLocalizedName;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.document.DocumentCategoryDTO;
 import dk.ledocsystem.service.api.dto.inbound.document.DocumentDTO;
@@ -38,9 +39,9 @@ public interface DocumentService extends CustomerBasedDomainService<GetDocumentD
 
     DocumentCategoryDTO updateCategory(DocumentCategoryDTO category);
 
-    List<DocumentCategoryDTO> getAllCategory();
+    List<IdAndLocalizedName> getAllCategory();
 
-    List<DocumentCategoryDTO> getAllSubcategory();
+    List<IdAndLocalizedName> getAllSubcategory();
 
     void deleteCategory(Long id);
 

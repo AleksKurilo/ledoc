@@ -12,6 +12,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.Set;
 
 @Setter
 @Getter
@@ -66,10 +67,10 @@ public class DocumentDTO {
     private Long subcategoryId;
 
     @NotNull
-    private Long locationId;
+    private Set<Long> locationIds;
 
     @NotNull
-    private Long tradeId;
+    private Set<Long> tradeIds;
 
     private LocalDate createOn;
 

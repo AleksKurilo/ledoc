@@ -20,7 +20,11 @@ public class DocumentCategory {
     @SequenceGenerator(name = "document_categories_seq", sequenceName = "document_categories_seq")
     private Long id;
 
-    private String name;
+    @Column(name = "name_en", nullable = false, unique = true)
+    private String nameEn;
+
+    @Column(name = "name_da", nullable = false, unique = true)
+    private String nameDa;
 
     @Enumerated(EnumType.STRING)
     private DocumentCategoryType type;

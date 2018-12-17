@@ -98,11 +98,17 @@ public class Document {
     @JoinColumn(name = "review_template_id")
     private ReviewTemplate reviewTemplate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Location location;
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(name = "document_location",
+            joinColumns = {@JoinColumn(name = "document_id")},
+            inverseJoinColumns = {@JoinColumn(name = "location_id")})
+    private Set<Location> locations;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Trade trade;
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(name = "document_trade",
+            joinColumns = {@JoinColumn(name = "document_id")},
+            inverseJoinColumns = {@JoinColumn(name = "trade_id")})
+    private Set<Trade> trades;
 
     @ManyToMany
     @JoinTable(name = "document_logs",

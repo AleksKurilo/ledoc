@@ -8,6 +8,7 @@ import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.Set;
 
 @Data
 public class DocumentPreviewDTO {
@@ -46,7 +47,7 @@ public class DocumentPreviewDTO {
 
     private String subcategoryName;
 
-    private String locationName;
+    private Set<String> locationNames;
 
     private LocalDate createOn;
 

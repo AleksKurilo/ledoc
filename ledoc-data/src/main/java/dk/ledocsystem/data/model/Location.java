@@ -1,19 +1,13 @@
 package dk.ledocsystem.data.model;
 
+import dk.ledocsystem.data.model.document.Document;
 import dk.ledocsystem.data.model.employee.Employee;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.ToString;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
+import lombok.*;
+import org.hibernate.annotations.*;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.Set;
@@ -63,6 +57,10 @@ public class Location {
     @ManyToMany(mappedBy = "locations")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Employee> employees;
+
+    @ManyToMany(mappedBy = "locations")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private Set<Document> documents;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)

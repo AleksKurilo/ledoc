@@ -1,6 +1,7 @@
 package dk.ledocsystem.data.repository;
 
 
+import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.core.types.dsl.StringPath;
@@ -43,9 +44,11 @@ public interface DocumentRepository extends JpaRepository<Document, Long>, Query
 
     @Override
     default void customize(QuerydslBindings bindings, QDocument root) {
-        bindings.including(root.name, root.location.name, root.status,
-                root.responsible.id, root.creator.id, root.archived, root.location.id, root.trade.id,
-                root.category.id, root.subcategory.id);
+        bindings.including(root.name, root.status,
+                root.responsible.id, root.creator.id, root.archived,
+                root.category.id, root.subcategory.id,
+                ExpressionUtils.path(Document.class, root, "locations.id"),
+                ExpressionUtils.path(Document.class, root, "trades.id"));
         bindings.bind(String.class).first((SingleValueBinding<StringPath, String>) StringExpression::containsIgnoreCase);
     }
 }

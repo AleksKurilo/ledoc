@@ -8,6 +8,7 @@ import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.Set;
 
 @Data
 public class GetDocumentDTO {
@@ -46,7 +47,7 @@ public class GetDocumentDTO {
 
     private String subcategory;
 
-    private String location;
+    private Set<String> locationNames;
 
     private LocalDate createOn;
 }
