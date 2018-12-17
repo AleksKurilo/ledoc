@@ -20,7 +20,7 @@ class EquipmentReviewDateReminder {
     private final EquipmentRepository equipmentRepository;
     private final EmailNotificationRepository emailNotificationRepository;
 
-    @Scheduled(cron = "0 0 4 * * *") // every weekday at 4:00 am
+    @Scheduled(cron = "0 0 4 * * *") // every day at 4:00 am
     public void checkReviewDates() {
         for (Equipment equipment : equipmentRepository.findAllForReview()) {
             checkReviewDate(equipment.getNextReviewDate(), equipment);

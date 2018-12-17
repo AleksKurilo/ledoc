@@ -5,7 +5,7 @@
 
 	<groupId>dk.ledocsystem</groupId>
 	<artifactId>ledoc</artifactId>
-	<version>0.1</version>
+	<version>0.2</version>
     <modules>
         <module>ledoc-data</module>
 		<module>ledoc-service</module>

@@ -1,0 +1,52 @@
+package dk.ledocsystem.service.api.dto.outbound.document;
+
+import dk.ledocsystem.data.model.document.DocumentSource;
+import dk.ledocsystem.data.model.document.DocumentStatus;
+import dk.ledocsystem.data.model.document.DocumentType;
+import dk.ledocsystem.data.model.equipment.ApprovalType;
+import lombok.Data;
+
+import java.time.LocalDate;
+import java.time.Period;
+
+@Data
+public class GetDocumentDTO {
+
+    private Long id;
+
+    private String name;
+
+    private String file;
+
+    private String archiveReason;
+
+    private String comment;
+
+    private DocumentType type;
+
+    private DocumentSource source;
+
+    private DocumentStatus status;
+
+    private ApprovalType approvalType;
+
+    private Period approvalRate;
+
+    private Long reviewTemplateId;
+
+    private boolean personal;
+
+    private String employee;
+
+    private String equipment;
+
+    private String responsible;
+
+    private String category;
+
+    private String subcategory;
+
+    private String location;
+
+    private LocalDate createOn;
+}

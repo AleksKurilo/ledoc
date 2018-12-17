@@ -40,10 +40,10 @@ public class BaseValidator<T> {
     }
 
     protected void validateInner(T target, Map<String, List<String>> messages) {
+
     }
 
     protected final Locale getLocale() {
         return LocaleContextHolder.getLocale();
     }
-
 }
