@@ -21,7 +21,7 @@ import javax.validation.constraints.Pattern;
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
 @ReportAsSingleViolation
-@Pattern(regexp = "^([\\p{L}0-9])([^\\p{InCYRILLIC}])*$")
+@Pattern(regexp = "^$|^([?={L0-}])([^\\p{InCYRILLIC}])*$")
 public @interface NonCyrillic {
     String message() default "";
 
