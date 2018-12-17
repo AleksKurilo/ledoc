@@ -215,6 +215,7 @@ class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<DocumentPreviewDTO> getPreviewDtoById(Long documentId, boolean isSaveLog, UserDetails creatorDetails) {
         Employee creator = employeeRepository.findByUsername(creatorDetails.getUsername()).orElseThrow(IllegalStateException::new);
         Document document = documentRepository.findById(documentId)
@@ -252,23 +253,15 @@ class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public DocumentCategoryDTO getCategory(Long id) {
-        DocumentCategory category = categoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(DOCUMENT_CATEGORY_ID_NOT_FOUND, id.toString()));
-        return modelMapper.map(category, DocumentCategoryDTO.class);
-    }
-
-    @Override
-    public Set<DocumentCategoryDTO> getAllCategory() {
+    public List<DocumentCategoryDTO> getAllCategory() {
         return categoryRepository.findAllByType(DocumentCategoryType.CATEGORY)
-                .stream().map(e -> modelMapper.map(e, DocumentCategoryDTO.class)).collect(Collectors.toSet());
+                .stream().map(e -> modelMapper.map(e, DocumentCategoryDTO.class)).collect(Collectors.toList());
     }
 
     @Override
-    public Set<DocumentCategoryDTO> getAllSubcategory() {
+    public List<DocumentCategoryDTO> getAllSubcategory() {
         return categoryRepository.findAllByType(DocumentCategoryType.SUBCATEGORY)
-                .stream().map(e -> modelMapper.map(e, DocumentCategoryDTO.class)).collect(Collectors.toSet());
+                .stream().map(e -> modelMapper.map(e, DocumentCategoryDTO.class)).collect(Collectors.toList());
     }
 
     @Override

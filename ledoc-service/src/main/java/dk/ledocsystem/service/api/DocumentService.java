@@ -11,8 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public interface DocumentService extends CustomerBasedDomainService<GetDocumentDTO> {
@@ -38,11 +38,9 @@ public interface DocumentService extends CustomerBasedDomainService<GetDocumentD
 
     DocumentCategoryDTO updateCategory(DocumentCategoryDTO category);
 
-    DocumentCategoryDTO getCategory(Long id);
+    List<DocumentCategoryDTO> getAllCategory();
 
-    Set<DocumentCategoryDTO> getAllCategory();
-
-    Set<DocumentCategoryDTO> getAllSubcategory();
+    List<DocumentCategoryDTO> getAllSubcategory();
 
     void deleteCategory(Long id);
 
