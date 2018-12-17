@@ -13,6 +13,8 @@ import dk.ledocsystem.service.api.dto.outbound.document.DocumentPreviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.document.GetDocumentDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
@@ -109,19 +111,14 @@ public class DocumentController {
         return documentService.updateCategory(category);
     }
 
-    @GetMapping(path = "/categories/{id}")
-    public DocumentCategoryDTO getCategory(@PathVariable Long id) {
-        return documentService.getCategory(id);
-    }
-
     @GetMapping(path = "/categories")
-    public Set<DocumentCategoryDTO> getAllCategory() {
-        return documentService.getAllCategory();
+    public Page<DocumentCategoryDTO> getAllCategory() {
+        return new PageImpl<>(documentService.getAllCategory());
     }
 
     @GetMapping(path = "/subcategories")
-    public Set<DocumentCategoryDTO> getAllSubCategory() {
-        return documentService.getAllSubcategory();
+    public Page<DocumentCategoryDTO> getAllSubCategory() {
+        return new PageImpl<>(documentService.getAllSubcategory());
     }
 
     @RolesAllowed("super_admin")
@@ -144,11 +141,6 @@ public class DocumentController {
         subcategory.setId(id);
         subcategory.setType(DocumentCategoryType.SUBCATEGORY);
         return documentService.updateCategory(subcategory);
-    }
-
-    @GetMapping(path = "subcategories/{id}")
-    public DocumentCategoryDTO getSubcategory(@PathVariable Long id) {
-        return documentService.getCategory(id);
     }
 
     @RolesAllowed("super_admin")
