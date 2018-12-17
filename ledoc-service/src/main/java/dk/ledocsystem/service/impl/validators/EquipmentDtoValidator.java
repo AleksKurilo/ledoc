@@ -20,7 +20,7 @@ class EquipmentDtoValidator extends BaseValidator<EquipmentDTO> {
     private final EquipmentRepository equipmentRepository;
 
     @Override
-    protected void validateInner(EquipmentDTO dto, Map<String, List<String>> messages) {
+    protected void validateInner(EquipmentDTO dto, Map<String, Object> params, Map<String, List<String>> messages) {
         String currentName = null;
         if (dto.getId() != null) {
             currentName = equipmentRepository.findById(dto.getId())
@@ -29,8 +29,8 @@ class EquipmentDtoValidator extends BaseValidator<EquipmentDTO> {
         }
 
         String newName = dto.getName();
-        Long customerId = dto.getCustomerId();
-        if (!newName.equals(currentName) && equipmentRepository.existsByNameAndCustomerId(newName, customerId)) {
+        Long customerId = (Long) params.get("customerId");
+        if (newName != null && !newName.equals(currentName) && equipmentRepository.existsByNameAndCustomerId(newName, customerId)) {
             messages.computeIfAbsent("name", k -> new ArrayList<>())
                     .add(this.messageSource.getMessage(EQUIPMENT_NAME_IS_ALREADY_IN_USE, null, getLocale()));
         }

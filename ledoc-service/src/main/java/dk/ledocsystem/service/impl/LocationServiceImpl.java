@@ -1,5 +1,6 @@
 package dk.ledocsystem.service.impl;
 
+import com.google.common.collect.ImmutableMap;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.data.repository.CustomerRepository;
@@ -75,8 +76,7 @@ class LocationServiceImpl implements LocationService {
     @Override
     public GetLocationDTO createLocation(@NonNull LocationDTO locationDTO, @NonNull Long customerId,
                                          @NonNull UserDetails creatorDetails, boolean isFirstForCustomer) {
-        locationDTO.setCustomerId(customerId);
-        locationDtoValidator.validate(locationDTO);
+        locationDtoValidator.validate(locationDTO, ImmutableMap.of("customerId", customerId), locationDTO.getValidationGroups());
 
         Employee creator = employeeRepository.findByUsername(creatorDetails.getUsername()).orElseThrow(IllegalStateException::new);
         Employee responsible = resolveResponsible(locationDTO.getResponsibleId());
@@ -128,8 +128,7 @@ class LocationServiceImpl implements LocationService {
                 .map(Employee::getCustomer)
                 .orElseThrow(IllegalStateException::new)
                 .getId();
-        locationDTO.setCustomerId(customerId);
-        locationDtoValidator.validate(locationDTO);
+        locationDtoValidator.validate(locationDTO, ImmutableMap.of("customerId", customerId), locationDTO.getValidationGroups());
 
         Long locationId = requireNonNull(locationDTO.getId());
         Location location = locationRepository.findById(locationId)

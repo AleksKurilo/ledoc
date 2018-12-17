@@ -1,5 +1,6 @@
 package dk.ledocsystem.service.impl;
 
+import com.google.common.collect.ImmutableMap;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.Expressions;
@@ -80,8 +81,7 @@ class DocumentServiceImpl implements DocumentService {
     public GetDocumentDTO createOrUpdate(@NonNull DocumentDTO documentDTO, @NonNull UserDetails userDetails) {
         Document document = modelMapper.map(documentDTO, Document.class);
         Customer customer = resolveCustomerByUsername(userDetails.getUsername());
-        documentDTO.setCustomerId(customer.getId());
-        documentDtoValidator.validate(documentDTO);
+        documentDtoValidator.validate(documentDTO, ImmutableMap.of("customerId", customer.getId()));
 
         document.setCustomer(customer);
         Employee creator = employeeRepository.findByUsername(userDetails.getUsername())

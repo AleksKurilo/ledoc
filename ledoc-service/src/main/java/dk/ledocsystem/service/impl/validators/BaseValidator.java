@@ -10,6 +10,7 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.SmartValidator;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -23,9 +24,26 @@ public class BaseValidator<T> {
     @Autowired
     private SmartValidator smartValidator;
 
-    public void validate(T target) {
+    /**
+     * Validates {@code target} against annotations using Spring's own {@link SmartValidator}.
+     *
+     * @param target           Validating object
+     * @param validationGroups Validation groups
+     */
+    public void validate(T target, Class<?>... validationGroups) {
+        validate(target, Collections.emptyMap(), validationGroups);
+    }
+
+    /**
+     * Validates {@code target} against annotations using Spring's own {@link SmartValidator}.
+     *
+     * @param target           Validating object
+     * @param params           Any parameters required to validate target
+     * @param validationGroups Validation groups
+     */
+    public void validate(T target, Map<String, Object> params, Class<?>... validationGroups) {
         Errors errors = new BeanPropertyBindingResult(target, target.getClass().getName());
-        smartValidator.validate(target, errors);
+        smartValidator.validate(target, errors, (Object[]) validationGroups);
 
         Map<String, List<String>> messages = errors.getFieldErrors()
                 .stream()
@@ -33,16 +51,26 @@ public class BaseValidator<T> {
                         Collectors.mapping(
                                 fieldError -> messageSource.getMessage(fieldError, getLocale()), Collectors.toList()
                         )));
-        validateInner(target, messages);
+        validateInner(target, params, messages);
         if (!messages.isEmpty()) {
             throw new ValidationDtoException(messages);
         }
     }
 
-    protected void validateInner(T target, Map<String, List<String>> messages) {
-
+    /**
+     * Hook for extenders to customize validation.
+     *
+     * @param target   Validating object
+     * @param params   Any parameters required to validate target
+     * @param messages Mapping between field name and list of validation error messages.
+     *                 Should be used to add error messages
+     */
+    protected void validateInner(T target, Map<String, Object> params, Map<String, List<String>> messages) {
     }
 
+    /**
+     * @return the Locale associated with the current thread, if any, or the system default Locale otherwise.
+     */
     protected final Locale getLocale() {
         return LocaleContextHolder.getLocale();
     }

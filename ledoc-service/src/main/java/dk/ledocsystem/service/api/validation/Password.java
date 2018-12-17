@@ -22,7 +22,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @ReportAsSingleViolation
 @Pattern(regexp = "^(?=.*[0-9])(?=.*[A-Za-z])([@#$%^&+=]?)(?=\\S+$).{5,40}$")
 public @interface Password {
-    String message() default "Password needs to be from 5 to 40 characters long; consist only from letters, digits and special characters; include at least one letter and one digit.";
+    String message() default "";
 
     Class<?>[] groups() default {};
 

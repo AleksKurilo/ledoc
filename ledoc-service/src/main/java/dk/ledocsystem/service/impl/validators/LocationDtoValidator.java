@@ -20,7 +20,7 @@ class LocationDtoValidator extends BaseValidator<LocationDTO> {
     private final LocationRepository locationRepository;
 
     @Override
-    protected void validateInner(LocationDTO dto, Map<String, List<String>> messages) {
+    protected void validateInner(LocationDTO dto, Map<String, Object> params, Map<String, List<String>> messages) {
         String currentName = null;
         if (dto.getId() != null) {
             currentName = locationRepository.findById(dto.getId())
@@ -29,8 +29,8 @@ class LocationDtoValidator extends BaseValidator<LocationDTO> {
         }
 
         String newName = dto.getName();
-        Long customerId = dto.getCustomerId();
-        if (!newName.equals(currentName) && locationRepository.existsByNameAndCustomerId(newName, customerId)) {
+        Long customerId = (Long) params.get("customerId");
+        if (newName != null && !newName.equals(currentName) && locationRepository.existsByNameAndCustomerId(newName, customerId)) {
             messages.computeIfAbsent("name", k -> new ArrayList<>())
                     .add(this.messageSource.getMessage(LOCATION_NAME_IS_ALREADY_IN_USE, null, getLocale()));
         }

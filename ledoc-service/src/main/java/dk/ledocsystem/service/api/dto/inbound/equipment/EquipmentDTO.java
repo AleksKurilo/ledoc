@@ -1,24 +1,22 @@
 package dk.ledocsystem.service.api.dto.inbound.equipment;
 
 import dk.ledocsystem.service.api.validation.NonCyrillic;
-import dk.ledocsystem.service.api.validation.review.ReviewDetails;
 import dk.ledocsystem.data.model.equipment.ApprovalType;
 import dk.ledocsystem.data.model.equipment.Status;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.validation.constraints.*;
+import javax.validation.groups.Default;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Period;
 
 @Getter
 @Setter
-@ReviewDetails
 public class EquipmentDTO {
 
     private Long id;
-    private Long customerId; //todo should not be here
 
     @NotNull
     @Size(min = 3, max = 40)
@@ -43,8 +41,10 @@ public class EquipmentDTO {
     @NotNull
     private ApprovalType approvalType;
 
+    @NotNull(groups = MustBeSkillAssessed.class)
     private Period approvalRate;
 
+    @NotNull(groups = MustBeSkillAssessed.class)
     private Long reviewTemplateId;
 
     private Status status;
@@ -79,4 +79,14 @@ public class EquipmentDTO {
     private boolean readyToLoan;
 
     private boolean reviewed;
+
+    interface MustBeSkillAssessed {
+        // validation group marker interface
+    }
+
+    public Class<?>[] getValidationGroups() {
+        return (approvalType == ApprovalType.NO_NEED)
+                ? new Class[] {Default.class}
+                : new Class[] {MustBeSkillAssessed.class, Default.class};
+    }
 }

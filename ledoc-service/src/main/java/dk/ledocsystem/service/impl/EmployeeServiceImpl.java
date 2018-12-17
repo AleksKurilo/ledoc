@@ -101,7 +101,7 @@ class EmployeeServiceImpl implements EmployeeService {
     @Override
     public GetEmployeeDTO createEmployee(@NonNull EmployeeCreateDTO employeeCreateDTO, Long customerId,
                                          @NonNull UserDetails creatorDetails) {
-        employeeCreateDtoValidator.validate(employeeCreateDTO);
+        employeeCreateDtoValidator.validate(employeeCreateDTO, employeeCreateDTO.getValidationGroups());
 
         Employee employee = modelMapper.map(employeeCreateDTO, Employee.class);
         employee.setPassword(passwordEncoder.encode(employee.getPassword()));
@@ -150,7 +150,7 @@ class EmployeeServiceImpl implements EmployeeService {
     @Transactional
     @Override
     public GetEmployeeDTO updateEmployee(@NonNull EmployeeDTO employeeDTO, @NonNull UserDetails currentUserDetails) {
-        employeeDtoValidator.validate(employeeDTO);
+        employeeDtoValidator.validate(employeeDTO, employeeDTO.getValidationGroups());
 
         Employee employee = employeeRepository.findById(employeeDTO.getId())
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeDTO.getId().toString()));

@@ -62,7 +62,7 @@ class CustomerServiceImpl implements CustomerService {
     @Override
     public GetCustomerDTO createCustomer(@NonNull CustomerCreateDTO customerCreateDTO, @NonNull UserDetails creatorDetails) {
         customerCreateDTO.getAddress().setAddressType(AddressType.HEAD_OFFICE);
-        customerCreateDtoValidator.validate(customerCreateDTO);
+        customerCreateDtoValidator.validate(customerCreateDTO, customerCreateDTO.getValidationGroups());
 
         Customer customer = modelMapper.map(customerCreateDTO, Customer.class);
         Employee pointOfContact = resolvePointOfContact(customerCreateDTO.getPointOfContactId());
