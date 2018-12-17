@@ -19,7 +19,7 @@ public class GetLocationDTO {
 
     private String responsible;
 
-    private GetAddressDTO address = new GetAddressDTO();
+    private GetAddressDTO address;
 
     private Long addressLocationId;
 
