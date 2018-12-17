@@ -2,10 +2,10 @@ package dk.ledocsystem.service.impl;
 
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
-import dk.ledocsystem.data.model.QDocument;
 import dk.ledocsystem.data.model.dashboard.Dashboard;
 import dk.ledocsystem.data.model.dashboard.SuperAdminStatistic;
 import dk.ledocsystem.data.model.dashboard.UserStat;
+import dk.ledocsystem.data.model.document.QDocument;
 import dk.ledocsystem.data.model.employee.QEmployee;
 import dk.ledocsystem.data.model.equipment.QEquipment;
 import dk.ledocsystem.data.model.security.UserAuthorities;

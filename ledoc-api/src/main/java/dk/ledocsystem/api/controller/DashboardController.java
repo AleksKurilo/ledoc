@@ -2,9 +2,9 @@ package dk.ledocsystem.api.controller;
 
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.api.config.security.CurrentUser;
-import dk.ledocsystem.data.model.Document;
 import dk.ledocsystem.data.model.dashboard.Dashboard;
 import dk.ledocsystem.data.model.dashboard.SuperAdminStatistic;
+import dk.ledocsystem.data.model.document.Document;
 import dk.ledocsystem.data.model.equipment.Equipment;
 import dk.ledocsystem.service.api.DashboardService;
 import lombok.RequiredArgsConstructor;

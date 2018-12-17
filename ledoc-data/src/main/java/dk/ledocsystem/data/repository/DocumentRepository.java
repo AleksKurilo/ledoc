@@ -1,7 +1,11 @@
 package dk.ledocsystem.data.repository;
 
 
+import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.StringExpression;
+import com.querydsl.core.types.dsl.StringPath;
 import dk.ledocsystem.data.model.document.Document;
+import dk.ledocsystem.data.model.document.QDocument;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -13,10 +17,10 @@ import org.springframework.data.querydsl.binding.SingleValueBinding;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 
 
-public interface DocumentRepository extends JpaRepository<Document, Long>, QuerydslPredicateExecutor<Document>, QuerydslBinderCustomizer<QDocument> {
+public interface DocumentRepository extends JpaRepository<Document, Long>, QuerydslPredicateExecutor<Document>,
+        QuerydslBinderCustomizer<QDocument> {
 
     List<Document> findAll(Predicate predicate);
 
