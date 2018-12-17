@@ -15,15 +15,17 @@ public class CustomerEditDTO {
     @NotNull
     private Long id;
 
+    @NotNull
     @NonCyrillic
     @Size(min = 3, max = 40)
     private String name;
 
+    @NotNull
     @NonCyrillic
     @Size(min = 3, max = 40)
     private String cvr;
 
-    // id of the superadmin
+    @NotNull
     private Long pointOfContactId;
 
     private Set<Long> tradeIds;

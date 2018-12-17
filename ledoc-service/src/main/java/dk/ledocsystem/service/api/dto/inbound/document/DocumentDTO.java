@@ -20,8 +20,6 @@ public class DocumentDTO {
 
     private Long id;
 
-    private Long customerId; //todo should not be here
-
     @NotNull
     @Size(min = 2, max = 40)
     private String name;

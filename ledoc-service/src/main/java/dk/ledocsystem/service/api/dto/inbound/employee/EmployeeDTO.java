@@ -7,6 +7,7 @@ import lombok.Data;
 
 import javax.validation.Valid;
 import javax.validation.constraints.*;
+import javax.validation.groups.Default;
 import java.time.LocalDate;
 import java.util.Set;
 
@@ -68,4 +69,8 @@ public class EmployeeDTO {
 
     @Valid
     private EmployeeNearestRelativesDTO nearestRelative;
+
+    public Class<?>[] getValidationGroups() {
+        return (details == null) ? new Class[] {Default.class} : details.getValidationGroups();
+    }
 }

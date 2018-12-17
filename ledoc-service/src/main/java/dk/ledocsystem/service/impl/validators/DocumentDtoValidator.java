@@ -20,7 +20,7 @@ public class DocumentDtoValidator extends BaseValidator<DocumentDTO> {
     private final DocumentRepository documentRepository;
 
     @Override
-    protected void validateInner(DocumentDTO dto, Map<String, List<String>> messages) {
+    protected void validateInner(DocumentDTO dto, Map<String, Object> params, Map<String, List<String>> messages) {
         String currentName = null;
         if (dto.getId() != null) {
             currentName = documentRepository.findById(dto.getId())
@@ -29,8 +29,8 @@ public class DocumentDtoValidator extends BaseValidator<DocumentDTO> {
         }
 
         String newName = dto.getName();
-        Long customerId = dto.getCustomerId();
-        if (!newName.equals(currentName) && documentRepository.existsByNameAndCustomerId(newName, customerId)) {
+        Long customerId = (Long) params.get("customerId");
+        if (newName != null && !newName.equals(currentName) && documentRepository.existsByNameAndCustomerId(newName, customerId)) {
             messages.computeIfAbsent("name", k -> new ArrayList<>())
                     .add(this.messageSource.getMessage(DOCUMENT_NAME_IS_ALREADY_IN_USE, null, getLocale()));
         }

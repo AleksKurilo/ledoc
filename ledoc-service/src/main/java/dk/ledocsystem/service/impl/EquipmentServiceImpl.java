@@ -1,5 +1,6 @@
 package dk.ledocsystem.service.impl;
 
+import com.google.common.collect.ImmutableMap;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.Expressions;
@@ -75,8 +76,7 @@ class EquipmentServiceImpl implements EquipmentService {
     public GetEquipmentDTO createEquipment(@NonNull EquipmentDTO equipmentDTO, UserDetails creatorDetails) {
         Employee creator = employeeRepository.findByUsername(creatorDetails.getUsername()).orElseThrow(IllegalStateException::new);
         Customer customer = creator.getCustomer();
-        equipmentDTO.setCustomerId(customer.getId());
-        equipmentDtoValidator.validate(equipmentDTO);
+        equipmentDtoValidator.validate(equipmentDTO, ImmutableMap.of("customerId", customer.getId()), equipmentDTO.getValidationGroups());
 
         Equipment equipment = modelMapper.map(equipmentDTO, Equipment.class);
         Employee responsible = resolveResponsible(equipmentDTO.getResponsibleId());
@@ -99,8 +99,7 @@ class EquipmentServiceImpl implements EquipmentService {
     public GetEquipmentDTO updateEquipment(@NonNull EquipmentDTO equipmentDTO, UserDetails creatorDetails) {
         Employee creator = employeeRepository.findByUsername(creatorDetails.getUsername()).orElseThrow(IllegalStateException::new);
         Customer customer = creator.getCustomer();
-        equipmentDTO.setCustomerId(customer.getId());
-        equipmentDtoValidator.validate(equipmentDTO);
+        equipmentDtoValidator.validate(equipmentDTO, ImmutableMap.of("customerId", customer.getId()), equipmentDTO.getValidationGroups());
 
         Equipment equipment = equipmentRepository.findById(equipmentDTO.getId())
                 .orElseThrow(() -> new NotFoundException(EQUIPMENT_ID_NOT_FOUND, equipmentDTO.getId().toString()));

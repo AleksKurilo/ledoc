@@ -18,7 +18,7 @@ class ForgotPasswordDtoValidator extends BaseValidator<ForgotPasswordDTO> {
     private final EmployeeService employeeService;
 
     @Override
-    protected void validateInner(ForgotPasswordDTO target, Map<String, List<String>> messages) {
+    protected void validateInner(ForgotPasswordDTO target, Map<String, Object> params, Map<String, List<String>> messages) {
         String email = target.getEmail();
         if (email != null && !employeeService.existsByUsername(target.getEmail())) {
             messages.computeIfAbsent("email", k -> new ArrayList<>())

@@ -12,6 +12,7 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import javax.validation.groups.Default;
 import java.util.Set;
 
 @Data
@@ -29,6 +30,7 @@ public class CustomerCreateDTO {
     @Size(min = 3, max = 40)
     private String cvr;
 
+    @NotNull
     private Long pointOfContactId;
 
     @NotEmpty
@@ -60,4 +62,8 @@ public class CustomerCreateDTO {
     @Valid
     @NotNull
     private CustomerAdminDTO admin;
+
+    public Class<?>[] getValidationGroups() {
+        return (admin == null) ? new Class[] {Default.class} : admin.getValidationGroups();
+    }
 }

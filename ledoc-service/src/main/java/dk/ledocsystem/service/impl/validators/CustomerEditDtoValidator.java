@@ -21,20 +21,20 @@ class CustomerEditDtoValidator extends BaseValidator<CustomerEditDTO> {
     private final CustomerRepository customerRepository;
 
     @Override
-    protected void validateInner(CustomerEditDTO dto, Map<String, List<String>> messages) {
+    protected void validateInner(CustomerEditDTO dto, Map<String, Object> params, Map<String, List<String>> messages) {
         Customer customer = customerRepository.findById(dto.getId())
                 .orElseThrow(() -> new NotFoundException(CUSTOMER_ID_NOT_FOUND, dto.getId().toString()));
         Locale locale = getLocale();
         String existName = customer.getName();
         String newName = dto.getName();
-        if (!existName.equals(newName) && customerRepository.existsByName(newName)) {
+        if (newName != null && !existName.equals(newName) && customerRepository.existsByName(newName)) {
             messages.computeIfAbsent("name", k -> new ArrayList<>())
                     .add(this.messageSource.getMessage(CUSTOMER_NAME_IS_ALREADY_IN_USE, null, locale));
         }
 
         String existCvr = customer.getCvr();
         String newCvr = dto.getCvr();
-        if (!existCvr.equals(newCvr) && customerRepository.existsByCvr(newCvr)) {
+        if (newCvr != null && !existCvr.equals(newCvr) && customerRepository.existsByCvr(newCvr)) {
             messages.computeIfAbsent("cvr", k -> new ArrayList<>())
                     .add(this.messageSource.getMessage(CVR_IS_ALREADY_IN_USE, null, locale));
         }

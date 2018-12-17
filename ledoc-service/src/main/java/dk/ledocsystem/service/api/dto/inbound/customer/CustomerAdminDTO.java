@@ -11,6 +11,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import javax.validation.groups.Default;
 import java.time.LocalDate;
 
 @Data
@@ -41,6 +42,7 @@ public class CustomerAdminDTO {
     private String idNumber;
 
     @Size(min = 2, max = 40)
+    @NonCyrillic
     private String initials;
 
     @PhoneNumber
@@ -50,6 +52,7 @@ public class CustomerAdminDTO {
     private String phoneNumber;
 
     @Size(min = 2, max = 40)
+    @NonCyrillic
     private String title;
 
     private boolean canCreatePersonalLocation;
@@ -66,4 +69,8 @@ public class CustomerAdminDTO {
 
     @Valid
     private EmployeeNearestRelativesDTO nearestRelative;
+
+    public Class<?>[] getValidationGroups() {
+        return (details == null) ? new Class[] {Default.class} : details.getValidationGroups();
+    }
 }

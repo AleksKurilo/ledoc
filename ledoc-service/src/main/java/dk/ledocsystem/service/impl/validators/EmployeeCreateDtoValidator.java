@@ -18,8 +18,9 @@ class EmployeeCreateDtoValidator extends BaseValidator<EmployeeCreateDTO> {
     private final EmployeeRepository employeeRepository;
 
     @Override
-    protected void validateInner(EmployeeCreateDTO dto, Map<String, List<String>> messages) {
-        if (employeeRepository.existsByUsername(dto.getUsername())) {
+    protected void validateInner(EmployeeCreateDTO dto, Map<String, Object> params, Map<String, List<String>> messages) {
+        String username = dto.getUsername();
+        if (username != null && employeeRepository.existsByUsername(username)) {
             messages.computeIfAbsent("username", k -> new ArrayList<>())
                     .add(this.messageSource.getMessage(EMPLOYEE_USERNAME_IS_ALREADY_IN_USE, null, getLocale()));
         }
