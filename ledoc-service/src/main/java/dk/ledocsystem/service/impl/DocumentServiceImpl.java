@@ -26,6 +26,7 @@ import dk.ledocsystem.service.api.dto.outbound.document.GetDocumentDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.service.impl.events.producer.DocumentProducer;
 import dk.ledocsystem.service.impl.property_maps.document.DocumentToDocumentPreviewDtoPropertyMap;
+import dk.ledocsystem.service.impl.property_maps.document.DocumentToExportDtoMap;
 import dk.ledocsystem.service.impl.property_maps.document.DocumentToGetDocumentDtoPropertyMap;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
@@ -71,6 +72,7 @@ class DocumentServiceImpl implements DocumentService {
     private void init() {
         modelMapper.addMappings(new DocumentToGetDocumentDtoPropertyMap());
         modelMapper.addMappings(new DocumentToDocumentPreviewDtoPropertyMap());
+        modelMapper.addMappings(new DocumentToExportDtoMap());
     }
 
     @Override
