@@ -2,7 +2,8 @@ package dk.ledocsystem.data.repository;
 
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.dsl.*;
+import com.querydsl.core.types.dsl.StringExpression;
+import com.querydsl.core.types.dsl.StringPath;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.employee.QEmployee;
 import dk.ledocsystem.data.model.security.UserAuthorities;
@@ -84,6 +85,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Query
     @Query("select e.id as id, e.firstName as firstName, e.lastName as lastName, l.id as locations " +
             "from Employee e left join e.locations l where e.customer.id = ?1 and e.archived = false")
     List<EmployeeSummary> findAllBy(Long customerId);
+
+    @Query(value = "select * from main.employees e left join main.followed_employees f on e.id = f.followed_employee_id where f.employee_id = ? offset ? limit ?", nativeQuery = true)
+    List<Employee> findAllFollowedByEmployee(Long employeeId, int offset, int pageSize);
+
+    @Query(value = "select * from main.employees e left join main.followed_employees f on e.id = f.followed_employee_id where f.employee_id = ? order by ? offset ? limit ?", nativeQuery = true)
+    List<Employee> findAllFollowedByEmployeeSorted(Long employeeId, String sort, int offset, int pageSize);
 
     @Override
     default void customize(QuerydslBindings bindings, QEmployee root) {

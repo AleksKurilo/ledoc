@@ -14,10 +14,7 @@ import dk.ledocsystem.data.model.review.EmployeeReviewQuestionAnswer;
 import dk.ledocsystem.data.model.review.ReviewQuestion;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
 import dk.ledocsystem.data.model.security.UserAuthorities;
-import dk.ledocsystem.data.repository.CustomerRepository;
-import dk.ledocsystem.data.repository.EmployeeRepository;
-import dk.ledocsystem.data.repository.EmployeeReviewRepository;
-import dk.ledocsystem.data.repository.LocationRepository;
+import dk.ledocsystem.data.repository.*;
 import dk.ledocsystem.service.api.EmployeeService;
 import dk.ledocsystem.service.api.JwtTokenService;
 import dk.ledocsystem.service.api.ReviewQuestionService;
@@ -43,6 +40,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -512,7 +510,7 @@ class EmployeeServiceImpl implements EmployeeService {
         return modelMapper.map(employee, EmployeePreviewDTO.class);
     }
 
-    private GetFollowedEmployeeDTO mapToFollowDto(FollowedEmployees employee) {
+    private GetFollowedEmployeeDTO mapToFollowDto(Employee employee) {
         return modelMapper.map(employee, GetFollowedEmployeeDTO.class);
     }
 
@@ -545,10 +543,23 @@ class EmployeeServiceImpl implements EmployeeService {
     @Override
     @Transactional(readOnly = true)
     public List<GetFollowedEmployeeDTO> getFollowedEmployees(Long employeeId, Pageable pageable) {
-        return employeeRepository.findById(employeeId).orElseThrow(IllegalStateException::new).getFollowedEmployees()
-                .stream().map(this::mapToFollowDto).collect(Collectors.toList());
+
+        int pageNumber = pageable.getPageNumber();
+        int pageSize = pageable.getPageSize();
+
+        List<Sort.Order> sorts = pageable.getSort().get().collect(Collectors.toList());
+
+        List<String> sortParams = new ArrayList<>();
+        if (sorts.size() > 0) {
+            sorts.forEach(order -> {
+                sortParams.add(" " + order.getProperty() + " " + order.getDirection().name());
+            });
+
+            String sortString = sortParams.stream().collect(Collectors.joining(", "));
+            return employeeRepository.findAllFollowedByEmployeeSorted(employeeId, sortString, pageNumber*pageSize, pageSize).stream().map(this::mapToFollowDto).collect(Collectors.toList());
+        }
+
+        return employeeRepository.findAllFollowedByEmployee(employeeId, pageNumber*pageSize, pageSize).stream().map(this::mapToFollowDto).collect(Collectors.toList());
     }
-
-
     //endregion
 }
