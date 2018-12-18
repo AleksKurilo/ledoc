@@ -14,6 +14,8 @@ public interface ReviewTemplateRepository extends JpaRepository<ReviewTemplate, 
 
     Optional<ReviewTemplate> findByNameAndCustomer(String name, Customer customer);
 
+    Optional<ReviewTemplate> findByName(String name);
+
     /**
      * Deletes review templates with the given IDs.
      *

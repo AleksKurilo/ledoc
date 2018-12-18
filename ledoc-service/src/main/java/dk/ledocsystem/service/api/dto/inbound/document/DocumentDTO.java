@@ -3,14 +3,13 @@ package dk.ledocsystem.service.api.dto.inbound.document;
 import dk.ledocsystem.data.model.document.DocumentSource;
 import dk.ledocsystem.data.model.document.DocumentStatus;
 import dk.ledocsystem.data.model.document.DocumentType;
-import dk.ledocsystem.data.model.equipment.ApprovalType;
 import dk.ledocsystem.service.api.validation.document.ValidDocument;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.time.LocalDate;
+import javax.validation.groups.Default;
 import java.time.Period;
 import java.util.Set;
 
@@ -44,12 +43,8 @@ public class DocumentDTO {
     @NotNull
     private DocumentStatus status;
 
-    @NotNull
-    private ApprovalType approvalType;
-
+    @NotNull(groups = MustBeReviewed.class)
     private Period approvalRate;
-
-    private Long reviewTemplateId;
 
     private boolean personal;
 
@@ -72,9 +67,14 @@ public class DocumentDTO {
     @NotNull
     private Set<Long> tradeIds;
 
-    private LocalDate createOn;
+    interface MustBeReviewed {
+        // validation group marker interface
+    }
 
-    private LocalDate lastUpdate;
-
+    public Class<?>[] getValidationGroups() {
+        return (status == DocumentStatus.ACTIVE_WITH_REVIEW)
+                ? new Class[] {MustBeReviewed.class, Default.class}
+                : new Class[] {Default.class};
+    }
 
 }

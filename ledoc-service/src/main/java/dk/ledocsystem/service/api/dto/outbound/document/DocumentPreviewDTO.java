@@ -3,7 +3,6 @@ package dk.ledocsystem.service.api.dto.outbound.document;
 import dk.ledocsystem.data.model.document.DocumentSource;
 import dk.ledocsystem.data.model.document.DocumentStatus;
 import dk.ledocsystem.data.model.document.DocumentType;
-import dk.ledocsystem.data.model.equipment.ApprovalType;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -29,11 +28,7 @@ public class DocumentPreviewDTO {
 
     private DocumentStatus status;
 
-    private ApprovalType approvalType;
-
     private Period approvalRate;
-
-    private String reviewTemplateName;
 
     private boolean personal;
 

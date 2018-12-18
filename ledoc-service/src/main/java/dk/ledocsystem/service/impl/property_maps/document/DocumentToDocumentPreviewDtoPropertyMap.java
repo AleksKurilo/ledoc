@@ -10,7 +10,6 @@ public class DocumentToDocumentPreviewDtoPropertyMap extends PropertyMap<Documen
 
     @Override
     protected void configure() {
-        map().setReviewTemplateName(source.getReviewTemplate().getName());
         map().setEmployeeName(source.getEmployee().getName());
         map().setEquipmentName(source.getEquipment().getName());
         map().setResponsibleName(source.getResponsible().getName());

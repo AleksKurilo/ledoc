@@ -10,6 +10,7 @@ import dk.ledocsystem.data.model.Trade;
 import dk.ledocsystem.data.model.document.Document;
 import dk.ledocsystem.data.model.document.DocumentCategory;
 import dk.ledocsystem.data.model.document.DocumentCategoryType;
+import dk.ledocsystem.data.model.document.DocumentStatus;
 import dk.ledocsystem.data.model.document.QDocument;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.employee.QEmployee;
@@ -83,7 +84,7 @@ class DocumentServiceImpl implements DocumentService {
     public GetDocumentDTO createOrUpdate(@NonNull DocumentDTO documentDTO, @NonNull UserDetails userDetails) {
         Document document = modelMapper.map(documentDTO, Document.class);
         Customer customer = resolveCustomerByUsername(userDetails.getUsername());
-        documentDtoValidator.validate(documentDTO, ImmutableMap.of("customerId", customer.getId()));
+        documentDtoValidator.validate(documentDTO, ImmutableMap.of("customerId", customer.getId()), documentDTO.getValidationGroups());
 
         document.setCustomer(customer);
         Employee creator = employeeRepository.findByUsername(userDetails.getUsername())
@@ -105,7 +106,11 @@ class DocumentServiceImpl implements DocumentService {
         document.setCategory(resolveCategory(documentDTO.getCategoryId()));
         document.setResponsible(resolveResponsible(documentDTO.getResponsibleId()));
         document.setSubcategory(resolveSubcategory(documentDTO.getSubcategoryId()));
-        document.setReviewTemplate(resolveReviewTemplate(documentDTO.getReviewTemplateId()));
+        if (documentDTO.getStatus() == DocumentStatus.ACTIVE_WITH_REVIEW) {
+            document.setReviewTemplate(getReviewTemplate());
+        } else {
+            document.eraseReviewDetails();
+        }
 
         Long responsibleId = documentDTO.getResponsibleId();
         writeDocumentLogs(document, creator, responsibleExistId, responsibleId);
@@ -150,10 +155,9 @@ class DocumentServiceImpl implements DocumentService {
                 .orElseThrow(() -> new NotFoundException(DOCUMENT_SUBCATEGORY_ID_NOT_FOUND, subcategoryId.toString()));
     }
 
-    private ReviewTemplate resolveReviewTemplate(Long reviewTemplateId) {
-        return (reviewTemplateId == null) ? null :
-                reviewTemplateService.getById(reviewTemplateId)
-                        .orElseThrow(() -> new NotFoundException(REVIEW_TEMPLATE_ID_NOT_FOUND, reviewTemplateId.toString()));
+    private ReviewTemplate getReviewTemplate() {
+        return reviewTemplateService.getByName(ReviewTemplateService.DOCUMENT_QUICK_REVIEW_TEMPLATE_NAME)
+                        .orElseThrow(IllegalStateException::new);
     }
 
     private void writeDocumentLogs(Document document, Employee creator, Long responsibleExistId, Long responsibleId) {

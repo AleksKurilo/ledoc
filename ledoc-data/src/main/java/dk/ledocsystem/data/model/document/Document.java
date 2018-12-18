@@ -45,7 +45,7 @@ public class Document {
 
     private String archiveReason;
 
-    @Column(length = 255)
+    @Column
     private String comment;
 
     @Enumerated(EnumType.STRING)
@@ -144,6 +144,7 @@ public class Document {
     }
 
     public void eraseReviewDetails() {
+        this.reviewTemplate = null;
         this.approvalRate = null;
         this.nextReviewDate = null;
     }
