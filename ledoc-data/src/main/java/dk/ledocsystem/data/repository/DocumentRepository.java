@@ -1,6 +1,5 @@
 package dk.ledocsystem.data.repository;
 
-
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringExpression;
@@ -16,20 +15,11 @@ import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.querydsl.binding.SingleValueBinding;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
 
 public interface DocumentRepository extends JpaRepository<Document, Long>, QuerydslPredicateExecutor<Document>,
         QuerydslBinderCustomizer<QDocument> {
 
     List<Document> findAll(Predicate predicate);
-
-    Optional<Document> findById(long id);
-
-    Set<Document> findByEmployeeId(long employeeId);
-
-    Set<Document> findByEquipmentId(long equipmentId);
 
     boolean existsByNameAndCustomerId(String name, Long customerId);
 

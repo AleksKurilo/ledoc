@@ -34,10 +34,6 @@ public class GetDocumentDTO {
 
     private boolean personal;
 
-    private String employee;
-
-    private String equipment;
-
     private String responsible;
 
     private String category;

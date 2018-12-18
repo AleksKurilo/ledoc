@@ -11,8 +11,6 @@ public class DocumentToGetDocumentDtoPropertyMap extends PropertyMap<Document, G
 
     @Override
     protected void configure() {
-        map().setEmployee(source.getEmployee().getName());
-        map().setEquipment(source.getEquipment().getName());
         map().setResponsible(source.getResponsible().getName());
         map().setCategory(source.getCategory().getNameEn());
         map().setSubcategory(source.getSubcategory().getNameEn());

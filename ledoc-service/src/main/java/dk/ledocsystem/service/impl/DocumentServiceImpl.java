@@ -14,7 +14,6 @@ import dk.ledocsystem.data.model.document.DocumentStatus;
 import dk.ledocsystem.data.model.document.QDocument;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.employee.QEmployee;
-import dk.ledocsystem.data.model.equipment.Equipment;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
 import dk.ledocsystem.data.projections.IdAndLocalizedName;
 import dk.ledocsystem.data.repository.*;
@@ -64,7 +63,6 @@ class DocumentServiceImpl implements DocumentService {
     private final DocumentRepository documentRepository;
     private final EmployeeRepository employeeRepository;
     private final LocationRepository locationRepository;
-    private final EquipmentRepository equipmentRepository;
     private final ReviewTemplateService reviewTemplateService;
     private final DocumentCategoryRepository categoryRepository;
 
@@ -98,8 +96,6 @@ class DocumentServiceImpl implements DocumentService {
             responsibleExistId = documentExist.getResponsible().getId();
         }
 
-        assignDocumentToEquipmentOrEmployee(documentDTO, document);
-
         document.setCreator(creator);
         document.setTrades(resolveTrade(documentDTO.getTradeIds()));
         document.setLocations(resolveLocations(documentDTO.getLocationIds()));
@@ -115,21 +111,6 @@ class DocumentServiceImpl implements DocumentService {
         Long responsibleId = documentDTO.getResponsibleId();
         writeDocumentLogs(document, creator, responsibleExistId, responsibleId);
         return mapToDto(documentRepository.save(document));
-    }
-
-    private void assignDocumentToEquipmentOrEmployee(DocumentDTO documentDTO, Document document) {
-        Long employeeId = documentDTO.getEmployeeId();
-        if (employeeId != null) {
-            Employee employee = employeeRepository.findById(employeeId)
-                    .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
-            document.setEmployee(employee);
-        }
-        Long equipmentId = documentDTO.getEquipmentId();
-        if (equipmentId != null) {
-            Equipment equipment = equipmentRepository.findById(equipmentId)
-                    .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, equipmentId.toString()));
-            document.setEquipment(equipment);
-        }
     }
 
     private Set<Trade> resolveTrade(Set<Long> tradeIds) {
@@ -184,18 +165,6 @@ class DocumentServiceImpl implements DocumentService {
         } else {
             documentProducer.unarchive(document, creator);
         }
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Set<GetDocumentDTO> getByEmployeeId(long employeeId) {
-        return documentRepository.findByEmployeeId(employeeId).stream().map(this::mapToDto).collect(Collectors.toSet());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Set<GetDocumentDTO> getByEquipmentId(long equipmentId) {
-        return documentRepository.findByEquipmentId(equipmentId).stream().map(this::mapToDto).collect(Collectors.toSet());
     }
 
     @Override

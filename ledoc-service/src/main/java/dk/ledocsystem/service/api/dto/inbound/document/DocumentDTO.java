@@ -3,7 +3,6 @@ package dk.ledocsystem.service.api.dto.inbound.document;
 import dk.ledocsystem.data.model.document.DocumentSource;
 import dk.ledocsystem.data.model.document.DocumentStatus;
 import dk.ledocsystem.data.model.document.DocumentType;
-import dk.ledocsystem.service.api.validation.document.ValidDocument;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,7 +14,6 @@ import java.util.Set;
 
 @Setter
 @Getter
-@ValidDocument
 public class DocumentDTO {
 
     private Long id;
@@ -47,10 +45,6 @@ public class DocumentDTO {
     private Period approvalRate;
 
     private boolean personal;
-
-    private Long employeeId;
-
-    private Long equipmentId;
 
     @NotNull
     private Long responsibleId;

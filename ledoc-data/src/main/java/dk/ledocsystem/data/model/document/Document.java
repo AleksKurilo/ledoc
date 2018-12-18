@@ -84,12 +84,6 @@ public class Document {
     private DocumentCategory subcategory;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private Employee employee;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Equipment equipment;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Customer customer;

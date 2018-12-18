@@ -25,7 +25,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.RolesAllowed;
-import java.util.Set;
 
 import static dk.ledocsystem.service.impl.constant.ErrorMessageKey.DOCUMENT_ID_NOT_FOUND;
 
@@ -65,16 +64,6 @@ public class DocumentController {
                                                          @CurrentUser UserDetails currentUser) {
         return documentService.getPreviewDtoById(id, isSaveLog, currentUser)
                 .orElseThrow(() -> new NotFoundException(DOCUMENT_ID_NOT_FOUND, id.toString()));
-    }
-
-    @GetMapping(path = "/employeeId/{employeeId}")
-    public Set<GetDocumentDTO> getByEmployeeId(@PathVariable long employeeId) {
-        return documentService.getByEmployeeId(employeeId);
-    }
-
-    @GetMapping(path = "/equipmentId/{equipmentId}")
-    public Set<GetDocumentDTO> getByEquipmentId(@PathVariable long equipmentId) {
-        return documentService.getByEquipmentId(equipmentId);
     }
 
     @GetMapping("/new")

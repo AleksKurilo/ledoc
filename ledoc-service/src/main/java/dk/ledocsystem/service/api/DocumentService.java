@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 public interface DocumentService extends CustomerBasedDomainService<GetDocumentDTO> {
 
@@ -24,10 +23,6 @@ public interface DocumentService extends CustomerBasedDomainService<GetDocumentD
      * Changes the archived status according to data from {@code archivedStatusDTO}.
      */
     void changeArchivedStatus(Long documentId, ArchivedStatusDTO archivedStatusDTO, UserDetails creatorDetails);
-
-    Set<GetDocumentDTO> getByEmployeeId(long employeeId);
-
-    Set<GetDocumentDTO> getByEquipmentId(long equipmentId);
 
     Page<GetDocumentDTO> getNewDocument(UserDetails user, Pageable pageable);
 

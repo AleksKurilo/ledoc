@@ -32,10 +32,6 @@ public class DocumentPreviewDTO {
 
     private boolean personal;
 
-    private String employeeName;
-
-    private String equipmentName;
-
     private String responsibleName;
 
     private String categoryName;
