@@ -3,7 +3,7 @@ package dk.ledocsystem.api.controller;
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.data.model.logging.EmployeeLog;
 import dk.ledocsystem.service.api.EmployeeLogService;
-import dk.ledocsystem.service.api.dto.inbound.LogsDTO;
+import dk.ledocsystem.service.api.dto.outbound.LogsDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -1,15 +1,15 @@
 package dk.ledocsystem.service.api;
 
 import dk.ledocsystem.service.api.dto.inbound.trades.TradeCreateDTO;
-import dk.ledocsystem.data.model.Trade;
+import dk.ledocsystem.service.api.dto.outbound.GetTradeDTO;
 
 import java.util.List;
 
 public interface TradeService {
 
-    List<Trade> getAll();
+    List<GetTradeDTO> getAll();
 
-    Trade createNew(TradeCreateDTO tradeCreateDTO);
+    GetTradeDTO createNew(TradeCreateDTO tradeCreateDTO);
 
     void deleteById(Long tradeId);
 }
