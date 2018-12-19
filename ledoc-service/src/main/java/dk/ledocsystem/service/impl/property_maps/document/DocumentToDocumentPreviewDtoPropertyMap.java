@@ -1,6 +1,7 @@
 package dk.ledocsystem.service.impl.property_maps.document;
 
 import dk.ledocsystem.data.model.Location;
+import dk.ledocsystem.data.model.Trade;
 import dk.ledocsystem.data.model.document.Document;
 import dk.ledocsystem.service.api.dto.outbound.document.DocumentPreviewDTO;
 import org.modelmapper.Converters;
@@ -15,5 +16,7 @@ public class DocumentToDocumentPreviewDtoPropertyMap extends PropertyMap<Documen
         map().setSubcategoryName(source.getSubcategory().getNameEn());
         using(Converters.Collection.map(Location::getName))
                 .map(source.getLocations(), destination.getLocationNames());
+        using(Converters.Collection.map(Trade::getNameEn))
+                .map(source.getTrades(), destination.getTradeNames());
     }
 }

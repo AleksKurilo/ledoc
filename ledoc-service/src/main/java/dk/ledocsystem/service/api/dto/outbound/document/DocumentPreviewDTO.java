@@ -1,5 +1,6 @@
 package dk.ledocsystem.service.api.dto.outbound.document;
 
+import dk.ledocsystem.data.model.Trade;
 import dk.ledocsystem.data.model.document.DocumentSource;
 import dk.ledocsystem.data.model.document.DocumentStatus;
 import dk.ledocsystem.data.model.document.DocumentType;
@@ -39,6 +40,8 @@ public class DocumentPreviewDTO {
     private String subcategoryName;
 
     private Set<String> locationNames;
+
+    private Set<Trade> tradeNames;
 
     private LocalDate createOn;
 

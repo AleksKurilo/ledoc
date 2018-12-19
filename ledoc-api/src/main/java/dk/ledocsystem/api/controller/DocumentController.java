@@ -43,13 +43,17 @@ public class DocumentController {
     }
 
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public GetDocumentDTO update(@RequestBody DocumentDTO documentDTO, @PathVariable long id, @CurrentUser UserDetails currentUser) {
+    public GetDocumentDTO update(@RequestBody DocumentDTO documentDTO,
+                                 @PathVariable long id,
+                                 @CurrentUser UserDetails currentUser) {
         documentDTO.setId(id);
         return documentService.createOrUpdate(documentDTO, currentUser);
     }
 
     @PostMapping("/{documentId}/archive")
-    public void changeArchivedStatus(@PathVariable Long documentId, @RequestBody ArchivedStatusDTO archivedStatusDTO, @CurrentUser UserDetails currentUser) {
+    public void changeArchivedStatus(@PathVariable Long documentId,
+                                     @RequestBody ArchivedStatusDTO archivedStatusDTO,
+                                     @CurrentUser UserDetails currentUser) {
         documentService.changeArchivedStatus(documentId, archivedStatusDTO, currentUser);
     }
 
@@ -60,16 +64,17 @@ public class DocumentController {
     }
 
     @GetMapping("/{id}/preview")
-    public DocumentPreviewDTO getEquipmentByIdForPreview(@PathVariable Long id, @RequestParam(value = "savelog", required = false) boolean isSaveLog,
-                                                         @CurrentUser UserDetails currentUser) {
+    public DocumentPreviewDTO getDocumentByIdForPreview(@PathVariable Long id,
+                                                        @RequestParam(value = "savelog", required = false) boolean isSaveLog,
+                                                        @CurrentUser UserDetails currentUser) {
         return documentService.getPreviewDtoById(id, isSaveLog, currentUser)
                 .orElseThrow(() -> new NotFoundException(DOCUMENT_ID_NOT_FOUND, id.toString()));
     }
 
     @GetMapping("/new")
-    public Iterable<GetDocumentDTO> getNewEquipmentsForCurrentUser(@CurrentUser UserDetails currentUser,
-                                                                   @QuerydslPredicate(root = Document.class) Predicate predicate,
-                                                                   Pageable pageable) {
+    public Iterable<GetDocumentDTO> getNewDocumentsForCurrentUser(@CurrentUser UserDetails currentUser,
+                                                                  @QuerydslPredicate(root = Document.class) Predicate predicate,
+                                                                  Pageable pageable) {
         return documentService.getNewDocument(currentUser, pageable, predicate);
     }
 

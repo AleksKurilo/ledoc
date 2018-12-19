@@ -6,8 +6,6 @@ import dk.ledocsystem.data.model.document.DocumentType;
 import lombok.Data;
 
 import java.time.LocalDate;
-import java.time.Period;
-import java.util.Set;
 
 @Data
 public class GetDocumentDTO {
@@ -16,21 +14,11 @@ public class GetDocumentDTO {
 
     private String name;
 
-    private String file;
-
-    private String archiveReason;
-
-    private String comment;
-
     private DocumentType type;
 
     private DocumentSource source;
 
     private DocumentStatus status;
-
-    private Period approvalRate;
-
-    private Long reviewTemplateId;
 
     private boolean personal;
 
@@ -40,7 +28,7 @@ public class GetDocumentDTO {
 
     private String subcategory;
 
-    private Set<String> locationNames;
+    private LocalDate nextReviewDate;
 
     private LocalDate createOn;
 }

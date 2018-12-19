@@ -9,6 +9,9 @@ public class EquipmentToEditDtoPropertyMap extends PropertyMap<Equipment, Equipm
     @Override
     protected void configure() {
         skip(destination.getLocation());
+        skip(destination.getCategory());
+        skip(destination.getResponsible());
+        skip(destination.getAuthenticationType());
         map().setResponsibleId(source.getResponsible().getId());
         map().setLocationId(source.getLocation().getId());
         map().setCategoryId(source.getCategory().getId());

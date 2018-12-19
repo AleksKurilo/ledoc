@@ -13,7 +13,6 @@ import dk.ledocsystem.data.model.document.DocumentCategoryType;
 import dk.ledocsystem.data.model.document.DocumentStatus;
 import dk.ledocsystem.data.model.document.QDocument;
 import dk.ledocsystem.data.model.employee.Employee;
-import dk.ledocsystem.data.model.employee.QEmployee;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
 import dk.ledocsystem.data.projections.IdAndLocalizedName;
 import dk.ledocsystem.data.repository.*;
@@ -22,12 +21,14 @@ import dk.ledocsystem.service.api.ReviewTemplateService;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.document.DocumentCategoryDTO;
 import dk.ledocsystem.service.api.dto.inbound.document.DocumentDTO;
+import dk.ledocsystem.service.api.dto.outbound.document.DocumentEditDTO;
 import dk.ledocsystem.service.api.dto.outbound.document.DocumentExportDTO;
 import dk.ledocsystem.service.api.dto.outbound.document.DocumentPreviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.document.GetDocumentDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.service.impl.events.producer.DocumentProducer;
 import dk.ledocsystem.service.impl.property_maps.document.DocumentToDocumentPreviewDtoPropertyMap;
+import dk.ledocsystem.service.impl.property_maps.document.DocumentToEditDtoPropertyMap;
 import dk.ledocsystem.service.impl.property_maps.document.DocumentToExportDtoMap;
 import dk.ledocsystem.service.impl.property_maps.document.DocumentToGetDocumentDtoPropertyMap;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
@@ -56,7 +57,7 @@ import static java.util.Objects.requireNonNull;
 class DocumentServiceImpl implements DocumentService {
 
     private static final Function<Long, Predicate> CUSTOMER_EQUALS_TO =
-            customerId -> ExpressionUtils.eqConst(QEmployee.employee.customer.id, customerId);
+            customerId -> ExpressionUtils.eqConst(QDocument.document.customer.id, customerId);
 
     private final TradeRepository tradeRepository;
     private final DocumentProducer documentProducer;
@@ -73,6 +74,7 @@ class DocumentServiceImpl implements DocumentService {
     @PostConstruct
     private void init() {
         modelMapper.addMappings(new DocumentToGetDocumentDtoPropertyMap());
+        modelMapper.addMappings(new DocumentToEditDtoPropertyMap());
         modelMapper.addMappings(new DocumentToDocumentPreviewDtoPropertyMap());
         modelMapper.addMappings(new DocumentToExportDtoMap());
     }
@@ -309,12 +311,12 @@ class DocumentServiceImpl implements DocumentService {
     @Override
     @Transactional
     public Optional<GetDocumentDTO> getById(@NonNull Long id) {
-        return documentRepository.findById(id).map(this::mapToDto);
+        return documentRepository.findById(id).map(this::mapToEditDto);
     }
 
     @Override
     public List<GetDocumentDTO> getAllById(@NonNull Iterable<Long> ids) {
-        return documentRepository.findAllById(ids).stream().map(this::mapToDto).collect(Collectors.toList());
+        return documentRepository.findAllById(ids).stream().map(this::mapToEditDto).collect(Collectors.toList());
     }
 
     @Override
@@ -329,6 +331,10 @@ class DocumentServiceImpl implements DocumentService {
 
     private GetDocumentDTO mapToDto(Document document) {
         return modelMapper.map(document, GetDocumentDTO.class);
+    }
+
+    private DocumentEditDTO mapToEditDto(Document document) {
+        return modelMapper.map(document, DocumentEditDTO.class);
     }
 
     private DocumentExportDTO mapToExportDto(Document document) {
