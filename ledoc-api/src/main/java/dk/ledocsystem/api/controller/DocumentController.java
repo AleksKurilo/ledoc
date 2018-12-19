@@ -4,6 +4,7 @@ import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.api.config.security.CurrentUser;
 import dk.ledocsystem.data.model.document.Document;
 import dk.ledocsystem.data.model.document.DocumentCategoryType;
+import dk.ledocsystem.data.projections.IdAndLocalizedName;
 import dk.ledocsystem.service.api.CustomerService;
 import dk.ledocsystem.service.api.DocumentService;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
@@ -24,7 +25,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.RolesAllowed;
-import java.util.Set;
 
 import static dk.ledocsystem.service.impl.constant.ErrorMessageKey.DOCUMENT_ID_NOT_FOUND;
 
@@ -66,16 +66,6 @@ public class DocumentController {
                 .orElseThrow(() -> new NotFoundException(DOCUMENT_ID_NOT_FOUND, id.toString()));
     }
 
-    @GetMapping(path = "/employeeId/{employeeId}")
-    public Set<GetDocumentDTO> getByEmployeeId(@PathVariable long employeeId) {
-        return documentService.getByEmployeeId(employeeId);
-    }
-
-    @GetMapping(path = "/equipmentId/{equipmentId}")
-    public Set<GetDocumentDTO> getByEquipmentId(@PathVariable long equipmentId) {
-        return documentService.getByEquipmentId(equipmentId);
-    }
-
     @GetMapping("/new")
     public Iterable<GetDocumentDTO> getNewEquipmentsForCurrentUser(@CurrentUser UserDetails currentUser,
                                                                    @QuerydslPredicate(root = Document.class) Predicate predicate,
@@ -112,12 +102,12 @@ public class DocumentController {
     }
 
     @GetMapping(path = "/categories")
-    public Page<DocumentCategoryDTO> getAllCategory() {
+    public Page<IdAndLocalizedName> getAllCategory() {
         return new PageImpl<>(documentService.getAllCategory());
     }
 
     @GetMapping(path = "/subcategories")
-    public Page<DocumentCategoryDTO> getAllSubCategory() {
+    public Page<IdAndLocalizedName> getAllSubCategory() {
         return new PageImpl<>(documentService.getAllSubcategory());
     }
 

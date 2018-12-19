@@ -1,6 +1,7 @@
 package dk.ledocsystem.service.api;
 
 import com.querydsl.core.types.Predicate;
+import dk.ledocsystem.data.projections.IdAndLocalizedName;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.document.DocumentCategoryDTO;
 import dk.ledocsystem.service.api.dto.inbound.document.DocumentDTO;
@@ -13,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 public interface DocumentService extends CustomerBasedDomainService<GetDocumentDTO> {
 
@@ -23,10 +23,6 @@ public interface DocumentService extends CustomerBasedDomainService<GetDocumentD
      * Changes the archived status according to data from {@code archivedStatusDTO}.
      */
     void changeArchivedStatus(Long documentId, ArchivedStatusDTO archivedStatusDTO, UserDetails creatorDetails);
-
-    Set<GetDocumentDTO> getByEmployeeId(long employeeId);
-
-    Set<GetDocumentDTO> getByEquipmentId(long equipmentId);
 
     Page<GetDocumentDTO> getNewDocument(UserDetails user, Pageable pageable);
 
@@ -38,9 +34,9 @@ public interface DocumentService extends CustomerBasedDomainService<GetDocumentD
 
     DocumentCategoryDTO updateCategory(DocumentCategoryDTO category);
 
-    List<DocumentCategoryDTO> getAllCategory();
+    List<IdAndLocalizedName> getAllCategory();
 
-    List<DocumentCategoryDTO> getAllSubcategory();
+    List<IdAndLocalizedName> getAllSubcategory();
 
     void deleteCategory(Long id);
 

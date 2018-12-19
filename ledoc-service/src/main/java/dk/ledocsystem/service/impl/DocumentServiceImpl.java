@@ -10,11 +10,12 @@ import dk.ledocsystem.data.model.Trade;
 import dk.ledocsystem.data.model.document.Document;
 import dk.ledocsystem.data.model.document.DocumentCategory;
 import dk.ledocsystem.data.model.document.DocumentCategoryType;
+import dk.ledocsystem.data.model.document.DocumentStatus;
 import dk.ledocsystem.data.model.document.QDocument;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.employee.QEmployee;
-import dk.ledocsystem.data.model.equipment.Equipment;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
+import dk.ledocsystem.data.projections.IdAndLocalizedName;
 import dk.ledocsystem.data.repository.*;
 import dk.ledocsystem.service.api.DocumentService;
 import dk.ledocsystem.service.api.ReviewTemplateService;
@@ -40,6 +41,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -61,7 +63,6 @@ class DocumentServiceImpl implements DocumentService {
     private final DocumentRepository documentRepository;
     private final EmployeeRepository employeeRepository;
     private final LocationRepository locationRepository;
-    private final EquipmentRepository equipmentRepository;
     private final ReviewTemplateService reviewTemplateService;
     private final DocumentCategoryRepository categoryRepository;
 
@@ -81,7 +82,7 @@ class DocumentServiceImpl implements DocumentService {
     public GetDocumentDTO createOrUpdate(@NonNull DocumentDTO documentDTO, @NonNull UserDetails userDetails) {
         Document document = modelMapper.map(documentDTO, Document.class);
         Customer customer = resolveCustomerByUsername(userDetails.getUsername());
-        documentDtoValidator.validate(documentDTO, ImmutableMap.of("customerId", customer.getId()));
+        documentDtoValidator.validate(documentDTO, ImmutableMap.of("customerId", customer.getId()), documentDTO.getValidationGroups());
 
         document.setCustomer(customer);
         Employee creator = employeeRepository.findByUsername(userDetails.getUsername())
@@ -95,44 +96,29 @@ class DocumentServiceImpl implements DocumentService {
             responsibleExistId = documentExist.getResponsible().getId();
         }
 
-        assignDocumentToEquipmentOrEmployee(documentDTO, document);
-
         document.setCreator(creator);
-        document.setTrade(resolveTrade(documentDTO.getTradeId()));
-        document.setLocation(resolveLocation(documentDTO.getLocationId()));
+        document.setTrades(resolveTrade(documentDTO.getTradeIds()));
+        document.setLocations(resolveLocations(documentDTO.getLocationIds()));
         document.setCategory(resolveCategory(documentDTO.getCategoryId()));
         document.setResponsible(resolveResponsible(documentDTO.getResponsibleId()));
         document.setSubcategory(resolveSubcategory(documentDTO.getSubcategoryId()));
-        document.setReviewTemplate(resolveReviewTemplate(documentDTO.getReviewTemplateId()));
+        if (documentDTO.getStatus() == DocumentStatus.ACTIVE_WITH_REVIEW) {
+            document.setReviewTemplate(getReviewTemplate());
+        } else {
+            document.eraseReviewDetails();
+        }
 
         Long responsibleId = documentDTO.getResponsibleId();
         writeDocumentLogs(document, creator, responsibleExistId, responsibleId);
         return mapToDto(documentRepository.save(document));
     }
 
-    private void assignDocumentToEquipmentOrEmployee(DocumentDTO documentDTO, Document document) {
-        Long employeeId = documentDTO.getEmployeeId();
-        if (employeeId != null) {
-            Employee employee = employeeRepository.findById(employeeId)
-                    .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
-            document.setEmployee(employee);
-        }
-        Long equipmentId = documentDTO.getEquipmentId();
-        if (equipmentId != null) {
-            Equipment equipment = equipmentRepository.findById(equipmentId)
-                    .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, equipmentId.toString()));
-            document.setEquipment(equipment);
-        }
+    private Set<Trade> resolveTrade(Set<Long> tradeIds) {
+        return new HashSet<>(tradeRepository.findAllById(tradeIds));
     }
 
-    private Trade resolveTrade(@NonNull Long tradeId) {
-        return tradeRepository.findById(tradeId)
-                .orElseThrow(() -> new NotFoundException(LOCATION_ID_NOT_FOUND, tradeId.toString()));
-    }
-
-    private Location resolveLocation(@NonNull Long locationId) {
-        return locationRepository.findById(locationId)
-                .orElseThrow(() -> new NotFoundException(LOCATION_ID_NOT_FOUND, locationId.toString()));
+    private Set<Location> resolveLocations(Set<Long> locationIds) {
+        return new HashSet<>(locationRepository.findAllById(locationIds));
     }
 
     private DocumentCategory resolveCategory(@NonNull Long categoryId) {
@@ -150,10 +136,9 @@ class DocumentServiceImpl implements DocumentService {
                 .orElseThrow(() -> new NotFoundException(DOCUMENT_SUBCATEGORY_ID_NOT_FOUND, subcategoryId.toString()));
     }
 
-    private ReviewTemplate resolveReviewTemplate(Long reviewTemplateId) {
-        return (reviewTemplateId == null) ? null :
-                reviewTemplateService.getById(reviewTemplateId)
-                        .orElseThrow(() -> new NotFoundException(REVIEW_TEMPLATE_ID_NOT_FOUND, reviewTemplateId.toString()));
+    private ReviewTemplate getReviewTemplate() {
+        return reviewTemplateService.getByName(ReviewTemplateService.DOCUMENT_QUICK_REVIEW_TEMPLATE_NAME)
+                        .orElseThrow(IllegalStateException::new);
     }
 
     private void writeDocumentLogs(Document document, Employee creator, Long responsibleExistId, Long responsibleId) {
@@ -180,18 +165,6 @@ class DocumentServiceImpl implements DocumentService {
         } else {
             documentProducer.unarchive(document, creator);
         }
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Set<GetDocumentDTO> getByEmployeeId(long employeeId) {
-        return documentRepository.findByEmployeeId(employeeId).stream().map(this::mapToDto).collect(Collectors.toSet());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Set<GetDocumentDTO> getByEquipmentId(long equipmentId) {
-        return documentRepository.findByEquipmentId(equipmentId).stream().map(this::mapToDto).collect(Collectors.toSet());
     }
 
     @Override
@@ -253,15 +226,13 @@ class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
-    public List<DocumentCategoryDTO> getAllCategory() {
-        return categoryRepository.findAllByType(DocumentCategoryType.CATEGORY)
-                .stream().map(e -> modelMapper.map(e, DocumentCategoryDTO.class)).collect(Collectors.toList());
+    public List<IdAndLocalizedName> getAllCategory() {
+        return categoryRepository.findAllByType(DocumentCategoryType.CATEGORY);
     }
 
     @Override
-    public List<DocumentCategoryDTO> getAllSubcategory() {
-        return categoryRepository.findAllByType(DocumentCategoryType.SUBCATEGORY)
-                .stream().map(e -> modelMapper.map(e, DocumentCategoryDTO.class)).collect(Collectors.toList());
+    public List<IdAndLocalizedName> getAllSubcategory() {
+        return categoryRepository.findAllByType(DocumentCategoryType.SUBCATEGORY);
     }
 
     @Override

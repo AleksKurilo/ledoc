@@ -15,6 +15,6 @@ public class DocumentToExportDtoMap extends PropertyMap<Document, DocumentExport
     @Override
     protected void configure() {
         Converter<Set<Location>, String> locationNamesConverter = context -> context.getSource() == null ? "" : StringUtils.join(context.getSource().stream().map(Location::getName).collect(Collectors.toList()), ',');
-        using(locationNamesConverter).map(source.getLocation(), destination.getLocationNames());
+        using(locationNamesConverter).map(source.getLocations(), destination.getLocationNames());
     }
 }

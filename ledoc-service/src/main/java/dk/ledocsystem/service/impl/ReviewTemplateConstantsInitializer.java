@@ -13,12 +13,9 @@ import dk.ledocsystem.data.repository.ReviewTemplateRepository;
 import java.util.Arrays;
 import java.util.Collections;
 
-class ReviewTemplateConstantsInitializer {
+import static dk.ledocsystem.service.api.ReviewTemplateService.*;
 
-    private static final String EMPLOYEE_QUICK_REVIEW_TEMPLATE_NAME = "Quick review for employees";
-    private static final String EQUIPMENT_QUICK_REVIEW_TEMPLATE_NAME = "Quick review for equipment";
-    private static final String DOCUMENT_QUICK_REVIEW_TEMPLATE_NAME = "Quick review for documents";
-    private static final String SUPPLIER_QUICK_REVIEW_TEMPLATE_NAME = "Quick review for suppliers";
+class ReviewTemplateConstantsInitializer {
 
     static boolean constantsCreated(ReviewTemplateRepository reviewTemplateRepository) {
         return reviewTemplateRepository.findByNameAndCustomer(EMPLOYEE_QUICK_REVIEW_TEMPLATE_NAME, null).isPresent();

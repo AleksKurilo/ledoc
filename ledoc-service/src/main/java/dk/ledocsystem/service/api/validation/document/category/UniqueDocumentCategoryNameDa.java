@@ -1,4 +1,4 @@
-package dk.ledocsystem.service.api.validation.document;
+package dk.ledocsystem.service.api.validation.document.category;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
@@ -6,14 +6,14 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import static java.lang.annotation.ElementType.TYPE_USE;
+import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-@Target({TYPE_USE})
+@Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
 @Documented
-@Constraint(validatedBy = {DocumentValidator.class})
-public @interface ValidDocument {
+@Constraint(validatedBy = UniqueDocumentCategoryNameDaValidator.class)
+public @interface UniqueDocumentCategoryNameDa {
 
     String message() default "";
 
@@ -21,3 +21,4 @@ public @interface ValidDocument {
 
     Class<? extends Payload>[] payload() default {};
 }
+

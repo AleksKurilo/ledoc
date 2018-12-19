@@ -1,5 +1,6 @@
 package dk.ledocsystem.data.model.document;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import dk.ledocsystem.data.exceptions.InvalidEnumValueException;
 import lombok.RequiredArgsConstructor;
 
@@ -18,5 +19,10 @@ public enum DocumentStatus {
             }
         }
         throw new InvalidEnumValueException("document.status.not.found", stringValue);
+    }
+
+    @JsonValue
+    public String value() {
+        return value;
     }
 }

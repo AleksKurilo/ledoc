@@ -3,11 +3,11 @@ package dk.ledocsystem.service.api.dto.outbound.document;
 import dk.ledocsystem.data.model.document.DocumentSource;
 import dk.ledocsystem.data.model.document.DocumentStatus;
 import dk.ledocsystem.data.model.document.DocumentType;
-import dk.ledocsystem.data.model.equipment.ApprovalType;
 import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.Set;
 
 @Data
 public class DocumentPreviewDTO {
@@ -28,17 +28,9 @@ public class DocumentPreviewDTO {
 
     private DocumentStatus status;
 
-    private ApprovalType approvalType;
-
     private Period approvalRate;
 
-    private String reviewTemplateName;
-
     private boolean personal;
-
-    private String employeeName;
-
-    private String equipmentName;
 
     private String responsibleName;
 
@@ -46,7 +38,7 @@ public class DocumentPreviewDTO {
 
     private String subcategoryName;
 
-    private String locationName;
+    private Set<String> locationNames;
 
     private LocalDate createOn;
 

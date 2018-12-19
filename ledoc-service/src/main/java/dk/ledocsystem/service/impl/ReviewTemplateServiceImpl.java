@@ -82,6 +82,11 @@ class ReviewTemplateServiceImpl implements ReviewTemplateService {
     }
 
     @Override
+    public Optional<ReviewTemplate> getByName(String name) {
+        return reviewTemplateRepository.findByName(name);
+    }
+
+    @Override
     public Page<ReviewTemplate> getAllGlobal(Predicate predicate, @NonNull Pageable pageable) {
         Predicate combinePredicate = ExpressionUtils.and(predicate, ONLY_GLOBAL);
         return getAll(combinePredicate, pageable);

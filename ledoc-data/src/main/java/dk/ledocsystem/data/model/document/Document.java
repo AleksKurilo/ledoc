@@ -45,7 +45,7 @@ public class Document {
 
     private String archiveReason;
 
-    @Column(length = 255)
+    @Column
     private String comment;
 
     @Enumerated(EnumType.STRING)
@@ -84,12 +84,6 @@ public class Document {
     private DocumentCategory subcategory;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private Employee employee;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Equipment equipment;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Customer customer;
@@ -98,11 +92,17 @@ public class Document {
     @JoinColumn(name = "review_template_id")
     private ReviewTemplate reviewTemplate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Location location;
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(name = "document_location",
+            joinColumns = {@JoinColumn(name = "document_id")},
+            inverseJoinColumns = {@JoinColumn(name = "location_id")})
+    private Set<Location> locations;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Trade trade;
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(name = "document_trade",
+            joinColumns = {@JoinColumn(name = "document_id")},
+            inverseJoinColumns = {@JoinColumn(name = "trade_id")})
+    private Set<Trade> trades;
 
     @ManyToMany
     @JoinTable(name = "document_logs",
@@ -138,6 +138,7 @@ public class Document {
     }
 
     public void eraseReviewDetails() {
+        this.reviewTemplate = null;
         this.approvalRate = null;
         this.nextReviewDate = null;
     }
