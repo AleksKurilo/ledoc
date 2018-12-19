@@ -40,7 +40,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -510,7 +509,7 @@ class EmployeeServiceImpl implements EmployeeService {
         return modelMapper.map(employee, EmployeePreviewDTO.class);
     }
 
-    private GetFollowedEmployeeDTO mapToFollowDto(Employee employee) {
+    private GetFollowedEmployeeDTO mapToFollowDto(FollowedEmployees employee) {
         return modelMapper.map(employee, GetFollowedEmployeeDTO.class);
     }
 
@@ -542,24 +541,8 @@ class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<GetFollowedEmployeeDTO> getFollowedEmployees(Long employeeId, Pageable pageable) {
-
-        int pageNumber = pageable.getPageNumber();
-        int pageSize = pageable.getPageSize();
-
-        List<Sort.Order> sorts = pageable.getSort().get().collect(Collectors.toList());
-
-        List<String> sortParams = new ArrayList<>();
-        if (sorts.size() > 0) {
-            sorts.forEach(order -> {
-                sortParams.add(" " + order.getProperty() + " " + order.getDirection().name());
-            });
-
-            String sortString = sortParams.stream().collect(Collectors.joining(", "));
-            return employeeRepository.findAllFollowedByEmployeeSorted(employeeId, sortString, pageNumber*pageSize, pageSize).stream().map(this::mapToFollowDto).collect(Collectors.toList());
-        }
-
-        return employeeRepository.findAllFollowedByEmployee(employeeId, pageNumber*pageSize, pageSize).stream().map(this::mapToFollowDto).collect(Collectors.toList());
+    public Page<GetFollowedEmployeeDTO> getFollowedEmployees(Long employeeId, Pageable pageable) {
+        return employeeRepository.findAllFollowedEmployeesByEmployeePaged(employeeId, pageable).map(this::mapToFollowDto);
     }
     //endregion
 }

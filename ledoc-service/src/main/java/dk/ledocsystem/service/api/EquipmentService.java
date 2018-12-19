@@ -65,7 +65,7 @@ public interface EquipmentService extends CustomerBasedDomainService<GetEquipmen
 
     void follow(Long equipmentId, UserDetails currentUser, EquipmentFollowDTO equipmentFollowDTO);
 
-    List<GetFollowedEquipmentDTO> getFollowedEquipment(Long employeeId, Pageable pageable);
+    Page<GetFollowedEquipmentDTO> getFollowedEquipment(Long employeeId, Pageable pageable);
 
     List<List<String>> getAllForExport(UserDetails user, Predicate predicate, boolean isNew);
 }

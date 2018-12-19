@@ -146,7 +146,7 @@ public class Employee {
              iterator.hasNext(); ) {
             FollowedEmployees followedEmployee = iterator.next();
 
-            if (followedEmployee.getFollowedEmployee().equals(this) &&
+            if (followedEmployee.getFollowed().equals(this) &&
                     followedEmployee.getEmployee().equals(employee)) {
                 iterator.remove();
                 followedEmployee.getEmployee().getFollowedEmployees().remove(followedEmployee);

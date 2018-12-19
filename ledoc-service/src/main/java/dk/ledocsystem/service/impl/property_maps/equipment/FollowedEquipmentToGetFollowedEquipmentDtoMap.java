@@ -8,8 +8,7 @@ public class FollowedEquipmentToGetFollowedEquipmentDtoMap extends PropertyMap<F
 
     @Override
     protected void configure() {
-        map().setId(source.getEquipment().getId());
-        map().setName(source.getEquipment().getName());
-        map().setForced(source.isForced());
+        map().setId(source.getFollowed().getId());
+        map().setName(source.getFollowed().getName());
     }
 }

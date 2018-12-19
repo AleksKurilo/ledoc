@@ -127,7 +127,7 @@ public class Equipment {
     @OneToOne(mappedBy = "equipment", cascade = CascadeType.ALL, orphanRemoval = true)
     private EquipmentLoan loan;
 
-    @OneToMany(mappedBy = "equipment", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
+    @OneToMany(mappedBy = "followed", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
     private Set<FollowedEquipment> followedEquipments;
 
     @ManyToMany
@@ -182,7 +182,7 @@ public class Equipment {
              iterator.hasNext(); ) {
             FollowedEquipment followedEquipment = iterator.next();
 
-            if (followedEquipment.getEquipment().equals(this) &&
+            if (followedEquipment.getFollowed().equals(this) &&
                     followedEquipment.getEmployee().equals(employee)) {
                 iterator.remove();
                 followedEquipment.getEmployee().getFollowedEquipments().remove(followedEquipment);

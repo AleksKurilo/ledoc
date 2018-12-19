@@ -371,9 +371,8 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<GetFollowedEquipmentDTO> getFollowedEquipment(Long employeeId, Pageable pageable) {
-        return employeeRepository.findById(employeeId).orElseThrow(IllegalStateException::new).getFollowedEquipments()
-                .stream().map(this::mapToFollowDto).collect(Collectors.toList());
+    public Page<GetFollowedEquipmentDTO> getFollowedEquipment(Long employeeId, Pageable pageable) {
+        return employeeRepository.findAllFollowedEquipmentByEmployeePaged(employeeId, pageable).map(this::mapToFollowDto);
     }
 
     @Override

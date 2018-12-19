@@ -20,10 +20,11 @@ public class FollowedEmployees implements Serializable {
     @JoinColumn(name = "employee_id")
     private Employee employee;
 
+    // Don not rename field. It's used for sorting on frontend part
     @Id
     @ManyToOne
     @JoinColumn(name = "followed_employee_id")
-    private Employee followedEmployee;
+    private Employee followed;
 
     @Column(name = "forced")
     private boolean forced;

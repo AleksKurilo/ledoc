@@ -19,7 +19,6 @@ import dk.ledocsystem.service.api.dto.outbound.employee.GetFollowedEmployeeDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
@@ -30,7 +29,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.RolesAllowed;
 import java.util.Collection;
-import java.util.List;
 
 import static dk.ledocsystem.service.impl.constant.ErrorMessageKey.EMPLOYEE_ID_NOT_FOUND;
 
@@ -139,8 +137,7 @@ public class EmployeeController {
     public Iterable<GetFollowedEmployeeDTO> getFollowedEmployees(@RequestParam("employeeId") Long employeeId,
                                                                  Pageable pageable) {
 
-        List<GetFollowedEmployeeDTO> result = employeeService.getFollowedEmployees(employeeId, pageable);
-        return new PageImpl<>(result, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort()), result.size());
+        return employeeService.getFollowedEmployees(employeeId, pageable);
     }
 
     private Long getCustomerId(UserDetails user) {

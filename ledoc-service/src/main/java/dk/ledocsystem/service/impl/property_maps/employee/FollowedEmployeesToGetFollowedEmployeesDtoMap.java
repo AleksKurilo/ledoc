@@ -8,8 +8,7 @@ public class FollowedEmployeesToGetFollowedEmployeesDtoMap extends PropertyMap<F
 
     @Override
     protected void configure() {
-        map().setId(source.getFollowedEmployee().getId());
-        map().setName(source.getFollowedEmployee().getName());
-        map().setForced(source.isForced());
+        map().setId(source.getFollowed().getId());
+        map().setName(source.getFollowed().getName());
     }
 }

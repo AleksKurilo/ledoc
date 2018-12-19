@@ -6,9 +6,13 @@ import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.core.types.dsl.StringPath;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.employee.QEmployee;
+import dk.ledocsystem.data.model.employee.FollowedEmployees;
+import dk.ledocsystem.data.model.equipment.FollowedEquipment;
 import dk.ledocsystem.data.model.security.UserAuthorities;
 import dk.ledocsystem.data.projections.EmployeeSummary;
 import dk.ledocsystem.data.util.LocalDateMultiValueBinding;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -86,11 +90,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Query
             "from Employee e left join e.locations l where e.customer.id = ?1 and e.archived = false")
     List<EmployeeSummary> findAllBy(Long customerId);
 
-    @Query(value = "select * from main.employees e left join main.followed_employees f on e.id = f.followed_employee_id where f.employee_id = ? offset ? limit ?", nativeQuery = true)
-    List<Employee> findAllFollowedByEmployee(Long employeeId, int offset, int pageSize);
+    @Query(value = "select f from Employee e left join e.followedEmployees f where e.id = ?1")
+    Page<FollowedEmployees> findAllFollowedEmployeesByEmployeePaged(Long employeeId, Pageable pageable);
 
-    @Query(value = "select * from main.employees e left join main.followed_employees f on e.id = f.followed_employee_id where f.employee_id = ? order by ? offset ? limit ?", nativeQuery = true)
-    List<Employee> findAllFollowedByEmployeeSorted(Long employeeId, String sort, int offset, int pageSize);
+    @Query(value = "select f from Employee e left join e.followedEquipments f where e.id = ?1")
+    Page<FollowedEquipment> findAllFollowedEquipmentByEmployeePaged(Long employeeId, Pageable pageable);
 
     @Override
     default void customize(QuerydslBindings bindings, QEmployee root) {
