@@ -127,7 +127,7 @@ public class Equipment {
     @OneToOne(mappedBy = "equipment", cascade = CascadeType.ALL, orphanRemoval = true)
     private EquipmentLoan loan;
 
-    @OneToMany(mappedBy = "followed", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
+    @OneToMany(mappedBy = "equipment", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
     private Set<FollowedEquipment> followedEquipments;
 
     @ManyToMany
