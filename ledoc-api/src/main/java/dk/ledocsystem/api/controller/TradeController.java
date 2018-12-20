@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.RolesAllowed;
-import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -24,7 +23,7 @@ public class TradeController {
 
     @RolesAllowed("super_admin")
     @PostMapping
-    public GetTradeDTO createNew(@RequestBody @Valid TradeCreateDTO createDTO) {
+    public GetTradeDTO createNew(@RequestBody TradeCreateDTO createDTO) {
         return tradeService.createNew(createDTO);
     }
 
