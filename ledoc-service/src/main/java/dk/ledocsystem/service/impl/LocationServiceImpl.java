@@ -8,7 +8,7 @@ import dk.ledocsystem.data.repository.EmployeeRepository;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.location.AddressDTO;
 import dk.ledocsystem.service.api.dto.inbound.location.LocationDTO;
-import dk.ledocsystem.data.projections.LocationSummary;
+import dk.ledocsystem.service.api.dto.outbound.location.LocationSummary;
 import dk.ledocsystem.service.api.dto.outbound.location.LocationEditDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.data.model.*;
@@ -288,8 +288,11 @@ class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public Page<LocationSummary> getAllNamesByCustomer(Long customerId, Pageable pageable) {
-        return locationRepository.findAllByCustomerIdAndArchivedFalse(customerId, pageable);
+    @Transactional(readOnly = true)
+    public List<LocationSummary> getAllNamesByCustomer(Long customerId) {
+        Predicate notArchived = QLocation.location.archived.eq(Boolean.FALSE);
+        Predicate combinePredicate = ExpressionUtils.and(notArchived, CUSTOMER_EQUALS_TO.apply(customerId));
+        return locationRepository.findAll(combinePredicate).stream().map(this::mapToSummary).collect(Collectors.toList());
     }
 
     @Override
@@ -323,6 +326,10 @@ class LocationServiceImpl implements LocationService {
 
     private GetLocationDTO mapToDto(Location location) {
         return modelMapper.map(location, GetLocationDTO.class);
+    }
+
+    private LocationSummary mapToSummary(Location location) {
+        return modelMapper.map(location, LocationSummary.class);
     }
 
     private LocationEditDTO mapToEditDto(Location location) {

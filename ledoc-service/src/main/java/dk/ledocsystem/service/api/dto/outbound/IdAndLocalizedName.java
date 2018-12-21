@@ -7,7 +7,7 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import java.util.Locale;
 
 @Data
-public class GetTradeDTO {
+public class IdAndLocalizedName {
 
     private Long id;
 
@@ -21,9 +21,9 @@ public class GetTradeDTO {
         Locale locale = LocaleContextHolder.getLocale();
 
         if (locale.equals(Locale.forLanguageTag("da-DK"))) {
-            return getNameDa();
+            return nameDa;
         } else {
-            return getNameEn();
+            return nameEn;
         }
     }
 }

@@ -9,7 +9,7 @@ import dk.ledocsystem.data.model.Location;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.equipment.*;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
-import dk.ledocsystem.data.projections.IdAndLocalizedName;
+import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.data.repository.*;
 import dk.ledocsystem.service.api.EquipmentService;
 import dk.ledocsystem.service.api.ReviewTemplateService;
@@ -218,38 +218,28 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     public List<IdAndLocalizedName> getAuthTypes() {
-        return authenticationTypeRepository.getAllBy();
+        return authenticationTypeRepository.findAll().stream().map(this::mapAuthTypeToDto).collect(Collectors.toList());
     }
 
     @Override
-    public Page<IdAndLocalizedName> getAuthTypes(Pageable pageable) {
-        return authenticationTypeRepository.getAllBy(pageable);
-    }
-
-    @Override
-    public AuthenticationType createAuthType(AuthenticationTypeDTO authenticationTypeDTO) {
+    public IdAndLocalizedName createAuthType(AuthenticationTypeDTO authenticationTypeDTO) {
         authenticationTypeDtoValidator.validate(authenticationTypeDTO);
 
         AuthenticationType authenticationType = modelMapper.map(authenticationTypeDTO, AuthenticationType.class);
-        return authenticationTypeRepository.save(authenticationType);
-    }
-
-    @Override
-    public Page<IdAndLocalizedName> getCategories(Pageable pageable) {
-        return equipmentCategoryRepository.getAllBy(pageable);
+        return mapAuthTypeToDto(authenticationTypeRepository.save(authenticationType));
     }
 
     @Override
     public List<IdAndLocalizedName> getCategories() {
-        return equipmentCategoryRepository.getAllBy();
+        return equipmentCategoryRepository.findAll().stream().map(this::mapCategoryToDto).collect(Collectors.toList());
     }
 
     @Override
-    public EquipmentCategory createNewCategory(EquipmentCategoryCreateDTO categoryCreateDTO) {
+    public IdAndLocalizedName createCategory(EquipmentCategoryCreateDTO categoryCreateDTO) {
         equipmentCategoryCreateDtoValidator.validate(categoryCreateDTO);
 
         EquipmentCategory category = modelMapper.map(categoryCreateDTO, EquipmentCategory.class);
-        return equipmentCategoryRepository.save(category);
+        return mapCategoryToDto(equipmentCategoryRepository.save(category));
     }
 
     //region GET/DELETE standard API
@@ -367,6 +357,14 @@ class EquipmentServiceImpl implements EquipmentService {
 
     private EquipmentExportDTO mapToExportDto(Equipment equipment) {
         return modelMapper.map(equipment, EquipmentExportDTO.class);
+    }
+
+    private IdAndLocalizedName mapAuthTypeToDto(AuthenticationType authenticationType) {
+        return modelMapper.map(authenticationType, IdAndLocalizedName.class);
+    }
+
+    private IdAndLocalizedName mapCategoryToDto(EquipmentCategory category) {
+        return modelMapper.map(category, IdAndLocalizedName.class);
     }
 
     @Override

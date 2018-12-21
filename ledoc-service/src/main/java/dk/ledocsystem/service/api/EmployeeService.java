@@ -9,7 +9,7 @@ import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeDTO;
 import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeFollowDTO;
 import dk.ledocsystem.service.api.dto.inbound.review.ReviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.employee.EmployeePreviewDTO;
-import dk.ledocsystem.service.api.dto.outbound.employee.EmployeeSummaryDTO;
+import dk.ledocsystem.service.api.dto.outbound.employee.EmployeeSummary;
 import dk.ledocsystem.service.api.dto.outbound.employee.GetEmployeeDTO;
 import dk.ledocsystem.service.api.dto.outbound.employee.GetFollowedEmployeeDTO;
 import org.springframework.data.domain.Page;
@@ -101,7 +101,7 @@ public interface EmployeeService extends CustomerBasedDomainService<GetEmployeeD
      */
     void performReview(Long employeeId, ReviewDTO reviewDTO, UserDetails currentUser);
 
-    List<EmployeeSummaryDTO> getAllNamesByCustomer(Long customerId);
+    List<EmployeeSummary> getAllNamesByCustomer(Long customerId);
 
     Optional<GetEmployeeDTO> getByUsername(String username);
 

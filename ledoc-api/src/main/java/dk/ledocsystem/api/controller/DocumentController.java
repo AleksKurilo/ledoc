@@ -4,7 +4,7 @@ import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.api.config.security.CurrentUser;
 import dk.ledocsystem.data.model.document.Document;
 import dk.ledocsystem.data.model.document.DocumentCategoryType;
-import dk.ledocsystem.data.projections.IdAndLocalizedName;
+import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.service.api.CustomerService;
 import dk.ledocsystem.service.api.DocumentService;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
@@ -107,13 +107,13 @@ public class DocumentController {
     }
 
     @GetMapping(path = "/categories")
-    public Page<IdAndLocalizedName> getAllCategory() {
-        return new PageImpl<>(documentService.getAllCategory());
+    public Page<IdAndLocalizedName> getDocumentCategories() {
+        return new PageImpl<>(documentService.getCategories());
     }
 
     @GetMapping(path = "/subcategories")
-    public Page<IdAndLocalizedName> getAllSubCategory() {
-        return new PageImpl<>(documentService.getAllSubcategory());
+    public Page<IdAndLocalizedName> getDocumentSubcategories() {
+        return new PageImpl<>(documentService.getSubcategories());
     }
 
     @RolesAllowed("super_admin")

@@ -4,7 +4,7 @@ import dk.ledocsystem.service.api.dto.inbound.trades.TradeCreateDTO;
 import dk.ledocsystem.data.model.Trade;
 import dk.ledocsystem.data.repository.TradeRepository;
 import dk.ledocsystem.service.api.TradeService;
-import dk.ledocsystem.service.api.dto.outbound.GetTradeDTO;
+import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -22,20 +22,20 @@ class TradeServiceImpl implements TradeService {
     private final ModelMapper modelMapper;
 
     @Override
-    public List<GetTradeDTO> getAll() {
+    public List<IdAndLocalizedName> getAll() {
         return tradeRepository.findAll().stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     @Override
-    public GetTradeDTO createNew(TradeCreateDTO tradeCreateDTO) {
+    public IdAndLocalizedName createTrade(TradeCreateDTO tradeCreateDTO) {
         tradeCreateDtoValidator.validate(tradeCreateDTO);
 
         Trade trade = modelMapper.map(tradeCreateDTO, Trade.class);
         return mapToDto(tradeRepository.save(trade));
     }
 
-    private GetTradeDTO mapToDto(Trade trade) {
-        return modelMapper.map(trade, GetTradeDTO.class);
+    private IdAndLocalizedName mapToDto(Trade trade) {
+        return modelMapper.map(trade, IdAndLocalizedName.class);
     }
 
     @Override

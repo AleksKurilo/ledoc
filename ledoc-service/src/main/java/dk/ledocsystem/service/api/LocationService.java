@@ -2,13 +2,12 @@ package dk.ledocsystem.service.api;
 
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.location.LocationDTO;
-import dk.ledocsystem.data.projections.LocationSummary;
+import dk.ledocsystem.service.api.dto.outbound.location.LocationSummary;
 import dk.ledocsystem.service.api.dto.outbound.location.GetLocationDTO;
 import dk.ledocsystem.service.api.dto.outbound.location.LocationPreviewDTO;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface LocationService extends CustomerBasedDomainService<GetLocationDTO> {
@@ -47,7 +46,7 @@ public interface LocationService extends CustomerBasedDomainService<GetLocationD
      */
     void changeArchivedStatus(Long locationId, ArchivedStatusDTO archivedStatusDTO);
 
-    Page<LocationSummary> getAllNamesByCustomer(Long customerId, Pageable pageable);
+    List<LocationSummary> getAllNamesByCustomer(Long customerId);
 
     Optional<LocationPreviewDTO> getPreviewDtoById(Long locationId);
 }

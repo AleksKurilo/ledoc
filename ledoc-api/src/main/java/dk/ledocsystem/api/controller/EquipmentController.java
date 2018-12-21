@@ -2,10 +2,8 @@ package dk.ledocsystem.api.controller;
 
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.api.config.security.CurrentUser;
-import dk.ledocsystem.data.model.equipment.AuthenticationType;
 import dk.ledocsystem.data.model.equipment.Equipment;
-import dk.ledocsystem.data.model.equipment.EquipmentCategory;
-import dk.ledocsystem.data.projections.IdAndLocalizedName;
+import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.service.api.CustomerService;
 import dk.ledocsystem.service.api.EquipmentService;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
@@ -15,6 +13,7 @@ import dk.ledocsystem.service.api.dto.outbound.equipment.GetEquipmentDTO;
 import dk.ledocsystem.service.api.dto.outbound.equipment.GetFollowedEquipmentDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
@@ -65,25 +64,25 @@ public class EquipmentController {
     }
 
     @GetMapping("/auth-types")
-    public Iterable<IdAndLocalizedName> getAuthenticationTypes(Pageable pageable) {
-        return equipmentService.getAuthTypes(pageable);
+    public Iterable<IdAndLocalizedName> getAuthenticationTypes() {
+        return new PageImpl<>(equipmentService.getAuthTypes());
     }
 
     @RolesAllowed("ROLE_super_admin")
     @PostMapping(value = "/auth-types", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public AuthenticationType createAuthType(@RequestBody AuthenticationTypeDTO authenticationTypeDTO) {
+    public IdAndLocalizedName createAuthType(@RequestBody AuthenticationTypeDTO authenticationTypeDTO) {
         return equipmentService.createAuthType(authenticationTypeDTO);
     }
 
     @GetMapping("/categories")
-    public Iterable<IdAndLocalizedName> getCategories(Pageable pageable) {
-        return equipmentService.getCategories(pageable);
+    public Iterable<IdAndLocalizedName> getCategories() {
+        return new PageImpl<>(equipmentService.getCategories());
     }
 
     @RolesAllowed("super_admin")
     @PostMapping(value = "/categories", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public EquipmentCategory createNewEqCategory(@RequestBody EquipmentCategoryCreateDTO categoryCreateDTO) {
-        return equipmentService.createNewCategory(categoryCreateDTO);
+    public IdAndLocalizedName createNewEqCategory(@RequestBody EquipmentCategoryCreateDTO categoryCreateDTO) {
+        return equipmentService.createCategory(categoryCreateDTO);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)

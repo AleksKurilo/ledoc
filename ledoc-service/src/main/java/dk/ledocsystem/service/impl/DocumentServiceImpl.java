@@ -14,7 +14,7 @@ import dk.ledocsystem.data.model.document.DocumentStatus;
 import dk.ledocsystem.data.model.document.QDocument;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
-import dk.ledocsystem.data.projections.IdAndLocalizedName;
+import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.data.repository.*;
 import dk.ledocsystem.service.api.DocumentService;
 import dk.ledocsystem.service.api.ReviewTemplateService;
@@ -228,13 +228,13 @@ class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
-    public List<IdAndLocalizedName> getAllCategory() {
-        return categoryRepository.findAllByType(DocumentCategoryType.CATEGORY);
+    public List<IdAndLocalizedName> getCategories() {
+        return categoryRepository.findAllByType(DocumentCategoryType.CATEGORY).stream().map(this::mapCategoryToDto).collect(Collectors.toList());
     }
 
     @Override
-    public List<IdAndLocalizedName> getAllSubcategory() {
-        return categoryRepository.findAllByType(DocumentCategoryType.SUBCATEGORY);
+    public List<IdAndLocalizedName> getSubcategories() {
+        return categoryRepository.findAllByType(DocumentCategoryType.SUBCATEGORY).stream().map(this::mapCategoryToDto).collect(Collectors.toList());
     }
 
     @Override
@@ -339,6 +339,10 @@ class DocumentServiceImpl implements DocumentService {
 
     private DocumentExportDTO mapToExportDto(Document document) {
         return modelMapper.map(document, DocumentExportDTO.class);
+    }
+
+    private IdAndLocalizedName mapCategoryToDto(DocumentCategory category) {
+        return modelMapper.map(category, IdAndLocalizedName.class);
     }
 
     //endregion

@@ -83,6 +83,7 @@ class EmployeeServiceImpl implements EmployeeService {
         modelMapper.addMappings(new EmployeeToPreviewDtoPropertyMap());
         modelMapper.addMappings(new FollowedEmployeesToGetFollowedEmployeesDtoMap());
         modelMapper.addMappings(new EmployeeToExportDtoMap());
+        modelMapper.addMappings(new EmployeeToSummaryPropertyMap());
     }
 
     @Transactional
@@ -442,20 +443,12 @@ class EmployeeServiceImpl implements EmployeeService {
         return employeeRepository.findAll(combinePredicate, pageable).map(this::mapToDto);
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public List<EmployeeSummaryDTO> getAllNamesByCustomer(Long customerId) {
-        return employeeRepository.findAllBy(customerId)
-                .stream()
-                .map(EmployeeSummaryDTO::new)
-                .collect(Collectors.groupingBy(EmployeeSummaryDTO::getId, Collectors.reducing((first, second) -> {
-                    first.getLocations().addAll(second.getLocations()); // ugly workaround to overcome Spring Data's inability
-                    return first;                                       // to group results with custom @Query
-                })))
-                .values()
-                .stream()
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toList());
+    public List<EmployeeSummary> getAllNamesByCustomer(Long customerId) {
+        Predicate notArchived = QEmployee.employee.archived.eq(Boolean.FALSE);
+        Predicate combinePredicate = ExpressionUtils.and(notArchived, CUSTOMER_EQUALS_TO.apply(customerId));
+        return employeeRepository.findAll(combinePredicate).stream().map(this::mapToSummary).collect(Collectors.toList());
     }
 
     @Override
@@ -515,6 +508,10 @@ class EmployeeServiceImpl implements EmployeeService {
 
     private EmployeeExportDTO mapToExportDto(Employee employee) {
         return modelMapper.map(employee, EmployeeExportDTO.class);
+    }
+
+    private EmployeeSummary mapToSummary(Employee employee) {
+        return modelMapper.map(employee, EmployeeSummary.class);
     }
 
     @Override

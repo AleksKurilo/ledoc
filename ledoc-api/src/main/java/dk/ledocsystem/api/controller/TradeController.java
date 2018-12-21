@@ -2,7 +2,7 @@ package dk.ledocsystem.api.controller;
 
 import dk.ledocsystem.service.api.dto.inbound.trades.TradeCreateDTO;
 import dk.ledocsystem.service.api.TradeService;
-import dk.ledocsystem.service.api.dto.outbound.GetTradeDTO;
+import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,14 +17,14 @@ public class TradeController {
     private final TradeService tradeService;
 
     @GetMapping
-    public List<GetTradeDTO> getAllTrades() {
+    public List<IdAndLocalizedName> getAllTrades() {
         return tradeService.getAll();
     }
 
     @RolesAllowed("super_admin")
     @PostMapping
-    public GetTradeDTO createNew(@RequestBody TradeCreateDTO createDTO) {
-        return tradeService.createNew(createDTO);
+    public IdAndLocalizedName createTrade(@RequestBody TradeCreateDTO createDTO) {
+        return tradeService.createTrade(createDTO);
     }
 
     @DeleteMapping("/{tradeId}")

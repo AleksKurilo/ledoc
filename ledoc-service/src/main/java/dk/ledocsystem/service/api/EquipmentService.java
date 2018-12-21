@@ -1,9 +1,7 @@
 package dk.ledocsystem.service.api;
 
 import com.querydsl.core.types.Predicate;
-import dk.ledocsystem.data.model.equipment.AuthenticationType;
-import dk.ledocsystem.data.model.equipment.EquipmentCategory;
-import dk.ledocsystem.data.projections.IdAndLocalizedName;
+import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.equipment.*;
 import dk.ledocsystem.service.api.dto.outbound.equipment.EquipmentPreviewDTO;
@@ -53,15 +51,11 @@ public interface EquipmentService extends CustomerBasedDomainService<GetEquipmen
 
     List<IdAndLocalizedName> getAuthTypes();
 
-    Page<IdAndLocalizedName> getAuthTypes(Pageable pageable);
-
-    AuthenticationType createAuthType(AuthenticationTypeDTO authenticationTypeDTO);
+    IdAndLocalizedName createAuthType(AuthenticationTypeDTO authenticationTypeDTO);
 
     List<IdAndLocalizedName> getCategories();
 
-    Page<IdAndLocalizedName> getCategories(Pageable pageable);
-
-    EquipmentCategory createNewCategory(EquipmentCategoryCreateDTO categoryCreateDTO);
+    IdAndLocalizedName createCategory(EquipmentCategoryCreateDTO categoryCreateDTO);
 
     void follow(Long equipmentId, UserDetails currentUser, EquipmentFollowDTO equipmentFollowDTO);
 

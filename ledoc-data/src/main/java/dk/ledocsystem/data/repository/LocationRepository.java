@@ -1,7 +1,6 @@
 package dk.ledocsystem.data.repository;
 
 import com.querydsl.core.types.Predicate;
-import dk.ledocsystem.data.projections.LocationSummary;
 import dk.ledocsystem.data.model.Location;
 import dk.ledocsystem.data.model.QLocation;
 import org.springframework.data.domain.Page;
@@ -14,8 +13,14 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 
+import java.util.List;
+
 public interface LocationRepository extends JpaRepository<Location, Long>, QuerydslPredicateExecutor<Location>,
         QuerydslBinderCustomizer<QLocation> {
+
+    @EntityGraph(attributePaths = "address")
+    @Override
+    List<Location> findAll(Predicate predicate);
 
     @EntityGraph(attributePaths = "address")
     @Override
@@ -24,8 +29,6 @@ public interface LocationRepository extends JpaRepository<Location, Long>, Query
     @EntityGraph(attributePaths = "address")
     @Override
     Page<Location> findAll(Predicate predicate, Pageable pageable);
-
-    Page<LocationSummary> findAllByCustomerIdAndArchivedFalse(Long customerId, Pageable pageable);
 
     /**
      * @return {@code true} if location with given name and customer ID exists.

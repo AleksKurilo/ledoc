@@ -13,7 +13,7 @@ import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeDTO;
 import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeFollowDTO;
 import dk.ledocsystem.service.api.dto.inbound.review.ReviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.employee.EmployeePreviewDTO;
-import dk.ledocsystem.service.api.dto.outbound.employee.EmployeeSummaryDTO;
+import dk.ledocsystem.service.api.dto.outbound.employee.EmployeeSummary;
 import dk.ledocsystem.service.api.dto.outbound.employee.GetEmployeeDTO;
 import dk.ledocsystem.service.api.dto.outbound.employee.GetFollowedEmployeeDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
@@ -49,7 +49,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/names")
-    public Iterable<EmployeeSummaryDTO> getAllEmployeeNames(@CurrentUser UserDetails currentUser) {
+    public Iterable<EmployeeSummary> getAllEmployeeNames(@CurrentUser UserDetails currentUser) {
         Long customerId = getCustomerId(currentUser);
         return new PageImpl<>(employeeService.getAllNamesByCustomer(customerId));
     }
