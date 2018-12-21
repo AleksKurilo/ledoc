@@ -2,19 +2,18 @@ package dk.ledocsystem.service.impl.property_maps.equipment;
 
 import dk.ledocsystem.data.model.equipment.ApprovalType;
 import dk.ledocsystem.data.model.equipment.Equipment;
-import dk.ledocsystem.data.util.PeriodToHumanReadableConverter;
 import dk.ledocsystem.service.api.dto.outbound.employee.EquipmentExportDTO;
+import dk.ledocsystem.service.impl.property_maps.converters.DoubleNamedLocalizedConverter;
+import dk.ledocsystem.service.impl.property_maps.converters.PeriodToHumanReadableConverter;
 import org.modelmapper.Converter;
 import org.modelmapper.PropertyMap;
-
-import java.time.Period;
 
 public class EquipmentToExportDtoMap extends PropertyMap<Equipment, EquipmentExportDTO> {
 
     @Override
     protected void configure() {
 
-        map().setCategoryName(source.getCategory().getNameEn());
+        using(DoubleNamedLocalizedConverter.INSTANCE).map(source.getCategory(), destination.getCategoryName());
         map().setHomeLocation(source.getLocation().getName());
 
         Converter<Equipment, String> locationNameConverter = context -> context.getSource().getLoan() == null ? context.getSource().getLocation().getName() :
@@ -29,10 +28,8 @@ public class EquipmentToExportDtoMap extends PropertyMap<Equipment, EquipmentExp
 
         using(approvalTypeConverter).map(source.getApprovalType(), destination.getReviewStatus());
 
-        PeriodToHumanReadableConverter converter = new PeriodToHumanReadableConverter();
-        Converter<Period, String> reviewPeriodConverter = context -> context.getSource() == null ? "No" : "Yes, every " + converter.convert(context.getSource());
-        using(reviewPeriodConverter).map(source.getApprovalRate(), destination.getMustBeReviewed());
-        map().setAuthenticationType(source.getAuthenticationType().toString());
+        using(PeriodToHumanReadableConverter.INSTANCE).map(source.getApprovalRate(), destination.getMustBeReviewed());
+        using(DoubleNamedLocalizedConverter.INSTANCE).map(source.getAuthenticationType(), destination.getAuthenticationType());
         map().setResponsible(source.getResponsible().getName());
     }
 }

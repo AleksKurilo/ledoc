@@ -1,5 +1,6 @@
 package dk.ledocsystem.data.model.equipment;
 
+import dk.ledocsystem.data.model.DoubleNamed;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,7 +14,7 @@ import java.time.Period;
 @Entity
 @Table(name = "equipment_categories")
 @ToString(of = "nameEn")
-public class EquipmentCategory {
+public class EquipmentCategory implements DoubleNamed {
 
     @EqualsAndHashCode.Include
     @Id

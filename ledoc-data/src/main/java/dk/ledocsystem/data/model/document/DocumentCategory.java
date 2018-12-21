@@ -1,5 +1,6 @@
 package dk.ledocsystem.data.model.document;
 
+import dk.ledocsystem.data.model.DoubleNamed;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,7 +13,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Entity
 @Table(name = "document_categories")
-public class DocumentCategory {
+public class DocumentCategory implements DoubleNamed {
 
     @Id
     @EqualsAndHashCode.Include

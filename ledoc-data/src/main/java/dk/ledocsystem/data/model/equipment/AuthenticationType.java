@@ -1,5 +1,6 @@
 package dk.ledocsystem.data.model.equipment;
 
+import dk.ledocsystem.data.model.DoubleNamed;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,7 +21,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "authentication_types")
 @ToString(of = {"nameEn"})
-public class AuthenticationType {
+public class AuthenticationType implements DoubleNamed {
 
     @EqualsAndHashCode.Include
     @Id
