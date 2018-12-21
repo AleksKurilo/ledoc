@@ -1,0 +1,1 @@
+alter table main.documents add column id_number varchar(40);

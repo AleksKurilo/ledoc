@@ -3,6 +3,7 @@ package dk.ledocsystem.service.api.dto.outbound.document;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.time.Period;
 import java.util.Set;
 
 @Data
@@ -16,6 +17,8 @@ public class DocumentEditDTO extends GetDocumentDTO {
     private Long responsibleId;
 
     private String file;
+
+    private Period approvalRate;
 
     private Set<Long> locationIds;
 
