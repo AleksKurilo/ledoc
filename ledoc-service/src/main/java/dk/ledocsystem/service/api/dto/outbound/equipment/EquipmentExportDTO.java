@@ -1,12 +1,12 @@
 package dk.ledocsystem.service.api.dto.outbound.equipment;
 
+import com.google.common.base.Strings;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Getter
 @Setter
@@ -30,21 +30,10 @@ public class EquipmentExportDTO {
     String localId;
 
     public List<String> getFields() {
-        Class<? extends EquipmentExportDTO> componentClass = getClass();
-        Field[] fields = componentClass.getDeclaredFields();
-        List<String> lines = new ArrayList<>(fields.length);
-
-        Arrays.stream(fields)
-                .forEach(
-                        field -> {
-                            field.setAccessible(true);
-                            try {
-                                lines.add(field.get(this) != null ? field.get(this).toString() : "");
-                            } catch (final IllegalAccessException e) {
-                                lines.add("");
-                            }
-                        });
-
-        return lines;
+        return Stream.of(name, categoryName, idNumber, serialNumber, homeLocation, currentLocation, reviewResponsible,
+                loanStatus, status, nextReviewDate, supplier, reviewStatus, mustBeReviewed, authenticationType,
+                responsible, localId)
+                .map(Strings::nullToEmpty)
+                .collect(Collectors.toList());
     }
 }
