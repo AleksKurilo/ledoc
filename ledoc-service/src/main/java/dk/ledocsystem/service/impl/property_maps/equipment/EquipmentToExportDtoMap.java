@@ -2,7 +2,7 @@ package dk.ledocsystem.service.impl.property_maps.equipment;
 
 import dk.ledocsystem.data.model.equipment.ApprovalType;
 import dk.ledocsystem.data.model.equipment.Equipment;
-import dk.ledocsystem.service.api.dto.outbound.employee.EquipmentExportDTO;
+import dk.ledocsystem.service.api.dto.outbound.equipment.EquipmentExportDTO;
 import dk.ledocsystem.service.impl.property_maps.converters.DoubleNamedLocalizedConverter;
 import dk.ledocsystem.service.impl.property_maps.converters.PeriodToHumanReadableConverter;
 import org.modelmapper.Converter;

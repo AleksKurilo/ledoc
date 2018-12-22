@@ -1,8 +1,8 @@
-package dk.ledocsystem.service.impl.excel.model.documents;
+package dk.ledocsystem.service.impl.excel.sheets.documents;
 
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.service.api.DocumentService;
-import dk.ledocsystem.service.impl.excel.model.EntitySheet;
+import dk.ledocsystem.service.impl.excel.sheets.EntitySheet;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 

@@ -1,4 +1,4 @@
-package dk.ledocsystem.service.api.dto.outbound.employee;
+package dk.ledocsystem.service.api.dto.outbound.equipment;
 
 import lombok.Getter;
 import lombok.Setter;

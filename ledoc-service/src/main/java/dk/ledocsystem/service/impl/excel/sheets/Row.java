@@ -1,4 +1,4 @@
-package dk.ledocsystem.service.impl.excel.model;
+package dk.ledocsystem.service.impl.excel.sheets;
 
 import lombok.Getter;
 

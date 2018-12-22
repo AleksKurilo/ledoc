@@ -14,12 +14,11 @@ import dk.ledocsystem.data.repository.CustomerRepository;
 import dk.ledocsystem.data.repository.EmployeeRepository;
 import dk.ledocsystem.service.api.*;
 import dk.ledocsystem.service.api.dto.outbound.employee.GetEmployeeDTO;
-import dk.ledocsystem.service.impl.excel.model.EntitySheet;
-import dk.ledocsystem.service.impl.excel.model.Sheet;
-import dk.ledocsystem.service.impl.excel.model.customers.CustomersEntitySheet;
-import dk.ledocsystem.service.impl.excel.model.documents.DocumentsEntitySheet;
-import dk.ledocsystem.service.impl.excel.model.employees.EmployeesEntitySheet;
-import dk.ledocsystem.service.impl.excel.model.equipment.EquipmentEntitySheet;
+import dk.ledocsystem.service.impl.excel.sheets.EntitySheet;
+import dk.ledocsystem.service.impl.excel.sheets.customers.CustomersEntitySheet;
+import dk.ledocsystem.service.impl.excel.sheets.documents.DocumentsEntitySheet;
+import dk.ledocsystem.service.impl.excel.sheets.employees.EmployeesEntitySheet;
+import dk.ledocsystem.service.impl.excel.sheets.equipment.EquipmentEntitySheet;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +28,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 
 @Service
@@ -104,7 +104,7 @@ class DashboardServiceImpl implements DashboardService {
             Predicate predicateForArchived = ExpressionUtils.and(predicate, EMPLOYEES_ARCHIVED.apply(true));
             employeesSheets.add(new EmployeesEntitySheet(employeeService, currentUserDetails, predicateForArchived, isNew, "Archived"));
         }
-        return excelExportService.exportWorkbook(employeesSheets);
+        return excelExportService.exportSheets(employeesSheets);
     }
 
     @Override
@@ -116,7 +116,7 @@ class DashboardServiceImpl implements DashboardService {
             Predicate predicateForArchived = ExpressionUtils.and(predicate, EQUIPMENT_ARCHIVED.apply(true));
             equipmentSheets.add(new EquipmentEntitySheet(equipmentService, currentUserDetails, predicateForArchived, isNew, "Archived"));
         }
-        return excelExportService.exportWorkbook(equipmentSheets);
+        return excelExportService.exportSheets(equipmentSheets);
     }
 
     @Override
@@ -128,7 +128,7 @@ class DashboardServiceImpl implements DashboardService {
             Predicate predicateForArchived = ExpressionUtils.and(predicate, DOCUMENTS_ARCHIVED.apply(true));
             documentSheets.add(new DocumentsEntitySheet(documentService, currentUserDetails, predicateForArchived, isNew, "Archived"));
         }
-        return excelExportService.exportWorkbook(documentSheets);
+        return excelExportService.exportSheets(documentSheets);
     }
 
 }
