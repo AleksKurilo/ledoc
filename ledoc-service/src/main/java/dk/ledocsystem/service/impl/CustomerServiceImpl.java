@@ -8,7 +8,8 @@ import dk.ledocsystem.service.api.dto.inbound.customer.CustomerCreateDTO;
 import dk.ledocsystem.service.api.dto.inbound.customer.CustomerEditDTO;
 import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeCreateDTO;
 import dk.ledocsystem.service.api.dto.inbound.location.LocationDTO;
-import dk.ledocsystem.service.api.dto.outbound.GetCustomerDTO;
+import dk.ledocsystem.service.api.dto.outbound.customer.CustomerExportDTO;
+import dk.ledocsystem.service.api.dto.outbound.customer.GetCustomerDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.data.model.AddressType;
 import dk.ledocsystem.data.model.Customer;
@@ -140,6 +141,11 @@ class CustomerServiceImpl implements CustomerService {
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, username));
     }
 
+    @Override
+    public List<List<String>> getAllForExport(Predicate predicate) {
+        return getAll(predicate).stream().map(this::mapToExportDto).map(CustomerExportDTO::getFields).collect(Collectors.toList());
+    }
+
     private Employee resolvePointOfContact(Long pointOfContactId) {
         return (pointOfContactId == null) ? null :
                 employeeRepository.findById(pointOfContactId)
@@ -201,6 +207,10 @@ class CustomerServiceImpl implements CustomerService {
 
     private GetCustomerDTO mapToDto(Customer customer) {
         return modelMapper.map(customer, GetCustomerDTO.class);
+    }
+
+    private CustomerExportDTO mapToExportDto(GetCustomerDTO customer) {
+        return modelMapper.map(customer, CustomerExportDTO.class);
     }
 
     //endregion

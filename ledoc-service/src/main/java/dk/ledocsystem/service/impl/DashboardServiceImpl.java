@@ -2,6 +2,7 @@ package dk.ledocsystem.service.impl;
 
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
+import dk.ledocsystem.data.model.QCustomer;
 import dk.ledocsystem.data.model.dashboard.Dashboard;
 import dk.ledocsystem.data.model.dashboard.SuperAdminStatistic;
 import dk.ledocsystem.data.model.dashboard.UserStat;
@@ -15,6 +16,7 @@ import dk.ledocsystem.service.api.*;
 import dk.ledocsystem.service.api.dto.outbound.employee.GetEmployeeDTO;
 import dk.ledocsystem.service.impl.excel.model.EntitySheet;
 import dk.ledocsystem.service.impl.excel.model.Sheet;
+import dk.ledocsystem.service.impl.excel.model.customers.CustomersEntitySheet;
 import dk.ledocsystem.service.impl.excel.model.documents.DocumentsEntitySheet;
 import dk.ledocsystem.service.impl.excel.model.employees.EmployeesEntitySheet;
 import dk.ledocsystem.service.impl.excel.model.equipment.EquipmentEntitySheet;
@@ -27,13 +29,14 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
 class DashboardServiceImpl implements DashboardService {
+
+    private static final Function<Boolean, Predicate> CUSTOMERS_ARCHIVED =
+            archived -> ExpressionUtils.eqConst(QCustomer.customer.archived, archived);
 
     private static final Function<Boolean, Predicate> EMPLOYEES_ARCHIVED =
             archived -> ExpressionUtils.eqConst(QEmployee.employee.archived, archived);
@@ -44,6 +47,7 @@ class DashboardServiceImpl implements DashboardService {
     private static final Function<Boolean, Predicate> DOCUMENTS_ARCHIVED =
             archived -> ExpressionUtils.eqConst(QDocument.document.archived, archived);
 
+    private final CustomerService customerService;
     private final EmployeeService employeeService;
     private final EquipmentService equipmentService;
     private final DocumentService documentService;
@@ -80,14 +84,16 @@ class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public Workbook exportExcelCustomers() {
-        return excelExportService.exportSheet(new CustomersSheet());
+    public Workbook exportExcelCustomers(Predicate predicate, boolean isArchived) {
+        List<EntitySheet> customerSheets = new ArrayList<>();
+        Predicate predicateForCustomers = ExpressionUtils.and(predicate, CUSTOMERS_ARCHIVED.apply(false));
+        customerSheets.add(new CustomersEntitySheet(customerService, predicateForCustomers,"Customers"));
+        if (isArchived) {
+            Predicate predicateForArchived = ExpressionUtils.and(predicate, CUSTOMERS_ARCHIVED.apply(true));
+            customerSheets.add(new CustomersEntitySheet(customerService, predicateForArchived,"Archived"));
+        }
+        return excelExportService.exportSheets(customerSheets);
     }
-
-//    @Override
-//    public Workbook exportExcelEmployees() {
-//        return excelExportService.exportSheet(new EmployeesSheet());
-//    }
 
     @Override
     public Workbook exportExcelEmployees(UserDetails currentUserDetails, Predicate predicate, boolean isNew, boolean isArchived) {
@@ -95,7 +101,7 @@ class DashboardServiceImpl implements DashboardService {
         Predicate predicateForEmloyees = ExpressionUtils.and(predicate, EMPLOYEES_ARCHIVED.apply(false));
         employeesSheets.add(new EmployeesEntitySheet(employeeService, currentUserDetails, predicateForEmloyees, isNew, "Employees"));
         if (isArchived) {
-            Predicate predicateForArchived = ExpressionUtils.and(predicate, EMPLOYEES_ARCHIVED.apply(isArchived));
+            Predicate predicateForArchived = ExpressionUtils.and(predicate, EMPLOYEES_ARCHIVED.apply(true));
             employeesSheets.add(new EmployeesEntitySheet(employeeService, currentUserDetails, predicateForArchived, isNew, "Archived"));
         }
         return excelExportService.exportWorkbook(employeesSheets);
@@ -107,7 +113,7 @@ class DashboardServiceImpl implements DashboardService {
         Predicate predicateforEquipment = ExpressionUtils.and(predicate, EQUIPMENT_ARCHIVED.apply(false));
         equipmentSheets.add(new EquipmentEntitySheet(equipmentService, currentUserDetails, predicateforEquipment, isNew, "Equipment"));
         if (isArchived) {
-            Predicate predicateForArchived = ExpressionUtils.and(predicate, EQUIPMENT_ARCHIVED.apply(isArchived));
+            Predicate predicateForArchived = ExpressionUtils.and(predicate, EQUIPMENT_ARCHIVED.apply(true));
             equipmentSheets.add(new EquipmentEntitySheet(equipmentService, currentUserDetails, predicateForArchived, isNew, "Archived"));
         }
         return excelExportService.exportWorkbook(equipmentSheets);
@@ -119,57 +125,10 @@ class DashboardServiceImpl implements DashboardService {
         Predicate predicateforDocuments = ExpressionUtils.and(predicate, DOCUMENTS_ARCHIVED.apply(false));
         documentSheets.add(new DocumentsEntitySheet(documentService, currentUserDetails, predicateforDocuments, isNew, "Documents"));
         if (isArchived) {
-            Predicate predicateForArchived = ExpressionUtils.and(predicate, DOCUMENTS_ARCHIVED.apply(isArchived));
+            Predicate predicateForArchived = ExpressionUtils.and(predicate, DOCUMENTS_ARCHIVED.apply(true));
             documentSheets.add(new DocumentsEntitySheet(documentService, currentUserDetails, predicateForArchived, isNew, "Archived"));
         }
         return excelExportService.exportWorkbook(documentSheets);
     }
 
-    private static class CustomersSheet implements Sheet {
-        private static final String QUERY = "select * from main.customers_export_excel";
-
-        @Override
-        public List<String> getHeaders() {
-            return Arrays.asList("CUSTOMER_NAME", "CVR", "CREATED", "COUNT_OF_ACTIVE_SUPPLIERS", "COUNT_OF_ALL_SUPPLIERS",
-                    "COUNT_OF_ACTIVE_EMPLOYEES", "COUNT_OF_ALL_EMPLOYEES", "COUNT_OF_ACTIVE_EQUIPMENT",
-                    "COUNT_OF_ALL_EQUIPMENT", "COUNT_OF_LOCATIONS", "PHONE_NUMBER", "COMPANY_EMAIL", "POSTAL_CODE",
-                    "CITY", "STREET", "BUILDING NUMBER", "DISTRICT", "POINT_OF_CONTACT");
-        }
-
-        @Override
-        public String getName() {
-            return "Customers";
-        }
-
-        @Override
-        public String getQuery() {
-            return QUERY;
-        }
-    }
-
-    private static class EmployeesSheet implements Sheet {
-        private static final String QUERY = "select first_name, last_name, username " +
-                "from employees left outer join employee_authorities on employees.id=employee_authorities.employee_id " +
-                "where employee_authorities.authority in (?, ?)";
-
-        @Override
-        public List<String> getHeaders() {
-            return Arrays.asList("First name", "Last name", "E-mail");
-        }
-
-        @Override
-        public String getName() {
-            return "Employees";
-        }
-
-        @Override
-        public String getQuery() {
-            return QUERY;
-        }
-
-        @Override
-        public Object[] getParams() {
-            return new Object[] {UserAuthorities.USER.getCode(), UserAuthorities.ADMIN.getCode()};
-        }
-    }
 }

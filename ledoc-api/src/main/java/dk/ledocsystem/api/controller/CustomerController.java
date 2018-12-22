@@ -5,7 +5,7 @@ import dk.ledocsystem.api.config.security.CurrentUser;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.customer.CustomerCreateDTO;
 import dk.ledocsystem.service.api.dto.inbound.customer.CustomerEditDTO;
-import dk.ledocsystem.service.api.dto.outbound.GetCustomerDTO;
+import dk.ledocsystem.service.api.dto.outbound.customer.GetCustomerDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.data.model.Customer;
 import dk.ledocsystem.service.api.CustomerService;

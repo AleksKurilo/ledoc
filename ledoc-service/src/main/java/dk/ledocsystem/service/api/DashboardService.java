@@ -12,7 +12,7 @@ public interface DashboardService {
 
     SuperAdminStatistic createStatistic();
 
-    Workbook exportExcelCustomers();
+    Workbook exportExcelCustomers(Predicate predicate, boolean isArchived);
 
     Workbook exportExcelEmployees(UserDetails currentUserDetails, Predicate predicate, boolean isNew, boolean isArchived);
 

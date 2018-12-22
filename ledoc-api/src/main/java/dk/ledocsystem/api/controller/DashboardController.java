@@ -42,14 +42,16 @@ public class DashboardController {
 
     @RolesAllowed("super_admin")
     @GetMapping("/export/customers")
-    public ResponseEntity<StreamingResponseBody> exportCustomers() {
+    public ResponseEntity<StreamingResponseBody> exportCustomers(@QuerydslPredicate(root = Document.class) Predicate predicate,
+                                                                 @RequestParam(value = "isarchived", required = false, defaultValue = "false") boolean isArchived) {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"Customers.xlsx\"")
-                .body(streamBody(dashboardService::exportExcelCustomers));
+                .body(streamBody(() -> dashboardService.exportExcelCustomers(predicate, isArchived)));
     }
 
     @GetMapping("/export/equipment")
-    public ResponseEntity<StreamingResponseBody> exportEquipment(@CurrentUser UserDetails currentUser, @QuerydslPredicate(root = Equipment.class) Predicate predicate,
+    public ResponseEntity<StreamingResponseBody> exportEquipment(@CurrentUser UserDetails currentUser,
+                                                                 @QuerydslPredicate(root = Equipment.class) Predicate predicate,
                                                                  @RequestParam(value = "new", required = false, defaultValue = "false") boolean isNew,
                                                                  @RequestParam(value = "isarchived", required = false, defaultValue = "false") boolean isArchived) {
         return ResponseEntity.ok()
@@ -59,7 +61,8 @@ public class DashboardController {
     }
 
     @GetMapping("/export/employees")
-    public ResponseEntity<StreamingResponseBody> exportEmployees(@CurrentUser UserDetails currentUser, @QuerydslPredicate(root = Equipment.class) Predicate predicate,
+    public ResponseEntity<StreamingResponseBody> exportEmployees(@CurrentUser UserDetails currentUser,
+                                                                 @QuerydslPredicate(root = Equipment.class) Predicate predicate,
                                                                  @RequestParam(value = "new", required = false, defaultValue = "false") boolean isNew,
                                                                  @RequestParam(value = "isarchived", required = false, defaultValue = "false") boolean isArchived) {
         return ResponseEntity.ok()
@@ -69,7 +72,8 @@ public class DashboardController {
     }
 
     @GetMapping("/export/documents")
-    public ResponseEntity<StreamingResponseBody> exportDocuments(@CurrentUser UserDetails currentUser, @QuerydslPredicate(root = Document.class) Predicate predicate,
+    public ResponseEntity<StreamingResponseBody> exportDocuments(@CurrentUser UserDetails currentUser,
+                                                                 @QuerydslPredicate(root = Document.class) Predicate predicate,
                                                                  @RequestParam(value = "new", required = false, defaultValue = "false") boolean isNew,
                                                                  @RequestParam(value = "isarchived", required = false, defaultValue = "false") boolean isArchived) {
         return ResponseEntity.ok()
