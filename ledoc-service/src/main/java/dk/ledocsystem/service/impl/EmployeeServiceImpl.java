@@ -16,6 +16,7 @@ import dk.ledocsystem.data.model.review.ReviewTemplate;
 import dk.ledocsystem.data.model.security.UserAuthorities;
 import dk.ledocsystem.data.repository.*;
 import dk.ledocsystem.service.api.EmployeeService;
+import dk.ledocsystem.service.api.ExcelExportService;
 import dk.ledocsystem.service.api.JwtTokenService;
 import dk.ledocsystem.service.api.ReviewQuestionService;
 import dk.ledocsystem.service.api.ReviewTemplateService;
@@ -31,11 +32,14 @@ import dk.ledocsystem.service.api.dto.outbound.employee.*;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.service.api.exceptions.ReviewNotApplicableException;
 import dk.ledocsystem.service.impl.events.producer.EmployeeProducer;
+import dk.ledocsystem.service.impl.excel.sheets.EntitySheet;
+import dk.ledocsystem.service.impl.excel.sheets.employees.EmployeesEntitySheet;
 import dk.ledocsystem.service.impl.property_maps.employee.*;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -60,12 +64,15 @@ class EmployeeServiceImpl implements EmployeeService {
 
     private static final Function<Long, Predicate> CUSTOMER_EQUALS_TO =
             customerId -> ExpressionUtils.eqConst(QEmployee.employee.customer.id, customerId);
+    private static final Function<Boolean, Predicate> EMPLOYEES_ARCHIVED =
+            archived -> ExpressionUtils.eqConst(QEmployee.employee.archived, archived);
 
     private final CustomerRepository customerRepository;
     private final EmployeeRepository employeeRepository;
     private final LocationRepository locationRepository;
     private final ReviewTemplateService reviewTemplateService;
     private final ReviewQuestionService reviewQuestionService;
+    private final ExcelExportService excelExportService;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenService tokenService;
     private final EmployeeReviewRepository employeeReviewRepository;
@@ -346,7 +353,7 @@ class EmployeeServiceImpl implements EmployeeService {
 
         Predicate newEmployeesPredicate = ExpressionUtils.allOf(
                 predicate,
-                QEmployee.employee.archived.eq(Boolean.FALSE),
+                EMPLOYEES_ARCHIVED.apply(false),
                 ExpressionUtils.neConst(QEmployee.employee.id, employee.getId()),
                 ExpressionUtils.notIn(Expressions.constant(employee), QEmployee.employee.visitedBy));
         return getAllByCustomer(customerId, newEmployeesPredicate, pageable);
@@ -364,6 +371,19 @@ class EmployeeServiceImpl implements EmployeeService {
             employeeProducer.read(empl, currentUser, isSaveLog);
         });
         return employee.map(this::mapToPreviewDto);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Workbook exportToExcel(UserDetails currentUserDetails, Predicate predicate, boolean isNew, boolean isArchived) {
+        List<EntitySheet> employeesSheets = new ArrayList<>();
+        Predicate predicateForEmployees = ExpressionUtils.and(predicate, EMPLOYEES_ARCHIVED.apply(false));
+        employeesSheets.add(new EmployeesEntitySheet(this, currentUserDetails, predicateForEmployees, isNew, "Employees"));
+        if (isArchived) {
+            Predicate predicateForArchived = ExpressionUtils.and(predicate, EMPLOYEES_ARCHIVED.apply(true));
+            employeesSheets.add(new EmployeesEntitySheet(this, currentUserDetails, predicateForArchived, isNew, "Archived"));
+        }
+        return excelExportService.exportSheets(employeesSheets);
     }
 
     private Customer resolveCustomer(Long customerId) {
@@ -446,14 +466,13 @@ class EmployeeServiceImpl implements EmployeeService {
     @Transactional(readOnly = true)
     @Override
     public List<EmployeeSummary> getAllNamesByCustomer(Long customerId) {
-        Predicate notArchived = QEmployee.employee.archived.eq(Boolean.FALSE);
-        Predicate combinePredicate = ExpressionUtils.and(notArchived, CUSTOMER_EQUALS_TO.apply(customerId));
+        Predicate combinePredicate = ExpressionUtils.and(EMPLOYEES_ARCHIVED.apply(Boolean.FALSE), CUSTOMER_EQUALS_TO.apply(customerId));
         return employeeRepository.findAll(combinePredicate).stream().map(this::mapToSummary).collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<List<String>> getAllForExport(UserDetails creatorDetails, Predicate predicate, boolean isNew) {
+    public List<EmployeeExportDTO> getAllForExport(UserDetails creatorDetails, Predicate predicate, boolean isNew) {
         Employee employee = employeeRepository.findByUsername(creatorDetails.getUsername()).orElseThrow(IllegalStateException::new);
         Long customerId = employee.getCustomer().getId();
         Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
@@ -461,7 +480,7 @@ class EmployeeServiceImpl implements EmployeeService {
             combinePredicate = ExpressionUtils.allOf(combinePredicate,
                     ExpressionUtils.notIn(Expressions.constant(employee), QEmployee.employee.visitedBy));
         }
-        return employeeRepository.findAll(combinePredicate).stream().map(this::mapToExportDto).map(EmployeeExportDTO::getFields).collect(Collectors.toList());
+        return employeeRepository.findAll(combinePredicate).stream().map(this::mapToExportDto).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)

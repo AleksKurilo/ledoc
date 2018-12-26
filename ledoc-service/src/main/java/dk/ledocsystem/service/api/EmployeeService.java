@@ -8,10 +8,12 @@ import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeCreateDTO;
 import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeDTO;
 import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeFollowDTO;
 import dk.ledocsystem.service.api.dto.inbound.review.ReviewDTO;
+import dk.ledocsystem.service.api.dto.outbound.employee.EmployeeExportDTO;
 import dk.ledocsystem.service.api.dto.outbound.employee.EmployeePreviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.employee.EmployeeSummary;
 import dk.ledocsystem.service.api.dto.outbound.employee.GetEmployeeDTO;
 import dk.ledocsystem.service.api.dto.outbound.employee.GetFollowedEmployeeDTO;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -117,5 +119,7 @@ public interface EmployeeService extends CustomerBasedDomainService<GetEmployeeD
 
     Page<GetFollowedEmployeeDTO> getFollowedEmployees(Long employeeId, Pageable pageable);
 
-    List<List<String>> getAllForExport(UserDetails user, Predicate predicate, boolean isNew);
+    List<EmployeeExportDTO> getAllForExport(UserDetails user, Predicate predicate, boolean isNew);
+
+    Workbook exportToExcel(UserDetails currentUserDetails, Predicate predicate, boolean isNew, boolean isArchived);
 }

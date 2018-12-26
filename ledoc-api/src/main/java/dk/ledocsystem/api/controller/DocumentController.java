@@ -20,9 +20,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.annotation.security.RolesAllowed;
 
@@ -142,6 +145,17 @@ public class DocumentController {
     @DeleteMapping(path = "subcategories/{id}")
     public void deleteSubcategory(@PathVariable Long id) {
         documentService.deleteCategory(id);
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<StreamingResponseBody> exportDocuments(@CurrentUser UserDetails currentUser,
+                                                                 @QuerydslPredicate(root = Document.class) Predicate predicate,
+                                                                 @RequestParam(value = "new", required = false, defaultValue = "false") boolean isNew,
+                                                                 @RequestParam(value = "isarchived", required = false, defaultValue = "false") boolean isArchived) {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, "application/ms-excel")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"All documents.xlsx\"")
+                .body(outputStream -> documentService.exportToExcel(currentUser, predicate, isNew, isArchived).write(outputStream));
     }
 
     private Long getCustomerId(UserDetails user) {

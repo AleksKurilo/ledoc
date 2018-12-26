@@ -4,9 +4,11 @@ import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.equipment.*;
+import dk.ledocsystem.service.api.dto.outbound.equipment.EquipmentExportDTO;
 import dk.ledocsystem.service.api.dto.outbound.equipment.EquipmentPreviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.equipment.GetEquipmentDTO;
 import dk.ledocsystem.service.api.dto.outbound.equipment.GetFollowedEquipmentDTO;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -61,5 +63,7 @@ public interface EquipmentService extends CustomerBasedDomainService<GetEquipmen
 
     Page<GetFollowedEquipmentDTO> getFollowedEquipment(Long employeeId, Pageable pageable);
 
-    List<List<String>> getAllForExport(UserDetails user, Predicate predicate, boolean isNew);
+    List<EquipmentExportDTO> getAllForExport(UserDetails user, Predicate predicate, boolean isNew);
+
+    Workbook exportToExcel(UserDetails currentUserDetails, Predicate predicate, boolean isNew, boolean isArchived);
 }

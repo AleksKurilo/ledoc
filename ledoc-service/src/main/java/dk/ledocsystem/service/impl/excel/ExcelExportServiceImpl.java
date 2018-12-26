@@ -62,9 +62,9 @@ class ExcelExportServiceImpl implements ExcelExportService {
         sheet.createFreezePane(0, 1);
     }
 
-    private void fillRows(Sheet sheet, List<List<String>> rows, CellStyle cellStyle) {
+    private void fillRows(Sheet sheet, List<dk.ledocsystem.service.impl.excel.sheets.Row> rows, CellStyle cellStyle) {
         for (int i = 0, size = rows.size(); i < size; i++) {
-            fillRow(sheet.createRow(i + 1), rows.get(i), cellStyle);
+            fillRow(sheet.createRow(i + 1), rows.get(i).getValues(), cellStyle);
         }
     }
 

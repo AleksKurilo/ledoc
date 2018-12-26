@@ -1,8 +1,11 @@
 package dk.ledocsystem.service.impl;
 
+import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
+import dk.ledocsystem.data.model.QCustomer;
 import dk.ledocsystem.data.repository.EmployeeRepository;
 import dk.ledocsystem.data.repository.LocationRepository;
+import dk.ledocsystem.service.api.ExcelExportService;
 import dk.ledocsystem.service.api.dto.inbound.customer.CustomerAdminDTO;
 import dk.ledocsystem.service.api.dto.inbound.customer.CustomerCreateDTO;
 import dk.ledocsystem.service.api.dto.inbound.customer.CustomerEditDTO;
@@ -24,9 +27,12 @@ import dk.ledocsystem.data.repository.TradeRepository;
 import dk.ledocsystem.service.api.CustomerService;
 import dk.ledocsystem.service.api.EmployeeService;
 import dk.ledocsystem.service.api.LocationService;
+import dk.ledocsystem.service.impl.excel.sheets.EntitySheet;
+import dk.ledocsystem.service.impl.excel.sheets.customers.CustomersEntitySheet;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,11 +40,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static dk.ledocsystem.service.impl.constant.ErrorMessageKey.CUSTOMER_ID_NOT_FOUND;
@@ -47,6 +50,8 @@ import static dk.ledocsystem.service.impl.constant.ErrorMessageKey.EMPLOYEE_USER
 @Service
 @RequiredArgsConstructor
 class CustomerServiceImpl implements CustomerService {
+    private static final Function<Boolean, Predicate> CUSTOMERS_ARCHIVED =
+            archived -> ExpressionUtils.eqConst(QCustomer.customer.archived, archived);
 
     private final CustomerRepository customerRepository;
     private final EmployeeService employeeService;
@@ -54,6 +59,7 @@ class CustomerServiceImpl implements CustomerService {
     private final TradeRepository tradeRepository;
     private final LocationService locationService;
     private final LocationRepository locationRepository;
+    private final ExcelExportService excelExportService;
     private final ModelMapper modelMapper;
     private final EmailNotificationRepository emailNotificationRepository;
     private final BaseValidator<CustomerCreateDTO> customerCreateDtoValidator;
@@ -142,8 +148,20 @@ class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public List<List<String>> getAllForExport(Predicate predicate) {
-        return getAll(predicate).stream().map(this::mapToExportDto).map(CustomerExportDTO::getFields).collect(Collectors.toList());
+    public List<CustomerExportDTO> getAllForExport(Predicate predicate) {
+        return getAll(predicate).stream().map(this::mapToExportDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public Workbook exportToExcel(Predicate predicate, boolean isArchived) {
+        List<EntitySheet> customerSheets = new ArrayList<>();
+        Predicate predicateForCustomers = ExpressionUtils.and(predicate, CUSTOMERS_ARCHIVED.apply(false));
+        customerSheets.add(new CustomersEntitySheet(this, predicateForCustomers,"Customers"));
+        if (isArchived) {
+            Predicate predicateForArchived = ExpressionUtils.and(predicate, CUSTOMERS_ARCHIVED.apply(true));
+            customerSheets.add(new CustomersEntitySheet(this, predicateForArchived,"Archived"));
+        }
+        return excelExportService.exportSheets(customerSheets);
     }
 
     private Employee resolvePointOfContact(Long pointOfContactId) {

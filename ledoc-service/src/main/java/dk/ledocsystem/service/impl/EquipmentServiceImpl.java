@@ -9,6 +9,7 @@ import dk.ledocsystem.data.model.Location;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.equipment.*;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
+import dk.ledocsystem.service.api.ExcelExportService;
 import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.data.repository.*;
 import dk.ledocsystem.service.api.EquipmentService;
@@ -22,10 +23,13 @@ import dk.ledocsystem.service.api.dto.outbound.equipment.GetEquipmentDTO;
 import dk.ledocsystem.service.api.dto.outbound.equipment.GetFollowedEquipmentDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.service.impl.events.producer.EquipmentProducer;
+import dk.ledocsystem.service.impl.excel.sheets.EntitySheet;
+import dk.ledocsystem.service.impl.excel.sheets.equipment.EquipmentEntitySheet;
 import dk.ledocsystem.service.impl.property_maps.equipment.*;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +38,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -47,8 +52,11 @@ class EquipmentServiceImpl implements EquipmentService {
 
     private static final Function<Long, Predicate> CUSTOMER_EQUALS_TO =
             customerId -> ExpressionUtils.eqConst(QEquipment.equipment.customer.id, customerId);
+    private static final Function<Boolean, Predicate> EQUIPMENT_ARCHIVED =
+            archived -> ExpressionUtils.eqConst(QEquipment.equipment.archived, archived);
 
     private final ModelMapper modelMapper;
+    private final ExcelExportService excelExportService;
     private final EquipmentRepository equipmentRepository;
     private final EquipmentCategoryRepository equipmentCategoryRepository;
     private final AuthenticationTypeRepository authenticationTypeRepository;
@@ -157,7 +165,7 @@ class EquipmentServiceImpl implements EquipmentService {
 
         Predicate newEquipmentPredicate = ExpressionUtils.allOf(
                 predicate,
-                QEquipment.equipment.archived.eq(Boolean.FALSE),
+                EQUIPMENT_ARCHIVED.apply(Boolean.FALSE),
                 ExpressionUtils.notIn(Expressions.constant(employee), QEquipment.equipment.visitedBy));
         return getAllByCustomer(customerId, newEquipmentPredicate, pageable);
     }
@@ -182,6 +190,19 @@ class EquipmentServiceImpl implements EquipmentService {
         Equipment equipment = equipmentRepository.findById(equipmentId)
                 .orElseThrow(() -> new NotFoundException(EQUIPMENT_ID_NOT_FOUND, equipmentId.toString()));
         equipment.removeLoan();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Workbook exportToExcel(UserDetails currentUserDetails, Predicate predicate, boolean isNew, boolean isArchived) {
+        List<EntitySheet> equipmentSheets = new ArrayList<>();
+        Predicate predicateForEquipment = ExpressionUtils.and(predicate, EQUIPMENT_ARCHIVED.apply(false));
+        equipmentSheets.add(new EquipmentEntitySheet(this, currentUserDetails, predicateForEquipment, isNew, "Equipment"));
+        if (isArchived) {
+            Predicate predicateForArchived = ExpressionUtils.and(predicate, EQUIPMENT_ARCHIVED.apply(true));
+            equipmentSheets.add(new EquipmentEntitySheet(this, currentUserDetails, predicateForArchived, isNew, "Archived"));
+        }
+        return excelExportService.exportSheets(equipmentSheets);
     }
 
     private EquipmentCategory resolveCategory(Long categoryId) {
@@ -295,7 +316,7 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<List<String>> getAllForExport(UserDetails creatorDetails, Predicate predicate, boolean isNew) {
+    public List<EquipmentExportDTO> getAllForExport(UserDetails creatorDetails, Predicate predicate, boolean isNew) {
         Employee employee = employeeRepository.findByUsername(creatorDetails.getUsername()).orElseThrow(IllegalStateException::new);
         Long customerId = employee.getCustomer().getId();
         Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
@@ -303,7 +324,7 @@ class EquipmentServiceImpl implements EquipmentService {
             combinePredicate = ExpressionUtils.allOf(combinePredicate,
                     ExpressionUtils.notIn(Expressions.constant(employee), QEquipment.equipment.visitedBy));
         }
-        return equipmentRepository.findAll(combinePredicate).stream().map(this::mapToExportDto).map(EquipmentExportDTO::getFields).collect(Collectors.toList());
+        return equipmentRepository.findAll(combinePredicate).stream().map(this::mapToExportDto).collect(Collectors.toList());
     }
 
     @Override

@@ -6,7 +6,7 @@ public interface EntitySheet {
 
     List<String> getHeaders();
 
-    List<List<String>> getRows();
+    List<Row> getRows();
 
     String getName();
 }
