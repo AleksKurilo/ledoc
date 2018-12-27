@@ -49,4 +49,6 @@ public interface LocationService extends CustomerBasedDomainService<GetLocationD
     List<LocationSummary> getAllNamesByCustomer(Long customerId);
 
     Optional<LocationPreviewDTO> getPreviewDtoById(Long locationId);
+
+    long countAllNotArchived(Long customerId);
 }

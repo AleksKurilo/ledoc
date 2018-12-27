@@ -340,8 +340,12 @@ class EmployeeServiceImpl implements EmployeeService {
 
     @Transactional(readOnly = true)
     @Override
-    public Page<GetEmployeeDTO> getNewEmployees(@NonNull UserDetails user, @NonNull Pageable pageable) {
-        return getNewEmployees(user, pageable, null);
+    public long countNewEmployees(@NonNull UserDetails user) {
+        Employee employee = employeeRepository.findByUsername(user.getUsername())
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, user.getUsername()));
+
+        Predicate newEmployeesPredicate = getNewEmployeesPredicate(employee);
+        return employeeRepository.count(newEmployeesPredicate);
     }
 
     @Transactional(readOnly = true)
@@ -349,14 +353,17 @@ class EmployeeServiceImpl implements EmployeeService {
     public Page<GetEmployeeDTO> getNewEmployees(@NonNull UserDetails user, @NonNull Pageable pageable, Predicate predicate) {
         Employee employee = employeeRepository.findByUsername(user.getUsername())
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, user.getUsername()));
-        Long customerId = employee.getCustomer().getId();
 
-        Predicate newEmployeesPredicate = ExpressionUtils.allOf(
-                predicate,
-                EMPLOYEES_ARCHIVED.apply(false),
+        Predicate combinePredicate = ExpressionUtils.and(predicate, getNewEmployeesPredicate(employee));
+        return getAll(combinePredicate, pageable);
+    }
+
+    private Predicate getNewEmployeesPredicate(Employee employee) {
+        return ExpressionUtils.allOf(
+                EMPLOYEES_ARCHIVED.apply(Boolean.FALSE),
+                CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId()),
                 ExpressionUtils.neConst(QEmployee.employee.id, employee.getId()),
                 ExpressionUtils.notIn(Expressions.constant(employee), QEmployee.employee.visitedBy));
-        return getAllByCustomer(customerId, newEmployeesPredicate, pageable);
     }
 
     @Override

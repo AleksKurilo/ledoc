@@ -35,6 +35,8 @@ public interface LocationRepository extends JpaRepository<Location, Long>, Query
      */
     boolean existsByNameAndCustomerId(String name, Long customerId);
 
+    long countByCustomerIdAndArchivedFalse(Long customerId);
+
     /**
      * Deletes locations with the given IDs.
      *

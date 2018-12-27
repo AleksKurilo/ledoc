@@ -179,8 +179,12 @@ class DocumentServiceImpl implements DocumentService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<GetDocumentDTO> getNewDocument(@NonNull UserDetails user, @NonNull Pageable pageable) {
-        return getNewDocument(user, pageable, null);
+    public long countNewDocuments(@NonNull UserDetails user) {
+        Employee employee = employeeRepository.findByUsername(user.getUsername())
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, user.getUsername()));
+
+        Predicate newDocumentsPredicate = getNewDocumentsPredicate(employee);
+        return documentRepository.count(newDocumentsPredicate);
     }
 
     @Override
@@ -188,13 +192,16 @@ class DocumentServiceImpl implements DocumentService {
     public Page<GetDocumentDTO> getNewDocument(@NonNull UserDetails user, @NonNull Pageable pageable, Predicate predicate) {
         Employee employee = employeeRepository.findByUsername(user.getUsername())
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, user.getUsername()));
-        Long customerId = employee.getCustomer().getId();
 
-        Predicate newEquipmentPredicate = ExpressionUtils.allOf(
-                predicate,
+        Predicate combinePredicate = ExpressionUtils.and(predicate, getNewDocumentsPredicate(employee));
+        return getAll(combinePredicate, pageable);
+    }
+
+    private Predicate getNewDocumentsPredicate(Employee employee) {
+        return ExpressionUtils.allOf(
                 DOCUMENTS_ARCHIVED.apply(Boolean.FALSE),
+                CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId()),
                 ExpressionUtils.notIn(Expressions.constant(employee), QDocument.document.visitedBy));
-        return getAllByCustomer(customerId, newEquipmentPredicate, pageable);
     }
 
     @Override

@@ -25,7 +25,7 @@ public interface DocumentService extends CustomerBasedDomainService<GetDocumentD
      */
     void changeArchivedStatus(Long documentId, ArchivedStatusDTO archivedStatusDTO, UserDetails creatorDetails);
 
-    Page<GetDocumentDTO> getNewDocument(UserDetails user, Pageable pageable);
+    long countNewDocuments(UserDetails user);
 
     Page<GetDocumentDTO> getNewDocument(UserDetails user, Pageable pageable, Predicate predicate);
 

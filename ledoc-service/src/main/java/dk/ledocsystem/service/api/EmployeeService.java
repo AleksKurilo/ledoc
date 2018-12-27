@@ -109,7 +109,7 @@ public interface EmployeeService extends CustomerBasedDomainService<GetEmployeeD
 
     boolean existsByUsername(String username);
 
-    Page<GetEmployeeDTO> getNewEmployees(UserDetails user, Pageable pageable);
+    long countNewEmployees(UserDetails user);
 
     Page<GetEmployeeDTO> getNewEmployees(UserDetails user, Pageable pageable, Predicate predicate);
 

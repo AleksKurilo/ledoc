@@ -9,7 +9,6 @@ import dk.ledocsystem.data.repository.EmployeeRepository;
 import dk.ledocsystem.service.api.*;
 import dk.ledocsystem.service.api.dto.outbound.employee.GetEmployeeDTO;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -22,6 +21,7 @@ class DashboardServiceImpl implements DashboardService {
     private final EmployeeService employeeService;
     private final EquipmentService equipmentService;
     private final LocationService locationService;
+    private final DocumentService documentService;
     private final EmployeeRepository employeeRepository;
     private final CustomerRepository customerRepository;
     private final JwtTokenService tokenService;
@@ -32,9 +32,10 @@ class DashboardServiceImpl implements DashboardService {
         GetEmployeeDTO currentUser = employeeService.getByUsername(currentUserDetails.getUsername())
                 .orElseThrow(IllegalStateException::new);
 
-        dashboard.setNewEmployeesCount(employeeService.getNewEmployees(currentUserDetails, Pageable.unpaged()).getTotalElements());
-        dashboard.setNewEquipmentCount(equipmentService.getNewEquipment(currentUserDetails, Pageable.unpaged()).getTotalElements());
-        dashboard.setNewLocationsCount(locationService.getAllByCustomer(currentUser.getCustomerId()).size());
+        dashboard.setNewEmployeesCount(employeeService.countNewEmployees(currentUserDetails));
+        dashboard.setNewEquipmentCount(equipmentService.countNewEquipment(currentUserDetails));
+        dashboard.setLocationsCount(locationService.countAllNotArchived(currentUser.getCustomerId()));
+        dashboard.setNewDocumentsCount(documentService.countNewDocuments(currentUserDetails));
 
         return dashboard;
     }

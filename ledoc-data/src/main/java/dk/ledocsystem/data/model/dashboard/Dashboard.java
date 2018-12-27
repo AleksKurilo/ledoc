@@ -11,6 +11,7 @@ public class Dashboard {
 
     private long newEquipmentCount;
 
-    private long newLocationsCount;
+    private long locationsCount;
 
+    private long newDocumentsCount;
 }

@@ -41,7 +41,7 @@ public interface EquipmentService extends CustomerBasedDomainService<GetEquipmen
      */
     void changeArchivedStatus(Long equipmentId, ArchivedStatusDTO archivedStatusDTO, UserDetails creatorDetails);
 
-    Page<GetEquipmentDTO> getNewEquipment(UserDetails user, Pageable pageable);
+    long countNewEquipment(UserDetails user);
 
     Page<GetEquipmentDTO> getNewEquipment(UserDetails user, Pageable pageable, Predicate predicate);
 

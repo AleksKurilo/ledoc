@@ -314,6 +314,11 @@ class LocationServiceImpl implements LocationService {
     }
 
     @Override
+    public long countAllNotArchived(@NonNull Long customerId) {
+        return locationRepository.countByCustomerIdAndArchivedFalse(customerId);
+    }
+
+    @Override
     public void deleteById(@NonNull Long id) {
         locationRepository.deleteById(id);
     }

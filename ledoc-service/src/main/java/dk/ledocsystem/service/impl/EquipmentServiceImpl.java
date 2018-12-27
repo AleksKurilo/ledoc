@@ -152,8 +152,12 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<GetEquipmentDTO> getNewEquipment(@NonNull UserDetails user, @NonNull Pageable pageable) {
-        return getNewEquipment(user, pageable, null);
+    public long countNewEquipment(@NonNull UserDetails user) {
+        Employee employee = employeeRepository.findByUsername(user.getUsername())
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, user.getUsername()));
+
+        Predicate newEquipmentPredicate = getNewEquipmentPredicate(employee);
+        return equipmentRepository.count(newEquipmentPredicate);
     }
 
     @Override
@@ -161,13 +165,16 @@ class EquipmentServiceImpl implements EquipmentService {
     public Page<GetEquipmentDTO> getNewEquipment(@NonNull UserDetails user, @NonNull Pageable pageable, Predicate predicate) {
         Employee employee = employeeRepository.findByUsername(user.getUsername())
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, user.getUsername()));
-        Long customerId = employee.getCustomer().getId();
 
-        Predicate newEquipmentPredicate = ExpressionUtils.allOf(
-                predicate,
+        Predicate combinePredicate = ExpressionUtils.and(predicate, getNewEquipmentPredicate(employee));
+        return getAll(combinePredicate, pageable);
+    }
+
+    private Predicate getNewEquipmentPredicate(Employee employee) {
+        return ExpressionUtils.allOf(
                 EQUIPMENT_ARCHIVED.apply(Boolean.FALSE),
+                CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId()),
                 ExpressionUtils.notIn(Expressions.constant(employee), QEquipment.equipment.visitedBy));
-        return getAllByCustomer(customerId, newEquipmentPredicate, pageable);
     }
 
     @Override
