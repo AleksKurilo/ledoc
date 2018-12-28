@@ -4,7 +4,7 @@ import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.api.config.security.CurrentUser;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.location.LocationDTO;
-import dk.ledocsystem.data.projections.LocationSummary;
+import dk.ledocsystem.service.api.dto.outbound.location.LocationSummary;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.data.model.Location;
 import dk.ledocsystem.service.api.CustomerService;
@@ -12,6 +12,7 @@ import dk.ledocsystem.service.api.LocationService;
 import dk.ledocsystem.service.api.dto.outbound.location.GetLocationDTO;
 import dk.ledocsystem.service.api.dto.outbound.location.LocationPreviewDTO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
@@ -41,10 +42,9 @@ public class LocationController {
     }
 
     @GetMapping("/names")
-    public Iterable<LocationSummary> getAllLocationNames(@CurrentUser UserDetails currentUser,
-                                                         Pageable pageable) {
+    public Iterable<LocationSummary> getAllLocationNames(@CurrentUser UserDetails currentUser) {
         Long customerId = getCustomerId(currentUser);
-        return locationService.getAllNamesByCustomer(customerId, pageable);
+        return new PageImpl<>(locationService.getAllNamesByCustomer(customerId));
     }
 
     @GetMapping("/{locationId}")

@@ -25,9 +25,8 @@ public class DocumentDTO {
     @NotNull
     private String file;
 
-    private boolean archived;
-
-    private String archiveReason;
+    @Size(min = 4, max = 40)
+    private String idNumber;
 
     @Size(max = 255)
     private String comment;

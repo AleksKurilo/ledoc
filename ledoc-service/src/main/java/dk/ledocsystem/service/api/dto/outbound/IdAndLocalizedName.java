@@ -1,27 +1,29 @@
-package dk.ledocsystem.data.projections;
+package dk.ledocsystem.service.api.dto.outbound;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Data;
 import org.springframework.context.i18n.LocaleContextHolder;
 
 import java.util.Locale;
 
-public interface IdAndLocalizedName {
+@Data
+public class IdAndLocalizedName {
 
-    Long getId();
-
-    @JsonIgnore
-    String getNameEn();
+    private Long id;
 
     @JsonIgnore
-    String getNameDa();
+    private String nameEn;
 
-    default String getName() {
+    @JsonIgnore
+    private String nameDa;
+
+    public String getName() {
         Locale locale = LocaleContextHolder.getLocale();
 
         if (locale.equals(Locale.forLanguageTag("da-DK"))) {
-            return getNameDa();
+            return nameDa;
         } else {
-            return getNameEn();
+            return nameEn;
         }
     }
 }

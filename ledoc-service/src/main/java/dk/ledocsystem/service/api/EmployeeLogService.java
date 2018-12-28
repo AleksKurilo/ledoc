@@ -4,7 +4,7 @@ import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.logging.EmployeeLog;
 import dk.ledocsystem.data.model.logging.LogType;
-import dk.ledocsystem.service.api.dto.inbound.LogsDTO;
+import dk.ledocsystem.service.api.dto.outbound.LogsDTO;
 
 public interface EmployeeLogService extends AbstractLogService {
 

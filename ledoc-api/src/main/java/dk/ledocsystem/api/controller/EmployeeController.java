@@ -13,7 +13,7 @@ import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeDTO;
 import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeFollowDTO;
 import dk.ledocsystem.service.api.dto.inbound.review.ReviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.employee.EmployeePreviewDTO;
-import dk.ledocsystem.service.api.dto.outbound.employee.EmployeeSummaryDTO;
+import dk.ledocsystem.service.api.dto.outbound.employee.EmployeeSummary;
 import dk.ledocsystem.service.api.dto.outbound.employee.GetEmployeeDTO;
 import dk.ledocsystem.service.api.dto.outbound.employee.GetFollowedEmployeeDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
@@ -23,9 +23,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.annotation.security.RolesAllowed;
 import java.util.Collection;
@@ -49,7 +52,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/names")
-    public Iterable<EmployeeSummaryDTO> getAllEmployeeNames(@CurrentUser UserDetails currentUser) {
+    public Iterable<EmployeeSummary> getAllEmployeeNames(@CurrentUser UserDetails currentUser) {
         Long customerId = getCustomerId(currentUser);
         return new PageImpl<>(employeeService.getAllNamesByCustomer(customerId));
     }
@@ -136,8 +139,18 @@ public class EmployeeController {
     @GetMapping("/followed")
     public Iterable<GetFollowedEmployeeDTO> getFollowedEmployees(@RequestParam("employeeId") Long employeeId,
                                                                  Pageable pageable) {
-
         return employeeService.getFollowedEmployees(employeeId, pageable);
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<StreamingResponseBody> exportEmployees(@CurrentUser UserDetails currentUser,
+                                                                 @QuerydslPredicate(root = Employee.class) Predicate predicate,
+                                                                 @RequestParam(value = "new", required = false, defaultValue = "false") boolean isNew,
+                                                                 @RequestParam(value = "isarchived", required = false, defaultValue = "false") boolean isArchived) {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, "application/ms-excel")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"All employees.xlsx\"")
+                .body(outputStream -> employeeService.exportToExcel(currentUser, predicate, isNew, isArchived).write(outputStream));
     }
 
     private Long getCustomerId(UserDetails user) {

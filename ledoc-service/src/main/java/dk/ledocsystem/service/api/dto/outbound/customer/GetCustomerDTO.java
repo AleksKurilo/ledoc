@@ -1,4 +1,4 @@
-package dk.ledocsystem.service.api.dto.outbound;
+package dk.ledocsystem.service.api.dto.outbound.customer;
 
 import lombok.Data;
 

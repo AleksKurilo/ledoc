@@ -1,16 +1,17 @@
 package dk.ledocsystem.service.api;
 
 import com.querydsl.core.types.Predicate;
-import dk.ledocsystem.data.projections.IdAndLocalizedName;
+import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.document.DocumentCategoryDTO;
 import dk.ledocsystem.service.api.dto.inbound.document.DocumentDTO;
+import dk.ledocsystem.service.api.dto.outbound.document.DocumentExportDTO;
 import dk.ledocsystem.service.api.dto.outbound.document.DocumentPreviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.document.GetDocumentDTO;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +25,7 @@ public interface DocumentService extends CustomerBasedDomainService<GetDocumentD
      */
     void changeArchivedStatus(Long documentId, ArchivedStatusDTO archivedStatusDTO, UserDetails creatorDetails);
 
-    Page<GetDocumentDTO> getNewDocument(UserDetails user, Pageable pageable);
+    long countNewDocuments(UserDetails user);
 
     Page<GetDocumentDTO> getNewDocument(UserDetails user, Pageable pageable, Predicate predicate);
 
@@ -34,12 +35,13 @@ public interface DocumentService extends CustomerBasedDomainService<GetDocumentD
 
     DocumentCategoryDTO updateCategory(DocumentCategoryDTO category);
 
-    List<IdAndLocalizedName> getAllCategory();
+    List<IdAndLocalizedName> getCategories();
 
-    List<IdAndLocalizedName> getAllSubcategory();
+    List<IdAndLocalizedName> getSubcategories();
 
     void deleteCategory(Long id);
 
-    @Transactional(readOnly = true)
-    List<List<String>> getAllForExport(UserDetails creatorDetails, Predicate predicate, boolean isNew);
+    List<DocumentExportDTO> getAllForExport(UserDetails creatorDetails, Predicate predicate, boolean isNew);
+
+    Workbook exportToExcel(UserDetails currentUserDetails, Predicate predicate, boolean isNew, boolean isArchived);
 }

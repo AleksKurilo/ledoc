@@ -1,12 +1,12 @@
 package dk.ledocsystem.service.api.dto.outbound.employee;
 
+import com.google.common.base.Strings;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Getter
 @Setter
@@ -20,21 +20,8 @@ public class EmployeeExportDTO {
     String locationNames;
 
     public List<String> getFields() {
-        Class<? extends EmployeeExportDTO> componentClass = getClass();
-        Field[] fields = componentClass.getDeclaredFields();
-        List<String> lines = new ArrayList<>(fields.length);
-
-        Arrays.stream(fields)
-                .forEach(
-                        field -> {
-                            field.setAccessible(true);
-                            try {
-                                lines.add(field.get(this) != null ? field.get(this).toString() : "");
-                            } catch (final IllegalAccessException e) {
-                                lines.add("");
-                            }
-                        });
-
-        return lines;
+        return Stream.of(name, title, username, cellPhone, phoneNumber, locationNames)
+                .map(Strings::nullToEmpty)
+                .collect(Collectors.toList());
     }
 }

@@ -1,97 +1,104 @@
 package dk.ledocsystem.service.impl.excel;
 
 import dk.ledocsystem.service.api.ExcelExportService;
-import dk.ledocsystem.service.impl.excel.model.*;
+import dk.ledocsystem.service.impl.excel.sheets.*;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.BorderStyle;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 class ExcelExportServiceImpl implements ExcelExportService {
-
-    private final RowMapper rowMapper;
+    private static final String HEADER_CENTER_FORMAT_STRING = "     %s     ";
 
     @Override
-    public Workbook export(ExportRequest exportRequest) {
-        List<Sheet> sheets = exportRequest.getTables().stream().map(Table::newSheet).collect(Collectors.toList());
+    public Workbook exportSheets(List<EntitySheet> sheets) {
         Workbook workbook = new XSSFWorkbook();
-
-        fillSheets(workbook, sheets);
+        fillEntitySheets(workbook, sheets);
         return workbook;
     }
 
-    private void fillSheets(Workbook workbook, List<Sheet> sheets) {
-        sheets.forEach(sheet -> fillSheet(workbook, sheet));
+    private void fillEntitySheets(Workbook workbook, List<EntitySheet> sheets) {
+        sheets.forEach(sheet -> fillEntitySheet(workbook, sheet));
     }
 
-    private void fillSheetsFromEntity(Workbook workbook, List<EntitySheet> sheets) {
-        sheets.forEach(sheet -> fillSheetFromEntity(workbook, sheet));
+    private void fillEntitySheet(Workbook workbook, EntitySheet sheet) {
+        Sheet excelSheet = workbook.createSheet(sheet.getName());
+        excelSheet.setPrintGridlines(true);
+        excelSheet.setDisplayGridlines(true);
+
+        fillHeaders(excelSheet, sheet.getHeaders(), getHeaderStyle(workbook));
+        autoSizeColumns(excelSheet, sheet.getHeaders().size());
+        fillRows(excelSheet, sheet.getRows(), getRegularStyle(workbook));
     }
 
-    @Override
-    public Workbook exportSheet(Sheet sheet) {
-        Workbook workbook = new XSSFWorkbook();
-        fillSheet(workbook, sheet);
-        return workbook;
+    private void autoSizeColumns(Sheet sheet, int columns) {
+        for (int i = 0; i < columns; i++) {
+            sheet.autoSizeColumn(i);
+        }
     }
 
-    @Override
-    public Workbook exportWorkbook(List<EntitySheet> sheets) {
-        Workbook workbook = new XSSFWorkbook();
-        fillSheetsFromEntity(workbook, sheets);
-        return workbook;
-    }
-
-    private void fillSheet(Workbook workbook, Sheet sheet) {
-        org.apache.poi.ss.usermodel.Sheet excelSheet = workbook.createSheet(sheet.getName());
-        List<Row> rows = rowMapper.mapRows(sheet);
-
-        fillHeaders(excelSheet, sheet.getHeaders());
-        fillRows(excelSheet, rows);
-    }
-
-    private void fillSheetFromEntity(Workbook workbook, EntitySheet sheet) {
-        org.apache.poi.ss.usermodel.Sheet excelSheet = workbook.createSheet(sheet.getName());
-
-        fillHeaders(excelSheet, sheet.getHeaders());
-        fillRowsFromEntity(excelSheet, sheet.getRows());
-    }
-
-    private void fillHeaders(org.apache.poi.ss.usermodel.Sheet sheet, List<String> headers) {
-        org.apache.poi.ss.usermodel.Row row = sheet.createRow(0);
+    private void fillHeaders(Sheet sheet, List<String> headers, CellStyle headerStyle) {
+        Row row = sheet.createRow(0);
         for (int i = 0, size = headers.size(); i < size; i++) {
-            row.createCell(i).setCellValue(headers.get(i));
+            Cell cell = row.createCell(i);
+            cell.setCellValue(String.format(HEADER_CENTER_FORMAT_STRING, headers.get(i)));
+            cell.setCellStyle(headerStyle);
         }
+        row.setHeight((short) 600);
+        sheet.createFreezePane(0, 1);
     }
 
-    private void fillRows(org.apache.poi.ss.usermodel.Sheet sheet, List<Row> rows) {
+    private void fillRows(Sheet sheet, List<dk.ledocsystem.service.impl.excel.sheets.Row> rows, CellStyle cellStyle) {
         for (int i = 0, size = rows.size(); i < size; i++) {
-            fillRow(sheet.createRow(i + 1), rows.get(i));
+            fillRow(sheet.createRow(i + 1), rows.get(i).getValues(), cellStyle);
         }
     }
 
-    private void fillRowsFromEntity(org.apache.poi.ss.usermodel.Sheet sheet, List<List<String>> rows) {
-        for (int i = 0, size = rows.size(); i < size; i++) {
-            fillRowFromEntity(sheet.createRow(i + 1), rows.get(i));
-        }
-    }
-
-    private void fillRow(org.apache.poi.ss.usermodel.Row excelRow, Row row) {
-        List<String> values = row.getValues();
+    private void fillRow(Row row, List<String> values, CellStyle cellStyle) {
         for (int i = 0, size = values.size(); i < size; i++) {
-            excelRow.createCell(i).setCellValue(values.get(i));
+            Cell cell = row.createCell(i);
+            cell.setCellValue(values.get(i));
+            cell.setCellStyle(cellStyle);
         }
     }
 
-    private void fillRowFromEntity(org.apache.poi.ss.usermodel.Row excelRow, List<String> values) {
-        for (int i = 0, size = values.size(); i < size; i++) {
-            excelRow.createCell(i).setCellValue(values.get(i));
-        }
+    private CellStyle getHeaderStyle(Workbook workbook) {
+        CellStyle cellStyle = workbook.createCellStyle();
+        cellStyle.setFillForegroundColor(IndexedColors.LIGHT_TURQUOISE.index);
+        cellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        cellStyle.setAlignment(HorizontalAlignment.CENTER);
+        cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        cellStyle.setBorderBottom(BorderStyle.THIN);
+        cellStyle.setBorderTop(BorderStyle.THIN);
+        cellStyle.setBorderRight(BorderStyle.THIN);
+        cellStyle.setBorderLeft(BorderStyle.THIN);
+        Font font = workbook.createFont();
+        font.setBold(true);
+        font.setColor(IndexedColors.BLUE.index);
+        cellStyle.setFont(font);
+        return cellStyle;
     }
 
+    private CellStyle getRegularStyle(Workbook workbook) {
+        CellStyle cellStyle = workbook.createCellStyle();
+        cellStyle.setBorderBottom(BorderStyle.THIN);
+        cellStyle.setBorderTop(BorderStyle.THIN);
+        cellStyle.setBorderRight(BorderStyle.THIN);
+        cellStyle.setBorderLeft(BorderStyle.THIN);
+        return cellStyle;
+    }
 }

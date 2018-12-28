@@ -15,6 +15,8 @@ public class DocumentPreviewDTO {
 
     private String name;
 
+    private String idNumber;
+
     private String file;
 
     private boolean archived;

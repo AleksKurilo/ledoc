@@ -4,7 +4,6 @@ import dk.ledocsystem.data.model.Customer;
 import dk.ledocsystem.data.model.Location;
 import dk.ledocsystem.data.model.Trade;
 import dk.ledocsystem.data.model.employee.Employee;
-import dk.ledocsystem.data.model.equipment.Equipment;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -39,11 +38,8 @@ public class Document {
     @Column(nullable = false)
     private String file;
 
-    @Column(nullable = false)
-    @ColumnDefault("false")
-    private boolean archived;
-
-    private String archiveReason;
+    @Column(length = 40)
+    private String idNumber;
 
     @Column
     private String comment;
@@ -59,6 +55,12 @@ public class Document {
 
     @Column(name = "private")
     private boolean personal;
+
+    @Column(nullable = false)
+    @ColumnDefault("false")
+    private boolean archived;
+
+    private String archiveReason;
 
     private Period approvalRate;
 

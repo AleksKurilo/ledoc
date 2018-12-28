@@ -1,14 +1,14 @@
 package dk.ledocsystem.service.api;
 
 import com.querydsl.core.types.Predicate;
-import dk.ledocsystem.data.model.equipment.AuthenticationType;
-import dk.ledocsystem.data.model.equipment.EquipmentCategory;
-import dk.ledocsystem.data.projections.IdAndLocalizedName;
+import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.equipment.*;
+import dk.ledocsystem.service.api.dto.outbound.equipment.EquipmentExportDTO;
 import dk.ledocsystem.service.api.dto.outbound.equipment.EquipmentPreviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.equipment.GetEquipmentDTO;
 import dk.ledocsystem.service.api.dto.outbound.equipment.GetFollowedEquipmentDTO;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -41,7 +41,7 @@ public interface EquipmentService extends CustomerBasedDomainService<GetEquipmen
      */
     void changeArchivedStatus(Long equipmentId, ArchivedStatusDTO archivedStatusDTO, UserDetails creatorDetails);
 
-    Page<GetEquipmentDTO> getNewEquipment(UserDetails user, Pageable pageable);
+    long countNewEquipment(UserDetails user);
 
     Page<GetEquipmentDTO> getNewEquipment(UserDetails user, Pageable pageable, Predicate predicate);
 
@@ -53,19 +53,17 @@ public interface EquipmentService extends CustomerBasedDomainService<GetEquipmen
 
     List<IdAndLocalizedName> getAuthTypes();
 
-    Page<IdAndLocalizedName> getAuthTypes(Pageable pageable);
-
-    AuthenticationType createAuthType(AuthenticationTypeDTO authenticationTypeDTO);
+    IdAndLocalizedName createAuthType(AuthenticationTypeDTO authenticationTypeDTO);
 
     List<IdAndLocalizedName> getCategories();
 
-    Page<IdAndLocalizedName> getCategories(Pageable pageable);
-
-    EquipmentCategory createNewCategory(EquipmentCategoryCreateDTO categoryCreateDTO);
+    IdAndLocalizedName createCategory(EquipmentCategoryCreateDTO categoryCreateDTO);
 
     void follow(Long equipmentId, UserDetails currentUser, EquipmentFollowDTO equipmentFollowDTO);
 
     Page<GetFollowedEquipmentDTO> getFollowedEquipment(Long employeeId, Pageable pageable);
 
-    List<List<String>> getAllForExport(UserDetails user, Predicate predicate, boolean isNew);
+    List<EquipmentExportDTO> getAllForExport(UserDetails user, Predicate predicate, boolean isNew);
+
+    Workbook exportToExcel(UserDetails currentUserDetails, Predicate predicate, boolean isNew, boolean isArchived);
 }

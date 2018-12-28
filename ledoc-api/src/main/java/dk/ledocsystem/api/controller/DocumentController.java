@@ -4,7 +4,7 @@ import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.api.config.security.CurrentUser;
 import dk.ledocsystem.data.model.document.Document;
 import dk.ledocsystem.data.model.document.DocumentCategoryType;
-import dk.ledocsystem.data.projections.IdAndLocalizedName;
+import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.service.api.CustomerService;
 import dk.ledocsystem.service.api.DocumentService;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
@@ -20,9 +20,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.annotation.security.RolesAllowed;
 
@@ -107,13 +110,13 @@ public class DocumentController {
     }
 
     @GetMapping(path = "/categories")
-    public Page<IdAndLocalizedName> getAllCategory() {
-        return new PageImpl<>(documentService.getAllCategory());
+    public Page<IdAndLocalizedName> getDocumentCategories() {
+        return new PageImpl<>(documentService.getCategories());
     }
 
     @GetMapping(path = "/subcategories")
-    public Page<IdAndLocalizedName> getAllSubCategory() {
-        return new PageImpl<>(documentService.getAllSubcategory());
+    public Page<IdAndLocalizedName> getDocumentSubcategories() {
+        return new PageImpl<>(documentService.getSubcategories());
     }
 
     @RolesAllowed("super_admin")
@@ -142,6 +145,17 @@ public class DocumentController {
     @DeleteMapping(path = "subcategories/{id}")
     public void deleteSubcategory(@PathVariable Long id) {
         documentService.deleteCategory(id);
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<StreamingResponseBody> exportDocuments(@CurrentUser UserDetails currentUser,
+                                                                 @QuerydslPredicate(root = Document.class) Predicate predicate,
+                                                                 @RequestParam(value = "new", required = false, defaultValue = "false") boolean isNew,
+                                                                 @RequestParam(value = "isarchived", required = false, defaultValue = "false") boolean isArchived) {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, "application/ms-excel")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"All documents.xlsx\"")
+                .body(outputStream -> documentService.exportToExcel(currentUser, predicate, isNew, isArchived).write(outputStream));
     }
 
     private Long getCustomerId(UserDetails user) {

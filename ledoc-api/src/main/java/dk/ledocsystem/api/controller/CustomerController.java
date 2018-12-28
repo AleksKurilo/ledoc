@@ -5,16 +5,19 @@ import dk.ledocsystem.api.config.security.CurrentUser;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.customer.CustomerCreateDTO;
 import dk.ledocsystem.service.api.dto.inbound.customer.CustomerEditDTO;
-import dk.ledocsystem.service.api.dto.outbound.GetCustomerDTO;
+import dk.ledocsystem.service.api.dto.outbound.customer.GetCustomerDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.data.model.Customer;
 import dk.ledocsystem.service.api.CustomerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.annotation.security.RolesAllowed;
 import java.util.Collection;
@@ -72,5 +75,14 @@ public class CustomerController {
     @DeleteMapping
     public void deleteByIds(@RequestParam("ids") Collection<Long> ids) {
         customerService.deleteByIds(ids);
+    }
+
+    @RolesAllowed("super_admin")
+    @GetMapping("/export")
+    public ResponseEntity<StreamingResponseBody> exportCustomers(@QuerydslPredicate(root = Customer.class) Predicate predicate,
+                                                                 @RequestParam(value = "isarchived", required = false, defaultValue = "false") boolean isArchived) {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"Customers.xlsx\"")
+                .body(outputStream -> customerService.exportToExcel(predicate, isArchived).write(outputStream));
     }
 }

@@ -1,13 +1,12 @@
 package dk.ledocsystem.api.controller;
 
 import dk.ledocsystem.service.api.dto.inbound.trades.TradeCreateDTO;
-import dk.ledocsystem.data.model.Trade;
 import dk.ledocsystem.service.api.TradeService;
+import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.RolesAllowed;
-import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -18,14 +17,14 @@ public class TradeController {
     private final TradeService tradeService;
 
     @GetMapping
-    public List<Trade> getAllTrades() {
+    public List<IdAndLocalizedName> getAllTrades() {
         return tradeService.getAll();
     }
 
     @RolesAllowed("super_admin")
     @PostMapping
-    public Trade createNew(@RequestBody @Valid TradeCreateDTO createDTO) {
-        return tradeService.createNew(createDTO);
+    public IdAndLocalizedName createTrade(@RequestBody TradeCreateDTO createDTO) {
+        return tradeService.createTrade(createDTO);
     }
 
     @DeleteMapping("/{tradeId}")

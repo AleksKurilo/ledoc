@@ -1,4 +1,4 @@
-package dk.ledocsystem.service.api.dto.inbound;
+package dk.ledocsystem.service.api.dto.outbound;
 
 import dk.ledocsystem.data.model.logging.LogType;
 import lombok.Getter;

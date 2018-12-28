@@ -15,24 +15,28 @@ import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.employee.QEmployee;
 import dk.ledocsystem.data.model.equipment.*;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
-import dk.ledocsystem.data.projections.IdAndLocalizedName;
+import dk.ledocsystem.service.api.ExcelExportService;
+import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.data.repository.*;
 import dk.ledocsystem.service.api.EquipmentService;
 import dk.ledocsystem.service.api.ReviewTemplateService;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.equipment.*;
-import dk.ledocsystem.service.api.dto.outbound.employee.EquipmentExportDTO;
+import dk.ledocsystem.service.api.dto.outbound.equipment.EquipmentExportDTO;
 import dk.ledocsystem.service.api.dto.outbound.equipment.EquipmentEditDto;
 import dk.ledocsystem.service.api.dto.outbound.equipment.EquipmentPreviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.equipment.GetEquipmentDTO;
 import dk.ledocsystem.service.api.dto.outbound.equipment.GetFollowedEquipmentDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.service.impl.events.producer.EquipmentProducer;
+import dk.ledocsystem.service.impl.excel.sheets.EntitySheet;
+import dk.ledocsystem.service.impl.excel.sheets.equipment.EquipmentEntitySheet;
 import dk.ledocsystem.service.impl.property_maps.equipment.*;
 import dk.ledocsystem.service.impl.utils.PredicateBuilder;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.commons.lang3.tuple.Pair;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.*;
@@ -44,6 +48,7 @@ import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -60,11 +65,14 @@ class EquipmentServiceImpl implements EquipmentService {
 
     private static final Function<Long, Predicate> CUSTOMER_EQUALS_TO =
             customerId -> ExpressionUtils.eqConst(QEquipment.equipment.customer.id, customerId);
+    private static final Function<Boolean, Predicate> EQUIPMENT_ARCHIVED =
+            archived -> ExpressionUtils.eqConst(QEquipment.equipment.archived, archived);
 
     @PersistenceContext
     private EntityManager entityManager;
 
     private final ModelMapper modelMapper;
+    private final ExcelExportService excelExportService;
     private final EquipmentRepository equipmentRepository;
     private final EquipmentCategoryRepository equipmentCategoryRepository;
     private final AuthenticationTypeRepository authenticationTypeRepository;
@@ -161,8 +169,12 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<GetEquipmentDTO> getNewEquipment(@NonNull UserDetails user, @NonNull Pageable pageable) {
-        return getNewEquipment(user, pageable, null);
+    public long countNewEquipment(@NonNull UserDetails user) {
+        Employee employee = employeeRepository.findByUsername(user.getUsername())
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, user.getUsername()));
+
+        Predicate newEquipmentPredicate = getNewEquipmentPredicate(employee);
+        return equipmentRepository.count(newEquipmentPredicate);
     }
 
     @Override
@@ -170,13 +182,16 @@ class EquipmentServiceImpl implements EquipmentService {
     public Page<GetEquipmentDTO> getNewEquipment(@NonNull UserDetails user, @NonNull Pageable pageable, Predicate predicate) {
         Employee employee = employeeRepository.findByUsername(user.getUsername())
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, user.getUsername()));
-        Long customerId = employee.getCustomer().getId();
 
-        Predicate newEquipmentPredicate = ExpressionUtils.allOf(
-                predicate,
-                QEquipment.equipment.archived.eq(Boolean.FALSE),
+        Predicate combinePredicate = ExpressionUtils.and(predicate, getNewEquipmentPredicate(employee));
+        return getAll(combinePredicate, pageable);
+    }
+
+    private Predicate getNewEquipmentPredicate(Employee employee) {
+        return ExpressionUtils.allOf(
+                EQUIPMENT_ARCHIVED.apply(Boolean.FALSE),
+                CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId()),
                 ExpressionUtils.notIn(Expressions.constant(employee), QEquipment.equipment.visitedBy));
-        return getAllByCustomer(customerId, newEquipmentPredicate, pageable);
     }
 
     @Override
@@ -199,6 +214,19 @@ class EquipmentServiceImpl implements EquipmentService {
         Equipment equipment = equipmentRepository.findById(equipmentId)
                 .orElseThrow(() -> new NotFoundException(EQUIPMENT_ID_NOT_FOUND, equipmentId.toString()));
         equipment.removeLoan();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Workbook exportToExcel(UserDetails currentUserDetails, Predicate predicate, boolean isNew, boolean isArchived) {
+        List<EntitySheet> equipmentSheets = new ArrayList<>();
+        Predicate predicateForEquipment = ExpressionUtils.and(predicate, EQUIPMENT_ARCHIVED.apply(false));
+        equipmentSheets.add(new EquipmentEntitySheet(this, currentUserDetails, predicateForEquipment, isNew, "Equipment"));
+        if (isArchived) {
+            Predicate predicateForArchived = ExpressionUtils.and(predicate, EQUIPMENT_ARCHIVED.apply(true));
+            equipmentSheets.add(new EquipmentEntitySheet(this, currentUserDetails, predicateForArchived, isNew, "Archived"));
+        }
+        return excelExportService.exportSheets(equipmentSheets);
     }
 
     private EquipmentCategory resolveCategory(Long categoryId) {
@@ -235,38 +263,28 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     public List<IdAndLocalizedName> getAuthTypes() {
-        return authenticationTypeRepository.getAllBy();
+        return authenticationTypeRepository.findAll().stream().map(this::mapAuthTypeToDto).collect(Collectors.toList());
     }
 
     @Override
-    public Page<IdAndLocalizedName> getAuthTypes(Pageable pageable) {
-        return authenticationTypeRepository.getAllBy(pageable);
-    }
-
-    @Override
-    public AuthenticationType createAuthType(AuthenticationTypeDTO authenticationTypeDTO) {
+    public IdAndLocalizedName createAuthType(AuthenticationTypeDTO authenticationTypeDTO) {
         authenticationTypeDtoValidator.validate(authenticationTypeDTO);
 
         AuthenticationType authenticationType = modelMapper.map(authenticationTypeDTO, AuthenticationType.class);
-        return authenticationTypeRepository.save(authenticationType);
-    }
-
-    @Override
-    public Page<IdAndLocalizedName> getCategories(Pageable pageable) {
-        return equipmentCategoryRepository.getAllBy(pageable);
+        return mapAuthTypeToDto(authenticationTypeRepository.save(authenticationType));
     }
 
     @Override
     public List<IdAndLocalizedName> getCategories() {
-        return equipmentCategoryRepository.getAllBy();
+        return equipmentCategoryRepository.findAll().stream().map(this::mapCategoryToDto).collect(Collectors.toList());
     }
 
     @Override
-    public EquipmentCategory createNewCategory(EquipmentCategoryCreateDTO categoryCreateDTO) {
+    public IdAndLocalizedName createCategory(EquipmentCategoryCreateDTO categoryCreateDTO) {
         equipmentCategoryCreateDtoValidator.validate(categoryCreateDTO);
 
         EquipmentCategory category = modelMapper.map(categoryCreateDTO, EquipmentCategory.class);
-        return equipmentCategoryRepository.save(category);
+        return mapCategoryToDto(equipmentCategoryRepository.save(category));
     }
 
     //region GET/DELETE standard API
@@ -379,7 +397,7 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<List<String>> getAllForExport(UserDetails creatorDetails, Predicate predicate, boolean isNew) {
+    public List<EquipmentExportDTO> getAllForExport(UserDetails creatorDetails, Predicate predicate, boolean isNew) {
         Employee employee = employeeRepository.findByUsername(creatorDetails.getUsername()).orElseThrow(IllegalStateException::new);
         Long customerId = employee.getCustomer().getId();
         Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
@@ -387,7 +405,7 @@ class EquipmentServiceImpl implements EquipmentService {
             combinePredicate = ExpressionUtils.allOf(combinePredicate,
                     ExpressionUtils.notIn(Expressions.constant(employee), QEquipment.equipment.visitedBy));
         }
-        return equipmentRepository.findAll(combinePredicate).stream().map(this::mapToExportDto).map(EquipmentExportDTO::getFields).collect(toList());
+        return equipmentRepository.findAll(combinePredicate).stream().map(this::mapToExportDto).collect(Collectors.toList());
     }
 
     @Override
@@ -409,7 +427,7 @@ class EquipmentServiceImpl implements EquipmentService {
     @Override
     @Transactional(readOnly = true)
     public List<GetEquipmentDTO> getAllById(@NonNull Iterable<Long> ids) {
-        return equipmentRepository.findAllById(ids).stream().map(this::mapToEditDto).collect(toList());
+        return equipmentRepository.findAllById(ids).stream().map(this::mapToEditDto).collect(Collectors.toList());
     }
 
     @Override
@@ -441,6 +459,14 @@ class EquipmentServiceImpl implements EquipmentService {
 
     private EquipmentExportDTO mapToExportDto(Equipment equipment) {
         return modelMapper.map(equipment, EquipmentExportDTO.class);
+    }
+
+    private IdAndLocalizedName mapAuthTypeToDto(AuthenticationType authenticationType) {
+        return modelMapper.map(authenticationType, IdAndLocalizedName.class);
+    }
+
+    private IdAndLocalizedName mapCategoryToDto(EquipmentCategory category) {
+        return modelMapper.map(category, IdAndLocalizedName.class);
     }
 
     @Override

@@ -5,7 +5,7 @@ import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.equipment.Equipment;
 import dk.ledocsystem.data.model.logging.EquipmentLog;
 import dk.ledocsystem.data.model.logging.LogType;
-import dk.ledocsystem.service.api.dto.inbound.LogsDTO;
+import dk.ledocsystem.service.api.dto.outbound.LogsDTO;
 
 public interface EquipmentLogService extends AbstractLogService {
 

@@ -18,7 +18,7 @@ import java.util.Set;
 @Entity
 @Table(name = "trades")
 @ToString(of = {"nameEn"})
-public class Trade {
+public class Trade implements DoubleNamed {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "trades_seq")

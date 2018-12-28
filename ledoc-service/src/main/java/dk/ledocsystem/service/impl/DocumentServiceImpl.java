@@ -14,7 +14,8 @@ import dk.ledocsystem.data.model.document.DocumentStatus;
 import dk.ledocsystem.data.model.document.QDocument;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
-import dk.ledocsystem.data.projections.IdAndLocalizedName;
+import dk.ledocsystem.service.api.ExcelExportService;
+import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.data.repository.*;
 import dk.ledocsystem.service.api.DocumentService;
 import dk.ledocsystem.service.api.ReviewTemplateService;
@@ -27,6 +28,8 @@ import dk.ledocsystem.service.api.dto.outbound.document.DocumentPreviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.document.GetDocumentDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.service.impl.events.producer.DocumentProducer;
+import dk.ledocsystem.service.impl.excel.sheets.EntitySheet;
+import dk.ledocsystem.service.impl.excel.sheets.documents.DocumentsEntitySheet;
 import dk.ledocsystem.service.impl.property_maps.document.DocumentToDocumentPreviewDtoPropertyMap;
 import dk.ledocsystem.service.impl.property_maps.document.DocumentToEditDtoPropertyMap;
 import dk.ledocsystem.service.impl.property_maps.document.DocumentToExportDtoMap;
@@ -34,6 +37,7 @@ import dk.ledocsystem.service.impl.property_maps.document.DocumentToGetDocumentD
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,6 +46,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -58,6 +63,8 @@ class DocumentServiceImpl implements DocumentService {
 
     private static final Function<Long, Predicate> CUSTOMER_EQUALS_TO =
             customerId -> ExpressionUtils.eqConst(QDocument.document.customer.id, customerId);
+    private static final Function<Boolean, Predicate> DOCUMENTS_ARCHIVED =
+            archived -> ExpressionUtils.eqConst(QDocument.document.archived, archived);
 
     private final TradeRepository tradeRepository;
     private final DocumentProducer documentProducer;
@@ -67,6 +74,7 @@ class DocumentServiceImpl implements DocumentService {
     private final ReviewTemplateService reviewTemplateService;
     private final DocumentCategoryRepository categoryRepository;
 
+    private final ExcelExportService excelExportService;
     private final ModelMapper modelMapper;
     private final BaseValidator<DocumentDTO> documentDtoValidator;
     private final BaseValidator<DocumentCategoryDTO> categoryDtoValidator;
@@ -171,8 +179,12 @@ class DocumentServiceImpl implements DocumentService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<GetDocumentDTO> getNewDocument(@NonNull UserDetails user, @NonNull Pageable pageable) {
-        return getNewDocument(user, pageable, null);
+    public long countNewDocuments(@NonNull UserDetails user) {
+        Employee employee = employeeRepository.findByUsername(user.getUsername())
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, user.getUsername()));
+
+        Predicate newDocumentsPredicate = getNewDocumentsPredicate(employee);
+        return documentRepository.count(newDocumentsPredicate);
     }
 
     @Override
@@ -180,13 +192,16 @@ class DocumentServiceImpl implements DocumentService {
     public Page<GetDocumentDTO> getNewDocument(@NonNull UserDetails user, @NonNull Pageable pageable, Predicate predicate) {
         Employee employee = employeeRepository.findByUsername(user.getUsername())
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, user.getUsername()));
-        Long customerId = employee.getCustomer().getId();
 
-        Predicate newEquipmentPredicate = ExpressionUtils.allOf(
-                predicate,
-                QDocument.document.archived.eq(Boolean.FALSE),
+        Predicate combinePredicate = ExpressionUtils.and(predicate, getNewDocumentsPredicate(employee));
+        return getAll(combinePredicate, pageable);
+    }
+
+    private Predicate getNewDocumentsPredicate(Employee employee) {
+        return ExpressionUtils.allOf(
+                DOCUMENTS_ARCHIVED.apply(Boolean.FALSE),
+                CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId()),
                 ExpressionUtils.notIn(Expressions.constant(employee), QDocument.document.visitedBy));
-        return getAllByCustomer(customerId, newEquipmentPredicate, pageable);
     }
 
     @Override
@@ -228,13 +243,13 @@ class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
-    public List<IdAndLocalizedName> getAllCategory() {
-        return categoryRepository.findAllByType(DocumentCategoryType.CATEGORY);
+    public List<IdAndLocalizedName> getCategories() {
+        return categoryRepository.findAllByType(DocumentCategoryType.CATEGORY).stream().map(this::mapCategoryToDto).collect(Collectors.toList());
     }
 
     @Override
-    public List<IdAndLocalizedName> getAllSubcategory() {
-        return categoryRepository.findAllByType(DocumentCategoryType.SUBCATEGORY);
+    public List<IdAndLocalizedName> getSubcategories() {
+        return categoryRepository.findAllByType(DocumentCategoryType.SUBCATEGORY).stream().map(this::mapCategoryToDto).collect(Collectors.toList());
     }
 
     @Override
@@ -243,6 +258,19 @@ class DocumentServiceImpl implements DocumentService {
         DocumentCategory category = categoryRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(DOCUMENT_CATEGORY_ID_NOT_FOUND, id.toString()));
         categoryRepository.delete(category);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Workbook exportToExcel(UserDetails currentUserDetails, Predicate predicate, boolean isNew, boolean isArchived) {
+        List<EntitySheet> documentSheets = new ArrayList<>();
+        Predicate predicateForDocuments = ExpressionUtils.and(predicate, DOCUMENTS_ARCHIVED.apply(false));
+        documentSheets.add(new DocumentsEntitySheet(this, currentUserDetails, predicateForDocuments, isNew, "Documents"));
+        if (isArchived) {
+            Predicate predicateForArchived = ExpressionUtils.and(predicate, DOCUMENTS_ARCHIVED.apply(true));
+            documentSheets.add(new DocumentsEntitySheet(this, currentUserDetails, predicateForArchived, isNew, "Archived"));
+        }
+        return excelExportService.exportSheets(documentSheets);
     }
 
     private Customer resolveCustomerByUsername(String username) {
@@ -303,7 +331,7 @@ class DocumentServiceImpl implements DocumentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<List<String>> getAllForExport(UserDetails creatorDetails, Predicate predicate, boolean isNew) {
+    public List<DocumentExportDTO> getAllForExport(UserDetails creatorDetails, Predicate predicate, boolean isNew) {
         Employee employee = employeeRepository.findByUsername(creatorDetails.getUsername()).orElseThrow(IllegalStateException::new);
         Long customerId = employee.getCustomer().getId();
         Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
@@ -311,7 +339,7 @@ class DocumentServiceImpl implements DocumentService {
             combinePredicate = ExpressionUtils.allOf(combinePredicate,
                     ExpressionUtils.notIn(Expressions.constant(employee), QDocument.document.visitedBy));
         }
-        return documentRepository.findAll(combinePredicate).stream().map(this::mapToExportDto).map(DocumentExportDTO::getFields).collect(Collectors.toList());
+        return documentRepository.findAll(combinePredicate).stream().map(this::mapToExportDto).collect(Collectors.toList());
     }
 
     @Override
@@ -345,6 +373,10 @@ class DocumentServiceImpl implements DocumentService {
 
     private DocumentExportDTO mapToExportDto(Document document) {
         return modelMapper.map(document, DocumentExportDTO.class);
+    }
+
+    private IdAndLocalizedName mapCategoryToDto(DocumentCategory category) {
+        return modelMapper.map(category, IdAndLocalizedName.class);
     }
 
     //endregion

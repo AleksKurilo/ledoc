@@ -1,13 +1,16 @@
-package dk.ledocsystem.service.impl.excel.model.documents;
+package dk.ledocsystem.service.impl.excel.sheets.documents;
 
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.service.api.DocumentService;
-import dk.ledocsystem.service.impl.excel.model.EntitySheet;
+import dk.ledocsystem.service.api.dto.outbound.document.DocumentExportDTO;
+import dk.ledocsystem.service.impl.excel.sheets.EntitySheet;
+import dk.ledocsystem.service.impl.excel.sheets.Row;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 public class DocumentsEntitySheet implements EntitySheet {
@@ -26,8 +29,12 @@ public class DocumentsEntitySheet implements EntitySheet {
     }
 
     @Override
-    public List<List<String>> getRows() {
-        return documentService.getAllForExport(currentUserDetails, predicate, isNew);
+    public List<Row> getRows() {
+        return documentService.getAllForExport(currentUserDetails, predicate, isNew)
+                .stream()
+                .map(DocumentExportDTO::getFields)
+                .map(Row::new)
+                .collect(Collectors.toList());
     }
 
     @Override

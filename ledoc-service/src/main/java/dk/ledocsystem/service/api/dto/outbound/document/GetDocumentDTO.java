@@ -14,6 +14,8 @@ public class GetDocumentDTO {
 
     private String name;
 
+    private String idNumber;
+
     private DocumentType type;
 
     private DocumentSource source;

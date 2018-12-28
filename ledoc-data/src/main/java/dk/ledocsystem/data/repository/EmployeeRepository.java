@@ -9,7 +9,6 @@ import dk.ledocsystem.data.model.employee.QEmployee;
 import dk.ledocsystem.data.model.employee.FollowedEmployees;
 import dk.ledocsystem.data.model.equipment.FollowedEquipment;
 import dk.ledocsystem.data.model.security.UserAuthorities;
-import dk.ledocsystem.data.projections.EmployeeSummary;
 import dk.ledocsystem.data.util.LocalDateMultiValueBinding;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -85,10 +84,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Query
      */
     @Query("select e from Employee e join fetch e.details.responsibleOfSkills where e.archived = false")
     List<Employee> findAllForReview();
-
-    @Query("select e.id as id, e.firstName as firstName, e.lastName as lastName, l.id as locations " +
-            "from Employee e left join e.locations l where e.customer.id = ?1 and e.archived = false")
-    List<EmployeeSummary> findAllBy(Long customerId);
 
     @Query(value = "select f from Employee e left join e.followedEmployees f where e.id = ?1")
     Page<FollowedEmployees> findAllFollowedEmployeesByEmployeePaged(Long employeeId, Pageable pageable);

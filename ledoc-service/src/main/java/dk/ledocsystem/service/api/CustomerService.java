@@ -1,9 +1,14 @@
 package dk.ledocsystem.service.api;
 
+import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.service.api.dto.inbound.customer.CustomerCreateDTO;
 import dk.ledocsystem.service.api.dto.inbound.customer.CustomerEditDTO;
-import dk.ledocsystem.service.api.dto.outbound.GetCustomerDTO;
+import dk.ledocsystem.service.api.dto.outbound.customer.CustomerExportDTO;
+import dk.ledocsystem.service.api.dto.outbound.customer.GetCustomerDTO;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.List;
 
 public interface CustomerService extends DomainService<GetCustomerDTO> {
 
@@ -34,4 +39,8 @@ public interface CustomerService extends DomainService<GetCustomerDTO> {
      * @return Customer of the user with the given name
      */
     GetCustomerDTO getByUsername(String username);
+
+    List<CustomerExportDTO> getAllForExport(Predicate predicate);
+
+    Workbook exportToExcel(Predicate predicate, boolean isArchived);
 }
