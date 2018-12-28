@@ -15,18 +15,15 @@ import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.employee.QEmployee;
 import dk.ledocsystem.data.model.equipment.*;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
-import dk.ledocsystem.service.api.ExcelExportService;
-import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.data.repository.*;
 import dk.ledocsystem.service.api.EquipmentService;
+import dk.ledocsystem.service.api.ExcelExportService;
 import dk.ledocsystem.service.api.ReviewTemplateService;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.equipment.*;
-import dk.ledocsystem.service.api.dto.outbound.equipment.EquipmentExportDTO;
-import dk.ledocsystem.service.api.dto.outbound.equipment.EquipmentEditDto;
-import dk.ledocsystem.service.api.dto.outbound.equipment.EquipmentPreviewDTO;
-import dk.ledocsystem.service.api.dto.outbound.equipment.GetEquipmentDTO;
-import dk.ledocsystem.service.api.dto.outbound.equipment.GetFollowedEquipmentDTO;
+import dk.ledocsystem.service.api.dto.inbound.equipment.EquipmentLoanDTO;
+import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
+import dk.ledocsystem.service.api.dto.outbound.equipment.*;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.service.impl.events.producer.EquipmentProducer;
 import dk.ledocsystem.service.impl.excel.sheets.EntitySheet;
@@ -36,10 +33,13 @@ import dk.ledocsystem.service.impl.utils.PredicateBuilder;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,8 +47,8 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.util.LinkedList;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -57,7 +57,6 @@ import java.util.stream.Stream;
 
 import static dk.ledocsystem.service.impl.constant.ErrorMessageKey.*;
 import static java.util.Objects.nonNull;
-import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
@@ -358,7 +357,7 @@ class EquipmentServiceImpl implements EquipmentService {
         ).filter(pair -> nonNull(pair.getRight()))
                 .filter(pair -> !pair.getRight().isEmpty())
                 .map(pair -> predicateBuilder.toStringPredicate(pair))
-                .collect(toList());
+                .collect(Collectors.toList());
 
         if (!searchString.isEmpty()) {
             predicates.add(predicateBuilder.toNumberPredicate(Pair.of("price", searchString), Equipment.class));
