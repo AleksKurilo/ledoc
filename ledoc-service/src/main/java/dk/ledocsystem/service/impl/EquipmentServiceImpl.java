@@ -2,11 +2,17 @@ package dk.ledocsystem.service.impl;
 
 import com.google.common.collect.ImmutableMap;
 import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.impl.JPAQuery;
 import dk.ledocsystem.data.model.Customer;
 import dk.ledocsystem.data.model.Location;
+import dk.ledocsystem.data.model.QLocation;
+import dk.ledocsystem.data.model.QSupplier;
 import dk.ledocsystem.data.model.employee.Employee;
+import dk.ledocsystem.data.model.employee.QEmployee;
 import dk.ledocsystem.data.model.equipment.*;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
 import dk.ledocsystem.data.projections.IdAndLocalizedName;
@@ -23,23 +29,30 @@ import dk.ledocsystem.service.api.dto.outbound.equipment.GetFollowedEquipmentDTO
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.service.impl.events.producer.EquipmentProducer;
 import dk.ledocsystem.service.impl.property_maps.equipment.*;
+import dk.ledocsystem.service.impl.utils.PredicateBuilder;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static dk.ledocsystem.service.impl.constant.ErrorMessageKey.*;
+import static java.util.Objects.nonNull;
+import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
@@ -47,6 +60,9 @@ class EquipmentServiceImpl implements EquipmentService {
 
     private static final Function<Long, Predicate> CUSTOMER_EQUALS_TO =
             customerId -> ExpressionUtils.eqConst(QEquipment.equipment.customer.id, customerId);
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private final ModelMapper modelMapper;
     private final EquipmentRepository equipmentRepository;
@@ -56,6 +72,7 @@ class EquipmentServiceImpl implements EquipmentService {
     private final LocationRepository locationRepository;
     private final ReviewTemplateService reviewTemplateService;
     private final EquipmentProducer equipmentProducer;
+    private final PredicateBuilder predicateBuilder;
 
     private final BaseValidator<EquipmentDTO> equipmentDtoValidator;
     private final BaseValidator<EquipmentLoanDTO> equipmentLoanDtoValidator;
@@ -299,8 +316,65 @@ class EquipmentServiceImpl implements EquipmentService {
     @Override
     @Transactional(readOnly = true)
     public Page<GetEquipmentDTO> getAllByCustomer(@NonNull Long customerId, Predicate predicate, @NonNull Pageable pageable) {
-        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
-        return equipmentRepository.findAll(combinePredicate, pageable).map(this::mapToDto);
+        return getAllByCustomer(customerId, "", predicate, pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<GetEquipmentDTO> getAllByCustomer(@NonNull Long customerId, String searchString, Predicate predicate, @NonNull Pageable pageable) {
+        QEquipment equipment = QEquipment.equipment;
+
+        List<Predicate> predicates = Stream.of(
+                Pair.of(equipment.name, searchString),
+                Pair.of(equipment.idNumber, searchString),
+                Pair.of(equipment.serialNumber, searchString),
+                Pair.of(equipment.category.nameEn, searchString),
+                Pair.of(equipment.localId, searchString),
+                Pair.of(equipment.location.name, searchString),
+                Pair.of(equipment.responsible.firstName, searchString),
+                Pair.of(equipment.responsible.lastName, searchString),
+                Pair.of(equipment.manufacturer, searchString),
+                Pair.of(equipment.authenticationType.nameEn, searchString),
+                Pair.of(equipment.supplier.name, searchString),
+                Pair.of(equipment.comment, searchString)
+        ).filter(pair -> nonNull(pair.getRight()))
+                .filter(pair -> !pair.getRight().isEmpty())
+                .map(pair -> predicateBuilder.toStringPredicate(pair))
+                .collect(toList());
+
+        if (!searchString.isEmpty()) {
+            predicates.add(predicateBuilder.toNumberPredicate(Pair.of("price", searchString), Equipment.class));
+        }
+
+        Predicate combinePredicate = ExpressionUtils.and(ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId)), ExpressionUtils.anyOf(predicates));
+
+        JPAQuery query = new JPAQuery<>(entityManager);
+        query.from(equipment).leftJoin(equipment.supplier, QSupplier.supplier)
+                .leftJoin(equipment.authenticationType, QAuthenticationType.authenticationType)
+                .leftJoin(equipment.category ,QEquipmentCategory.equipmentCategory)
+                .leftJoin(equipment.location ,QLocation.location)
+                .leftJoin(equipment.responsible ,QEmployee.employee);
+        query.where(combinePredicate);
+
+        List<Sort.Order> sorts = pageable.getSort().get().collect(Collectors.toList());
+
+        List<OrderSpecifier> sortParams = new LinkedList<>();
+        if (sorts.size() > 0) {
+            sorts.forEach(order -> {
+                sortParams.add(new OrderSpecifier(Order.valueOf(order.getDirection().name()), Expressions.stringPath(equipment, order.getProperty())));
+            });
+
+            query.orderBy(sortParams.toArray(new OrderSpecifier[sortParams.size()]));
+        }
+
+        long count = query.fetchCount();
+
+        query.offset(pageable.getOffset());
+        query.limit(pageable.getPageSize());
+
+
+        Page<Equipment> result = new PageImpl<>(query.fetch(),pageable, count);
+        return result.map(this::mapToDto);
     }
 
     @Override
@@ -313,7 +387,7 @@ class EquipmentServiceImpl implements EquipmentService {
             combinePredicate = ExpressionUtils.allOf(combinePredicate,
                     ExpressionUtils.notIn(Expressions.constant(employee), QEquipment.equipment.visitedBy));
         }
-        return equipmentRepository.findAll(combinePredicate).stream().map(this::mapToExportDto).map(EquipmentExportDTO::getFields).collect(Collectors.toList());
+        return equipmentRepository.findAll(combinePredicate).stream().map(this::mapToExportDto).map(EquipmentExportDTO::getFields).collect(toList());
     }
 
     @Override
@@ -335,7 +409,7 @@ class EquipmentServiceImpl implements EquipmentService {
     @Override
     @Transactional(readOnly = true)
     public List<GetEquipmentDTO> getAllById(@NonNull Iterable<Long> ids) {
-        return equipmentRepository.findAllById(ids).stream().map(this::mapToEditDto).collect(Collectors.toList());
+        return equipmentRepository.findAllById(ids).stream().map(this::mapToEditDto).collect(toList());
     }
 
     @Override

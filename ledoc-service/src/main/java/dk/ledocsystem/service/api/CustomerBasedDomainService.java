@@ -21,4 +21,6 @@ public interface CustomerBasedDomainService<T> extends DomainService<T> {
     List<T> getAllByCustomer(Long customerId, Predicate predicate);
 
     Page<T> getAllByCustomer(Long customerId, Predicate predicate, Pageable pageable);
+
+    Page<T> getAllByCustomer(Long customerId, String searchString, Predicate predicate, Pageable pageable);
 }

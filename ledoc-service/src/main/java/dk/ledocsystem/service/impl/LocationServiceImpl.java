@@ -283,6 +283,12 @@ class LocationServiceImpl implements LocationService {
     @Override
     @Transactional(readOnly = true)
     public Page<GetLocationDTO> getAllByCustomer(@NonNull Long customerId, Predicate predicate, @NonNull Pageable pageable) {
+        return getAllByCustomer(customerId, "", predicate, pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<GetLocationDTO> getAllByCustomer(@NonNull Long customerId, String searchString, Predicate predicate, @NonNull Pageable pageable) {
         Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
         return locationRepository.findAll(combinePredicate, pageable).map(this::mapToDto);
     }

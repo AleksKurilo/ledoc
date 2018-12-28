@@ -38,10 +38,11 @@ public class EquipmentController {
 
     @GetMapping
     public Iterable<GetEquipmentDTO> getAllEquipments(@CurrentUser UserDetails currentUser,
+                                                      @RequestParam(value = "search", required = false, defaultValue = "") String searchString,
                                                       @QuerydslPredicate(root = Equipment.class) Predicate predicate,
                                                       @PageableDefault(sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
         Long customerId = getCustomerId(currentUser);
-        return equipmentService.getAllByCustomer(customerId, predicate, pageable);
+        return equipmentService.getAllByCustomer(customerId, searchString, predicate, pageable);
     }
 
     @GetMapping("/new")

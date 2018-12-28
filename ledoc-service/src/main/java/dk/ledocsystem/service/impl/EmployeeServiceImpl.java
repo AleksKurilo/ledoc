@@ -438,6 +438,12 @@ class EmployeeServiceImpl implements EmployeeService {
     @Transactional(readOnly = true)
     @Override
     public Page<GetEmployeeDTO> getAllByCustomer(@NonNull Long customerId, Predicate predicate, @NonNull Pageable pageable) {
+        return getAllByCustomer(customerId, "", predicate, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Page<GetEmployeeDTO> getAllByCustomer(@NonNull Long customerId, String searchString, Predicate predicate, @NonNull Pageable pageable) {
         Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
         return employeeRepository.findAll(combinePredicate, pageable).map(this::mapToDto);
     }

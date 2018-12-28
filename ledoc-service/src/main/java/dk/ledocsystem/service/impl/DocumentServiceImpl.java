@@ -291,6 +291,12 @@ class DocumentServiceImpl implements DocumentService {
     @Override
     @Transactional(readOnly = true)
     public Page<GetDocumentDTO> getAllByCustomer(@NonNull Long customerId, Predicate predicate, @NonNull Pageable pageable) {
+        return getAllByCustomer(customerId, "", predicate, pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<GetDocumentDTO> getAllByCustomer(@NonNull Long customerId, String searchString, Predicate predicate, @NonNull Pageable pageable) {
         Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
         return documentRepository.findAll(combinePredicate, pageable).map(this::mapToDto);
     }
