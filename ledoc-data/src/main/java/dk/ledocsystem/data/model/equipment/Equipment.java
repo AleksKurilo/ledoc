@@ -139,6 +139,10 @@ public class Equipment {
     @WhereJoinTable(clause = "type = 'Read' OR type = 'Archive'")
     private Set<Employee> visitedBy;
 
+    public boolean isLoaned() {
+        return loan != null;
+    }
+
     public void setLoan(@NonNull EquipmentLoan equipmentLoan) {
         this.loan = equipmentLoan;
         equipmentLoan.setEquipment(this);
