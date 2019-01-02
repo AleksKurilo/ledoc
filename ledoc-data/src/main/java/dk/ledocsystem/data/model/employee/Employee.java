@@ -2,16 +2,17 @@ package dk.ledocsystem.data.model.employee;
 
 import dk.ledocsystem.data.model.Customer;
 import dk.ledocsystem.data.model.Location;
+import dk.ledocsystem.data.model.document.FollowedDocument;
 import dk.ledocsystem.data.model.equipment.FollowedEquipment;
 import dk.ledocsystem.data.model.security.UserAuthorities;
 import lombok.*;
 import org.hibernate.annotations.*;
 
 import javax.persistence.CascadeType;
-import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
 import javax.persistence.Table;
+import javax.persistence.*;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -126,6 +127,9 @@ public class Employee {
 
     @OneToMany(mappedBy = "employee")
     private Set<FollowedEquipment> followedEquipments;
+
+    @OneToMany(mappedBy = "employee")
+    private Set<FollowedDocument> followedDocuments;
 
     public String getName() {
         return firstName + " " + lastName;

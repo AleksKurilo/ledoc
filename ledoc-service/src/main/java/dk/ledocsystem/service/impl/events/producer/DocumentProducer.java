@@ -49,7 +49,7 @@ public class DocumentProducer {
     public void follow(Document document, Employee follower, boolean forced, boolean followed) {
         if (forced) {
             Map<String, Object> model = ImmutableMap.<String, Object>builder()
-                    .put("equipment", document.getName())
+                    .put("document", document.getName())
                     .build();
             if (followed) {
                 publisher.publishEvent(new NotificationEvents(follower.getUsername(), "document_follow_forced", model));

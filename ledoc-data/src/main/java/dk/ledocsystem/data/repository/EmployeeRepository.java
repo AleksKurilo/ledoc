@@ -4,9 +4,10 @@ import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.core.types.dsl.StringPath;
+import dk.ledocsystem.data.model.document.FollowedDocument;
 import dk.ledocsystem.data.model.employee.Employee;
-import dk.ledocsystem.data.model.employee.QEmployee;
 import dk.ledocsystem.data.model.employee.FollowedEmployees;
+import dk.ledocsystem.data.model.employee.QEmployee;
 import dk.ledocsystem.data.model.equipment.FollowedEquipment;
 import dk.ledocsystem.data.model.security.UserAuthorities;
 import dk.ledocsystem.data.util.LocalDateMultiValueBinding;
@@ -90,6 +91,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Query
 
     @Query(value = "select f from Employee e left join e.followedEquipments f where e.id = ?1")
     Page<FollowedEquipment> findAllFollowedEquipmentByEmployeePaged(Long employeeId, Pageable pageable);
+
+    @Query(value = "select f from Employee e left join e.followedDocuments f where e.id = ?1")
+    Page<FollowedDocument> findAllFollowedDocumentByEmployeePaged(Long employeeId, Pageable pageable);
 
     @Override
     default void customize(QuerydslBindings bindings, QEmployee root) {
