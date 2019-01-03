@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.Set;
 
 @Setter
@@ -173,10 +174,10 @@ public class Document {
     }
 
     public Boolean getRead(Long employeeId) {
-        return getFollowedDocuments().stream().filter(followedDocument ->
+        Optional<FollowedDocument> followed = getFollowedDocuments().stream().filter(followedDocument ->
                 followedDocument.getEmployee().getId().equals(employeeId) && (followedDocument.getFollowed().getId() == getId()))
-                .findAny()
-                .orElseThrow(IllegalStateException::new)
-                .isRead();
+                .findAny();
+
+        return followed.isPresent() && followed.get().isRead();
     }
 }
