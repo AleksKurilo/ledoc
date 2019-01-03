@@ -7,33 +7,25 @@ import com.querydsl.core.types.dsl.Expressions;
 import dk.ledocsystem.data.model.Customer;
 import dk.ledocsystem.data.model.Location;
 import dk.ledocsystem.data.model.Trade;
-import dk.ledocsystem.data.model.document.Document;
-import dk.ledocsystem.data.model.document.DocumentCategory;
-import dk.ledocsystem.data.model.document.DocumentCategoryType;
-import dk.ledocsystem.data.model.document.DocumentStatus;
-import dk.ledocsystem.data.model.document.QDocument;
+import dk.ledocsystem.data.model.document.*;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
-import dk.ledocsystem.service.api.ExcelExportService;
-import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.data.repository.*;
 import dk.ledocsystem.service.api.DocumentService;
+import dk.ledocsystem.service.api.ExcelExportService;
 import dk.ledocsystem.service.api.ReviewTemplateService;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.document.DocumentCategoryDTO;
 import dk.ledocsystem.service.api.dto.inbound.document.DocumentDTO;
-import dk.ledocsystem.service.api.dto.outbound.document.DocumentEditDTO;
-import dk.ledocsystem.service.api.dto.outbound.document.DocumentExportDTO;
-import dk.ledocsystem.service.api.dto.outbound.document.DocumentPreviewDTO;
-import dk.ledocsystem.service.api.dto.outbound.document.GetDocumentDTO;
+import dk.ledocsystem.service.api.dto.inbound.document.DocumentFollowDTO;
+import dk.ledocsystem.service.api.dto.inbound.document.DocumentReadStatusDTO;
+import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
+import dk.ledocsystem.service.api.dto.outbound.document.*;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.service.impl.events.producer.DocumentProducer;
 import dk.ledocsystem.service.impl.excel.sheets.EntitySheet;
 import dk.ledocsystem.service.impl.excel.sheets.documents.DocumentsEntitySheet;
-import dk.ledocsystem.service.impl.property_maps.document.DocumentToDocumentPreviewDtoPropertyMap;
-import dk.ledocsystem.service.impl.property_maps.document.DocumentToEditDtoPropertyMap;
-import dk.ledocsystem.service.impl.property_maps.document.DocumentToExportDtoMap;
-import dk.ledocsystem.service.impl.property_maps.document.DocumentToGetDocumentDtoPropertyMap;
+import dk.ledocsystem.service.impl.property_maps.document.*;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -46,11 +38,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -73,6 +61,7 @@ class DocumentServiceImpl implements DocumentService {
     private final LocationRepository locationRepository;
     private final ReviewTemplateService reviewTemplateService;
     private final DocumentCategoryRepository categoryRepository;
+    private final FollowedDocumentRepository followedDocumentRepository;
 
     private final ExcelExportService excelExportService;
     private final ModelMapper modelMapper;
@@ -85,11 +74,13 @@ class DocumentServiceImpl implements DocumentService {
         modelMapper.addMappings(new DocumentToEditDtoPropertyMap());
         modelMapper.addMappings(new DocumentToDocumentPreviewDtoPropertyMap());
         modelMapper.addMappings(new DocumentToExportDtoMap());
+        modelMapper.addMappings(new FollowedDocumentToGetFollowedDocumentDtoMap());
+        modelMapper.addMappings(new FollowedDocumentToEmployeeByDocumentReadStatusDtoMap());
     }
 
     @Override
     @Transactional
-    public GetDocumentDTO createOrUpdate(@NonNull DocumentDTO documentDTO, @NonNull UserDetails userDetails) {
+    public GetDocumentDTO create(@NonNull DocumentDTO documentDTO, @NonNull UserDetails userDetails) {
         Document document = modelMapper.map(documentDTO, Document.class);
         Customer customer = resolveCustomerByUsername(userDetails.getUsername());
         documentDtoValidator.validate(documentDTO, ImmutableMap.of("customerId", customer.getId()), documentDTO.getValidationGroups());
@@ -98,29 +89,54 @@ class DocumentServiceImpl implements DocumentService {
         Employee creator = employeeRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, userDetails.getUsername()));
 
-        Long documentId = documentDTO.getId();
-        Long responsibleExistId = null;
-        if (documentId != null) {
-            Document documentExist = documentRepository.findById(documentId)
-                    .orElseThrow(() -> new NotFoundException(DOCUMENT_ID_NOT_FOUND, documentId.toString()));
-            responsibleExistId = documentExist.getResponsible().getId();
+        document.setCreator(creator);
+        document.setResponsible(resolveResponsible(documentDTO.getResponsibleId()));
+        setNestedParameters(documentDTO, document);
+
+        followCreatedDocument(document, creator);
+        documentProducer.create(document, creator);
+        return mapToDto(documentRepository.save(document));
+    }
+
+    private void followCreatedDocument(Document document, Employee creator) {
+        document.addFollower(creator, false);
+        documentProducer.follow(document, creator, false, true);
+    }
+
+    @Override
+    @Transactional
+    public GetDocumentDTO update(@NonNull DocumentDTO documentDTO, @NonNull UserDetails userDetails) {
+        Document document = documentRepository.findById(documentDTO.getId())
+                .orElseThrow(() -> new NotFoundException(DOCUMENT_ID_NOT_FOUND, documentDTO.getId().toString()));
+
+        modelMapper.map(documentDTO, document);
+        Customer customer = resolveCustomerByUsername(userDetails.getUsername());
+        documentDtoValidator.validate(documentDTO, ImmutableMap.of("customerId", customer.getId()), documentDTO.getValidationGroups());
+        Employee creator = employeeRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, userDetails.getUsername()));
+
+        setNestedParameters(documentDTO, document);
+
+        Long responsibleId = documentDTO.getResponsibleId();
+        if (!responsibleId.equals(document.getResponsible().getId())) {
+            Employee responsible = resolveResponsible(responsibleId);
+            document.setResponsible(responsible);
+            documentProducer.edit(document, creator);
         }
 
-        document.setCreator(creator);
+        return mapToDto(documentRepository.save(document));
+    }
+
+    private void setNestedParameters(@NonNull DocumentDTO documentDTO, Document document) {
         document.setTrades(resolveTrade(documentDTO.getTradeIds()));
         document.setLocations(resolveLocations(documentDTO.getLocationIds()));
         document.setCategory(resolveCategory(documentDTO.getCategoryId()));
-        document.setResponsible(resolveResponsible(documentDTO.getResponsibleId()));
         document.setSubcategory(resolveSubcategory(documentDTO.getSubcategoryId()));
         if (documentDTO.getStatus() == DocumentStatus.ACTIVE_WITH_REVIEW) {
             document.setReviewTemplate(getReviewTemplate());
         } else {
             document.eraseReviewDetails();
         }
-
-        Long responsibleId = documentDTO.getResponsibleId();
-        writeDocumentLogs(document, creator, responsibleExistId, responsibleId);
-        return mapToDto(documentRepository.save(document));
     }
 
     private Set<Trade> resolveTrade(Set<Long> tradeIds) {
@@ -148,15 +164,7 @@ class DocumentServiceImpl implements DocumentService {
 
     private ReviewTemplate getReviewTemplate() {
         return reviewTemplateService.getByName(ReviewTemplateService.DOCUMENT_QUICK_REVIEW_TEMPLATE_NAME)
-                        .orElseThrow(IllegalStateException::new);
-    }
-
-    private void writeDocumentLogs(Document document, Employee creator, Long responsibleExistId, Long responsibleId) {
-        if (!responsibleId.equals(responsibleExistId)) {
-            documentProducer.edit(document, creator);
-        } else {
-            documentProducer.create(document, creator);
-        }
+                .orElseThrow(IllegalStateException::new);
     }
 
     @Override
@@ -164,7 +172,6 @@ class DocumentServiceImpl implements DocumentService {
     public void changeArchivedStatus(@NonNull Long documentId, @NonNull ArchivedStatusDTO archivedStatusDTO, UserDetails creatorDetails) {
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new NotFoundException(DOCUMENT_ID_NOT_FOUND, documentId.toString()));
-
         Employee creator = employeeRepository.findByUsername(creatorDetails.getUsername()).orElseThrow(IllegalStateException::new);
 
         document.setArchived(archivedStatusDTO.isArchived());
@@ -209,9 +216,23 @@ class DocumentServiceImpl implements DocumentService {
     public Optional<DocumentPreviewDTO> getPreviewDtoById(Long documentId, boolean isSaveLog, UserDetails creatorDetails) {
         Employee creator = employeeRepository.findByUsername(creatorDetails.getUsername()).orElseThrow(IllegalStateException::new);
         Document document = documentRepository.findById(documentId)
-                .orElseThrow(() -> new NotFoundException(EQUIPMENT_ID_NOT_FOUND, documentId.toString()));
+                .orElseThrow(() -> new NotFoundException(DOCUMENT_ID_NOT_FOUND, documentId.toString()));
         documentProducer.read(document, creator, isSaveLog);
         return documentRepository.findById(documentId).map(this::mapToPreviewDto);
+    }
+
+    @Override
+    @Transactional
+    public void changeReadStatus(Long documentId, UserDetails currentUser, DocumentReadStatusDTO documentReadStatusTO) {
+        Employee currentEmployee = employeeRepository.findByUsername(currentUser.getUsername()).orElseThrow(IllegalStateException::new);
+        Document document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new NotFoundException(DOCUMENT_ID_NOT_FOUND, documentId.toString()));
+        FollowedDocumentId id = new FollowedDocumentId(currentEmployee.getId(), document.getId());
+
+        FollowedDocument followedDocument = followedDocumentRepository.findById(id)
+                .orElseThrow(IllegalStateException::new);
+        followedDocument.setRead(documentReadStatusTO.isRead());
+        followedDocumentRepository.save(followedDocument);
     }
 
     private DocumentPreviewDTO mapToPreviewDto(Document document) {
@@ -234,23 +255,26 @@ class DocumentServiceImpl implements DocumentService {
         categoryDtoValidator.validate(categoryDTO);
 
         Long categoryId = requireNonNull(categoryDTO.getId());
-        categoryRepository.findById(categoryId)
+        DocumentCategory category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException(DOCUMENT_CATEGORY_ID_NOT_FOUND, categoryId.toString()));
 
-        DocumentCategory category = modelMapper.map(categoryDTO, DocumentCategory.class);
+        modelMapper.map(categoryDTO, category);
         category = categoryRepository.save(category);
         return modelMapper.map(category, DocumentCategoryDTO.class);
     }
 
     @Override
+    @Transactional
     public List<IdAndLocalizedName> getCategories() {
         return categoryRepository.findAllByType(DocumentCategoryType.CATEGORY).stream().map(this::mapCategoryToDto).collect(Collectors.toList());
     }
 
     @Override
+    @Transactional
     public List<IdAndLocalizedName> getSubcategories() {
         return categoryRepository.findAllByType(DocumentCategoryType.SUBCATEGORY).stream().map(this::mapCategoryToDto).collect(Collectors.toList());
     }
+
 
     @Override
     @Transactional
@@ -273,13 +297,74 @@ class DocumentServiceImpl implements DocumentService {
         return excelExportService.exportSheets(documentSheets);
     }
 
+    @Override
+    @Transactional
+    public void follow(Long documentId, UserDetails currentUser, DocumentFollowDTO documentFollowDTO) {
+        Document document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new NotFoundException(DOCUMENT_ID_NOT_FOUND, documentId.toString()));
+
+        Employee follower;
+        boolean forced = false;
+        if (documentFollowDTO.getFollowerId() != null) {
+            follower = employeeRepository.findById(documentFollowDTO.getFollowerId()).orElseThrow(IllegalStateException::new);
+            forced = true;
+        } else {
+            follower = employeeRepository.findByUsername(currentUser.getUsername()).orElseThrow(IllegalStateException::new);
+        }
+        if (documentFollowDTO.isFollowed()) {
+            document.addFollower(follower, forced);
+        } else {
+            document.removeFollower(follower);
+        }
+        documentProducer.follow(document, follower, forced, documentFollowDTO.isFollowed());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<GetFollowedDocumentDTO> getFollowedDocument(Long employeeId, Pageable pageable) {
+        return employeeRepository.findAllFollowedDocumentByEmployeePaged(employeeId, pageable).map(this::mapToFollowDto);
+    }
+
+    private GetFollowedDocumentDTO mapToFollowDto(FollowedDocument document) {
+        return modelMapper.map(document, GetFollowedDocumentDTO.class);
+    }
+
+
     private Customer resolveCustomerByUsername(String username) {
         return employeeRepository.findByUsername(username)
                 .map(Employee::getCustomer)
                 .orElseThrow(() -> new NotFoundException(USER_NAME_NOT_FOUND, username));
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<EmployeeByDocumentReadStatusDTO> getReadStatusDocument(Predicate predicate, Pageable pageable) {
+        return followedDocumentRepository.findAll(predicate, pageable).map(this::mapToDto);
+    }
+
+    private EmployeeByDocumentReadStatusDTO mapToDto(FollowedDocument followedDocument) {
+        return modelMapper.map(followedDocument, EmployeeByDocumentReadStatusDTO.class);
+    }
+
     //region GET/DELETE standard API
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<GetDocumentDTO> getAllByCustomer(@NonNull Long customerId, Predicate predicate, @NonNull Pageable pageable, UserDetails creatorDetails) {
+        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
+        Long employeeId = employeeRepository.findByUsername(creatorDetails.getUsername()).orElseThrow(IllegalStateException::new).getId();
+
+        return documentRepository.findAll(combinePredicate, pageable)
+                .map(document -> {
+                    GetDocumentDTO dto = mapToDto(document);
+                    dto.setRead(document.getRead(employeeId));
+                    return dto;
+                });
+    }
+
+    private GetDocumentDTO mapToDto(Document document) {
+        return modelMapper.map(document, GetDocumentDTO.class);
+    }
 
     @Override
     public List<GetDocumentDTO> getAll() {
@@ -302,16 +387,19 @@ class DocumentServiceImpl implements DocumentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<GetDocumentDTO> getAllByCustomer(@NonNull Long customerId) {
         return getAllByCustomer(customerId, Pageable.unpaged()).getContent();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<GetDocumentDTO> getAllByCustomer(@NonNull Long customerId, @NonNull Pageable pageable) {
         return getAllByCustomer(customerId, null, pageable);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<GetDocumentDTO> getAllByCustomer(@NonNull Long customerId, Predicate predicate) {
         return getAllByCustomer(customerId, predicate, Pageable.unpaged()).getContent();
     }
@@ -361,10 +449,6 @@ class DocumentServiceImpl implements DocumentService {
     @Override
     public void deleteByIds(@NonNull Iterable<Long> documentIds) {
         documentRepository.deleteByIdIn(documentIds);
-    }
-
-    private GetDocumentDTO mapToDto(Document document) {
-        return modelMapper.map(document, GetDocumentDTO.class);
     }
 
     private DocumentEditDTO mapToEditDto(Document document) {

@@ -35,6 +35,8 @@ public class DocumentPreviewDTO {
 
     private boolean personal;
 
+    private boolean read;
+
     private String responsibleName;
 
     private String categoryName;

@@ -1,13 +1,13 @@
 package dk.ledocsystem.service.api;
 
 import com.querydsl.core.types.Predicate;
-import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.document.DocumentCategoryDTO;
 import dk.ledocsystem.service.api.dto.inbound.document.DocumentDTO;
-import dk.ledocsystem.service.api.dto.outbound.document.DocumentExportDTO;
-import dk.ledocsystem.service.api.dto.outbound.document.DocumentPreviewDTO;
-import dk.ledocsystem.service.api.dto.outbound.document.GetDocumentDTO;
+import dk.ledocsystem.service.api.dto.inbound.document.DocumentFollowDTO;
+import dk.ledocsystem.service.api.dto.inbound.document.DocumentReadStatusDTO;
+import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
+import dk.ledocsystem.service.api.dto.outbound.document.*;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,7 +18,9 @@ import java.util.Optional;
 
 public interface DocumentService extends CustomerBasedDomainService<GetDocumentDTO> {
 
-    GetDocumentDTO createOrUpdate(DocumentDTO documentDTO, UserDetails creator);
+    GetDocumentDTO create(DocumentDTO documentDTO, UserDetails creator);
+
+    GetDocumentDTO update(DocumentDTO documentDTO, UserDetails creator);
 
     /**
      * Changes the archived status according to data from {@code archivedStatusDTO}.
@@ -27,9 +29,19 @@ public interface DocumentService extends CustomerBasedDomainService<GetDocumentD
 
     long countNewDocuments(UserDetails user);
 
+    void changeReadStatus(Long documentId, UserDetails creator, DocumentReadStatusDTO documentReadStatusTO);
+
     Page<GetDocumentDTO> getNewDocument(UserDetails user, Pageable pageable, Predicate predicate);
 
     Optional<DocumentPreviewDTO> getPreviewDtoById(Long documentId, boolean isSaveLog, UserDetails creatorDetails);
+
+    Page<GetDocumentDTO> getAllByCustomer(Long customerId, Predicate predicate, Pageable pageable, UserDetails creatorDetails);
+
+    void follow(Long documentId, UserDetails currentUser, DocumentFollowDTO documentFollowDTO);
+
+    Page<GetFollowedDocumentDTO> getFollowedDocument(Long employeeId, Pageable pageable);
+
+    Page<EmployeeByDocumentReadStatusDTO> getReadStatusDocument(Predicate predicate, Pageable pageable);
 
     DocumentCategoryDTO createCategory(DocumentCategoryDTO category);
 
