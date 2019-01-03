@@ -1,9 +1,11 @@
 package dk.ledocsystem.data.repository;
 
 import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.jpa.impl.JPAQuery;
 import dk.ledocsystem.data.model.equipment.Equipment;
 import dk.ledocsystem.data.model.equipment.QEquipment;
 import dk.ledocsystem.data.util.LocalDateMultiValueBinding;
@@ -55,10 +57,21 @@ public interface EquipmentRepository extends JpaRepository<Equipment, Long>, Que
                 root.idNumber, root.serialNumber, root.manufacturer, root.purchaseDate, root.warrantyDate,
                 root.price, root.comment, root.responsible.id, root.creator.id, root.archived, root.category.id,
                 root.category.nameEn, root.authenticationType.id, root.authenticationType.nameEn, root.loan.borrower.id,
-                ExpressionUtils.path(String.class, root, "responsible.name"));
+                ExpressionUtils.path(String.class, root, "responsible.name"),
+                ExpressionUtils.path(Boolean.class, root, "loaned"));
         bindings.bind(String.class).first((SingleValueBinding<StringPath, String>) StringExpression::containsIgnoreCase);
         bindings.bind(ExpressionUtils.path(String.class, root.responsible, "name"))
                 .first((path, val) -> root.responsible.firstName.concat(" ").concat(root.responsible.lastName).containsIgnoreCase(val));
+        bindings.bind(ExpressionUtils.path(Boolean.class, root, "loaned")).first(new LoanedBinding());
         bindings.bind(LocalDate.class).all(new LocalDateMultiValueBinding());
+    }
+
+    class LoanedBinding implements SingleValueBinding<Path<Boolean>, Boolean> {
+
+        @Override
+        public Predicate bind(Path<Boolean> path, Boolean isLoaned) {
+            JPAQuery<Object> baseQuery = new JPAQuery<>().from(QEquipment.equipment.loan);
+            return isLoaned ? baseQuery.exists() : baseQuery.notExists();
+        }
     }
 }
