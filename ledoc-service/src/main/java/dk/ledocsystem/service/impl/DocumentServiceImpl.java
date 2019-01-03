@@ -314,7 +314,7 @@ class DocumentServiceImpl implements DocumentService {
         if (documentFollowDTO.isFollowed()) {
             document.addFollower(follower, forced);
         } else {
-            document.removeFollowe(follower);
+            document.removeFollower(follower);
         }
         documentProducer.follow(document, follower, forced, documentFollowDTO.isFollowed());
     }

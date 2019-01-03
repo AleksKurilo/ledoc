@@ -160,12 +160,12 @@ public class Document {
         employee.getFollowedDocuments().add(followedDocument);
     }
 
-    public void removeFollowe(Employee employee) {
+    public void removeFollower(Employee employee) {
         for (Iterator<FollowedDocument> iterator = followedDocuments.iterator();
              iterator.hasNext(); ) {
             FollowedDocument followedDocument = iterator.next();
 
-            if (followedDocument.getFollowed().equals(employee) && followedDocument.getEmployee().equals(employee)) {
+            if (followedDocument.getFollowed().equals(this) && followedDocument.getEmployee().equals(employee)) {
                 iterator.remove();
                 followedDocument.getEmployee().getFollowedDocuments().remove(followedDocument);
             }
@@ -173,7 +173,10 @@ public class Document {
     }
 
     public Boolean getRead(Long employeeId) {
-        return getFollowedDocuments().stream().filter(followedDocument -> followedDocument.getEmployee().getId().equals(employeeId) && (followedDocument.getFollowed().getId() == getId()))
-                .findAny().get().isRead();
+        return getFollowedDocuments().stream().filter(followedDocument ->
+                followedDocument.getEmployee().getId().equals(employeeId) && (followedDocument.getFollowed().getId() == getId()))
+                .findAny()
+                .orElseThrow(IllegalStateException::new)
+                .isRead();
     }
 }
