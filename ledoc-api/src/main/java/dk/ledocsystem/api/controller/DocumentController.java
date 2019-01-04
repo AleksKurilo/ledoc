@@ -4,14 +4,19 @@ import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.api.config.security.CurrentUser;
 import dk.ledocsystem.data.model.document.Document;
 import dk.ledocsystem.data.model.document.DocumentCategoryType;
-import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
+import dk.ledocsystem.data.model.document.FollowedDocument;
 import dk.ledocsystem.service.api.CustomerService;
 import dk.ledocsystem.service.api.DocumentService;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.document.DocumentCategoryDTO;
 import dk.ledocsystem.service.api.dto.inbound.document.DocumentDTO;
+import dk.ledocsystem.service.api.dto.inbound.document.DocumentFollowDTO;
+import dk.ledocsystem.service.api.dto.inbound.document.DocumentReadStatusDTO;
+import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.service.api.dto.outbound.document.DocumentPreviewDTO;
+import dk.ledocsystem.service.api.dto.outbound.document.EmployeeByDocumentReadStatusDTO;
 import dk.ledocsystem.service.api.dto.outbound.document.GetDocumentDTO;
+import dk.ledocsystem.service.api.dto.outbound.document.GetFollowedDocumentDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -42,7 +47,7 @@ public class DocumentController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public GetDocumentDTO create(@RequestBody DocumentDTO documentDTO, @CurrentUser UserDetails currentUser) {
-        return documentService.createOrUpdate(documentDTO, currentUser);
+        return documentService.create(documentDTO, currentUser);
     }
 
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -50,14 +55,14 @@ public class DocumentController {
                                  @PathVariable long id,
                                  @CurrentUser UserDetails currentUser) {
         documentDTO.setId(id);
-        return documentService.createOrUpdate(documentDTO, currentUser);
+        return documentService.update(documentDTO, currentUser);
     }
 
-    @PostMapping("/{documentId}/archive")
-    public void changeArchivedStatus(@PathVariable Long documentId,
+    @PostMapping("/{id}/archive")
+    public void changeArchivedStatus(@PathVariable Long id,
                                      @RequestBody ArchivedStatusDTO archivedStatusDTO,
                                      @CurrentUser UserDetails currentUser) {
-        documentService.changeArchivedStatus(documentId, archivedStatusDTO, currentUser);
+        documentService.changeArchivedStatus(id, archivedStatusDTO, currentUser);
     }
 
     @GetMapping(path = "/{id}")
@@ -86,12 +91,37 @@ public class DocumentController {
                                                    @QuerydslPredicate(root = Document.class) Predicate predicate,
                                                    @PageableDefault(sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
         Long customerId = getCustomerId(currentUser);
-        return documentService.getAllByCustomer(customerId, predicate, pageable);
+        return documentService.getAllByCustomer(customerId, predicate, pageable, currentUser);
     }
 
     @DeleteMapping(path = "/{id}")
     public void deleteById(@PathVariable long id) {
         documentService.deleteById(id);
+    }
+
+    @PostMapping("/follow/{id}")
+    public void follow(@PathVariable Long id, @CurrentUser UserDetails currentUser, DocumentFollowDTO documentFollowDTO) {
+        documentService.follow(id, currentUser, documentFollowDTO);
+    }
+
+    @GetMapping("/followed")
+    public Iterable<GetFollowedDocumentDTO> getFollowedDocument(@RequestParam("employeeId") Long employeeId,
+                                                                Pageable pageable) {
+        return documentService.getFollowedDocument(employeeId, pageable);
+    }
+
+    @PutMapping("/{documentId}/followed")
+    public void changeReadStatus(@PathVariable Long documentId,
+                                 @CurrentUser UserDetails currentUser,
+                                 @RequestBody DocumentReadStatusDTO documentReadStatusTO) {
+        documentService.changeReadStatus(documentId, currentUser, documentReadStatusTO);
+    }
+
+    @GetMapping("/followed/employees")
+    public Iterable<EmployeeByDocumentReadStatusDTO> haveReadDocument(
+            @QuerydslPredicate(root = FollowedDocument.class) Predicate predicate,
+            @PageableDefault(sort = "employee", direction = Sort.Direction.ASC) Pageable pageable) {
+        return documentService.getReadStatusDocument(predicate, pageable);
     }
 
     @RolesAllowed("super_admin")
@@ -102,9 +132,9 @@ public class DocumentController {
     }
 
     @RolesAllowed("super_admin")
-    @PutMapping(path = "/categories/{id}")
-    public DocumentCategoryDTO updateCategory(@RequestBody DocumentCategoryDTO category, @PathVariable Long id) {
-        category.setId(id);
+    @PutMapping(path = "/categories/{categoryId}")
+    public DocumentCategoryDTO updateCategory(@RequestBody DocumentCategoryDTO category, @PathVariable Long categoryId) {
+        category.setId(categoryId);
         category.setType(DocumentCategoryType.CATEGORY);
         return documentService.updateCategory(category);
     }
@@ -120,9 +150,9 @@ public class DocumentController {
     }
 
     @RolesAllowed("super_admin")
-    @DeleteMapping(path = "/categories/{id}")
-    public void deleteCategory(@PathVariable Long id) {
-        documentService.deleteCategory(id);
+    @DeleteMapping(path = "/categories/{categoryId}")
+    public void deleteCategory(@PathVariable Long categoryId) {
+        documentService.deleteCategory(categoryId);
     }
 
     @RolesAllowed("super_admin")
@@ -133,18 +163,18 @@ public class DocumentController {
     }
 
     @RolesAllowed("super_admin")
-    @PutMapping(path = "/subcategories/{id}")
+    @PutMapping(path = "/subcategories/{subcategoryId}")
     public DocumentCategoryDTO updateSubcategory(@RequestBody DocumentCategoryDTO subcategory,
-                                                 @PathVariable Long id) {
-        subcategory.setId(id);
+                                                 @PathVariable Long subcategoryId) {
+        subcategory.setId(subcategoryId);
         subcategory.setType(DocumentCategoryType.SUBCATEGORY);
         return documentService.updateCategory(subcategory);
     }
 
     @RolesAllowed("super_admin")
-    @DeleteMapping(path = "subcategories/{id}")
-    public void deleteSubcategory(@PathVariable Long id) {
-        documentService.deleteCategory(id);
+    @DeleteMapping(path = "subcategories/{subcategoryId}")
+    public void deleteSubcategory(@PathVariable Long subcategoryId) {
+        documentService.deleteCategory(subcategoryId);
     }
 
     @GetMapping("/export")

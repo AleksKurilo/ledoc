@@ -24,6 +24,8 @@ public class GetDocumentDTO {
 
     private boolean personal;
 
+    private boolean read;
+
     private String responsible;
 
     private String category;

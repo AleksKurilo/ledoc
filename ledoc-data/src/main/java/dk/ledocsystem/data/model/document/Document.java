@@ -9,14 +9,18 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-import org.hibernate.annotations.WhereJoinTable;
+import org.hibernate.annotations.*;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.ForeignKey;
+import javax.persistence.Table;
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Optional;
 import java.util.Set;
 
 @Setter
@@ -115,7 +119,9 @@ public class Document {
     @WhereJoinTable(clause = "type = 'Read' OR type = 'Archive'")
     private Set<Employee> visitedBy;
 
-
+    @OneToMany(mappedBy = "followed", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
+    @Fetch(FetchMode.SUBSELECT)
+    private Set<FollowedDocument> followedDocuments = new HashSet<>();
 
     @PrePersist
     public void setCreateOn() {
@@ -147,5 +153,31 @@ public class Document {
 
     private LocalDate getPrevReviewDate() {
         return (nextReviewDate != null) ? nextReviewDate.minus(approvalRate) : LocalDate.now();
+    }
+
+    public void addFollower(Employee employee, boolean forced) {
+        FollowedDocument followedDocument = new FollowedDocument(employee, this, forced, false);
+        followedDocuments.add(followedDocument);
+        employee.getFollowedDocuments().add(followedDocument);
+    }
+
+    public void removeFollower(Employee employee) {
+        for (Iterator<FollowedDocument> iterator = followedDocuments.iterator();
+             iterator.hasNext(); ) {
+            FollowedDocument followedDocument = iterator.next();
+
+            if (followedDocument.getFollowed().equals(this) && followedDocument.getEmployee().equals(employee)) {
+                iterator.remove();
+                followedDocument.getEmployee().getFollowedDocuments().remove(followedDocument);
+            }
+        }
+    }
+
+    public Boolean getRead(Long employeeId) {
+        Optional<FollowedDocument> followed = getFollowedDocuments().stream().filter(followedDocument ->
+                followedDocument.getEmployee().getId().equals(employeeId) && (followedDocument.getFollowed().getId() == getId()))
+                .findAny();
+
+        return followed.isPresent() && followed.get().isRead();
     }
 }
