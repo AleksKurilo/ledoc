@@ -22,10 +22,10 @@ public class LoginLogoutController {
     private final EmployeeService employeeService;
 
     @GetMapping("/userdetails")
-    public UserDetailsDTO logout(@CurrentUser UserDetails currentUserDetails) {
+    public UserDetailsDTO getUserDetails(@CurrentUser UserDetails currentUserDetails) {
         GetEmployeeDTO currentUser = employeeService.getByUsername(currentUserDetails.getUsername())
                 .orElseThrow(IllegalStateException::new);
-       return new UserDetailsDTO(currentUser.getId(), currentUserDetails.getUsername(), currentUserDetails.getAuthorities());
+        return new UserDetailsDTO(currentUser.getId(), currentUserDetails.getUsername(), currentUserDetails.getAuthorities());
     }
 
     @PreAuthorize("isFullyAuthenticated()")
