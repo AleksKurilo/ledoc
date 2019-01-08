@@ -28,15 +28,12 @@ public class AuthenticationSuccessHandlerImpl implements AuthenticationSuccessHa
         Employee user = employeeRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, username));
         Cookie cookie = new Cookie("id", user.getId().toString());
-        cookie.setMaxAge(60 * 5); //Store cookie for 5 minutes
         response.addCookie(cookie);
 
         cookie = new Cookie("email", username);
-        cookie.setMaxAge(60 * 5); //Store cookie for 5 minutes
         response.addCookie(cookie);
 
         cookie = new Cookie("authorities", authentication.getAuthorities().toString());
-        cookie.setMaxAge(60 * 5); //Store cookie for 5 minutes
         response.addCookie(cookie);
     }
 }

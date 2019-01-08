@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,7 +18,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfFilter;
@@ -67,11 +71,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .ignoringAntMatchers("/login")
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .and()
+                .addFilter(usernamePasswordAuthenticationFilter())
                 .addFilterAfter(new CsrfTokenResponseHeaderBindingFilter(), CsrfFilter.class)
             .formLogin()
-                .loginPage("/login").usernameParameter("username").passwordParameter("password")
-                .successHandler(authenticationSuccessHandlerImpl)
-                .failureHandler(new CustomAuthenticationFailureHandler(messageSource, localeResolver))
                 .permitAll()
                 .and()
             .logout()
@@ -91,6 +93,29 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userDetailsService()).passwordEncoder(passwordEncoder());
+    }
+
+    @Bean
+    public UsernamePasswordAuthenticationFilter usernamePasswordAuthenticationFilter() throws Exception {
+        AuthenticationFailureHandler customAuthenticationFailureHandler =
+                new CustomAuthenticationFailureHandler(messageSource, localeResolver);
+
+        UsernamePasswordAuthenticationFilter authenticationFilter =
+                new CustomUsernamePasswordAuthenticationFilter(authenticationManager());
+
+        authenticationFilter.setAuthenticationSuccessHandler(authenticationSuccessHandlerImpl);
+        authenticationFilter.setAuthenticationFailureHandler(customAuthenticationFailureHandler);
+
+        return authenticationFilter;
+    }
+
+    @Bean
+    public AuthenticationProvider daoAuthenticationProvider() {
+        DaoAuthenticationProvider impl = new DaoAuthenticationProvider();
+        impl.setUserDetailsService(userDetailsService());
+        impl.setPasswordEncoder(passwordEncoder());
+        impl.setHideUserNotFoundExceptions(false);
+        return impl;
     }
 
     @Bean
