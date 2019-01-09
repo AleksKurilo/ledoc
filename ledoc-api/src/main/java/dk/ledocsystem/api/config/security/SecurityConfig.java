@@ -58,6 +58,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
+            .csrf()
+                .ignoringAntMatchers("/login")
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .and()
             .authorizeRequests()
                 .antMatchers(HttpMethod.GET, SWAGGER_RESOURCES).permitAll()
                 .antMatchers(HttpMethod.POST, "/password/forgot", "/password/reset").permitAll()
@@ -66,13 +70,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .anyRequest()
                 .authenticated()
                 .and()
-                .csrf()
-                .ignoringAntMatchers("/login")
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .and()
                 .addFilterAfter(new CsrfTokenResponseHeaderBindingFilter(), CsrfFilter.class)
             .formLogin()
-                .loginPage("/login").usernameParameter("username").passwordParameter("password")
+                .loginPage("/login")
                 .successHandler(authenticationSuccessHandlerImpl)
                 .failureHandler(new CustomAuthenticationFailureHandler(messageSource, localeResolver))
                 .permitAll()
