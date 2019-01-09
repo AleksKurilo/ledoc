@@ -27,6 +27,9 @@ public class AuthenticationSuccessHandlerImpl implements AuthenticationSuccessHa
         String username = authentication.getName();
         Employee user = employeeRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, username));
+
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+
         Cookie cookie = new Cookie("id", user.getId().toString());
         response.addCookie(cookie);
 
