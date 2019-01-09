@@ -34,7 +34,13 @@ public interface EquipmentRepository extends JpaRepository<Equipment, Long>, Que
     @Override
     Page<Equipment> findAll(Predicate predicate, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"loan"})
+    @Override
     List<Equipment> findAll(Predicate predicate);
+
+    long countByCustomerId(Long customerId);
+
+    long countByCustomerIdAndArchivedFalse(Long customerId);
 
     @Query("select e from Equipment e join fetch e.responsible left join fetch e.loan " +
             "where e.nextReviewDate is not null and e.archived = false")
