@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Data
-public class CustomerExportDTO {
+public class ShortCustomerExportDTO {
 
     private String name;
 

@@ -1,6 +1,7 @@
 package dk.ledocsystem.data.repository;
 
 import dk.ledocsystem.data.model.Customer;
+import dk.ledocsystem.data.model.review.Module;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -15,6 +16,10 @@ public interface ReviewTemplateRepository extends JpaRepository<ReviewTemplate, 
     Optional<ReviewTemplate> findByNameAndCustomer(String name, Customer customer);
 
     Optional<ReviewTemplate> findByName(String name);
+
+    long countByCustomerId(Long customerId);
+
+    long countByCustomerIdAndModule(Long customerId, Module module);
 
     /**
      * Deletes review templates with the given IDs.

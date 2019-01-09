@@ -3,15 +3,21 @@ package dk.ledocsystem.service.impl;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.data.model.QCustomer;
+import dk.ledocsystem.data.model.review.Module;
+import dk.ledocsystem.data.repository.DocumentRepository;
 import dk.ledocsystem.data.repository.EmployeeRepository;
+import dk.ledocsystem.data.repository.EquipmentRepository;
 import dk.ledocsystem.data.repository.LocationRepository;
+import dk.ledocsystem.data.repository.ReviewTemplateRepository;
+import dk.ledocsystem.data.repository.SupplierRepository;
 import dk.ledocsystem.service.api.ExcelExportService;
 import dk.ledocsystem.service.api.dto.inbound.customer.CustomerAdminDTO;
 import dk.ledocsystem.service.api.dto.inbound.customer.CustomerCreateDTO;
 import dk.ledocsystem.service.api.dto.inbound.customer.CustomerEditDTO;
 import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeCreateDTO;
 import dk.ledocsystem.service.api.dto.inbound.location.LocationDTO;
-import dk.ledocsystem.service.api.dto.outbound.customer.CustomerExportDTO;
+import dk.ledocsystem.service.api.dto.outbound.customer.FullCustomerExportDTO;
+import dk.ledocsystem.service.api.dto.outbound.customer.ShortCustomerExportDTO;
 import dk.ledocsystem.service.api.dto.outbound.customer.GetCustomerDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.data.model.AddressType;
@@ -28,10 +34,13 @@ import dk.ledocsystem.service.api.CustomerService;
 import dk.ledocsystem.service.api.EmployeeService;
 import dk.ledocsystem.service.api.LocationService;
 import dk.ledocsystem.service.impl.excel.sheets.EntitySheet;
-import dk.ledocsystem.service.impl.excel.sheets.customers.CustomersEntitySheet;
+import dk.ledocsystem.service.impl.excel.sheets.customers.FullCustomersEntitySheet;
+import dk.ledocsystem.service.impl.excel.sheets.customers.ShortCustomersEntitySheet;
+import dk.ledocsystem.service.impl.property_maps.customers.CustomerToFullExportDtoMap;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.IterableUtils;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -40,6 +49,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -59,11 +69,20 @@ class CustomerServiceImpl implements CustomerService {
     private final TradeRepository tradeRepository;
     private final LocationService locationService;
     private final LocationRepository locationRepository;
+    private final DocumentRepository documentRepository;
+    private final EquipmentRepository equipmentRepository;
+    private final SupplierRepository supplierRepository;
+    private final ReviewTemplateRepository reviewTemplateRepository;
+    private final EmailNotificationRepository emailNotificationRepository;
     private final ExcelExportService excelExportService;
     private final ModelMapper modelMapper;
-    private final EmailNotificationRepository emailNotificationRepository;
     private final BaseValidator<CustomerCreateDTO> customerCreateDtoValidator;
     private final BaseValidator<CustomerEditDTO> customerEditDtoValidator;
+
+    @PostConstruct
+    private void init() {
+        modelMapper.addMappings(new CustomerToFullExportDtoMap());
+    }
 
     @Transactional
     @Override
@@ -148,18 +167,62 @@ class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public List<CustomerExportDTO> getAllForExport(Predicate predicate) {
-        return getAll(predicate).stream().map(this::mapToExportDto).collect(Collectors.toList());
+    public List<ShortCustomerExportDTO> getAllForExportShort(Predicate predicate) {
+        return getAll(predicate).stream().map(this::mapToShortExportDto).collect(Collectors.toList());
     }
 
     @Override
-    public Workbook exportToExcel(Predicate predicate, boolean isArchived) {
+    @Transactional(readOnly = true)
+    public List<FullCustomerExportDTO> getAllForExportFull(Predicate predicate) {
+        return IterableUtils.toList(customerRepository.findAll(predicate))
+                .stream()
+                .map(this::mapToFullExportDto)
+                .peek(this::setMainLocationAddress)
+                .peek(this::setExportCounters)
+                .collect(Collectors.toList());
+    }
+
+    private void setMainLocationAddress(FullCustomerExportDTO fullCustomerExportDTO) {
+        locationRepository.getByCustomerIdAndIsCustomerFirstTrue(fullCustomerExportDTO.getId())
+                .ifPresent(location -> modelMapper.map(location.getAddress(), fullCustomerExportDTO.getAddress()));
+    }
+
+    private void setExportCounters(FullCustomerExportDTO fullCustomerExportDTO) {
+        Long customerId = fullCustomerExportDTO.getId();
+        fullCustomerExportDTO.setCountOfActiveSuppliers(supplierRepository.countByCustomerIdAndArchivedFalse(customerId));
+        fullCustomerExportDTO.setCountOfAllSuppliers(supplierRepository.countByCustomerId(customerId));
+        fullCustomerExportDTO.setCountOfActiveEmployees(employeeRepository.countByCustomerIdAndArchivedFalse(customerId));
+        fullCustomerExportDTO.setCountOfAllEmployees(employeeRepository.countByCustomerId(customerId));
+        fullCustomerExportDTO.setCountOfActiveDocuments(documentRepository.countByCustomerIdAndArchivedFalse(customerId));
+        fullCustomerExportDTO.setCountOfAllDocuments(documentRepository.countByCustomerId(customerId));
+        fullCustomerExportDTO.setCountOfActiveEquipment(equipmentRepository.countByCustomerIdAndArchivedFalse(customerId));
+        fullCustomerExportDTO.setCountOfAllEquipment(equipmentRepository.countByCustomerId(customerId));
+        fullCustomerExportDTO.setCountOfReviewTemplates(reviewTemplateRepository.countByCustomerId(customerId));
+        fullCustomerExportDTO.setCountOfEmployeeReviewTemplates(reviewTemplateRepository.countByCustomerIdAndModule(customerId, Module.EMPLOYEES));
+        fullCustomerExportDTO.setCountOfLocations(locationRepository.countByCustomerId(customerId));
+    }
+
+    @Override
+    public Workbook exportToExcelShort(Predicate predicate, boolean isArchived) {
         List<EntitySheet> customerSheets = new ArrayList<>();
         Predicate predicateForCustomers = ExpressionUtils.and(predicate, CUSTOMERS_ARCHIVED.apply(false));
-        customerSheets.add(new CustomersEntitySheet(this, predicateForCustomers,"Customers"));
+        customerSheets.add(new ShortCustomersEntitySheet(this, predicateForCustomers,"Customers"));
         if (isArchived) {
             Predicate predicateForArchived = ExpressionUtils.and(predicate, CUSTOMERS_ARCHIVED.apply(true));
-            customerSheets.add(new CustomersEntitySheet(this, predicateForArchived,"Archived"));
+            customerSheets.add(new ShortCustomersEntitySheet(this, predicateForArchived,"Archived"));
+        }
+        return excelExportService.exportSheets(customerSheets);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Workbook exportToExcelFull(Predicate predicate, boolean isArchived) {
+        List<EntitySheet> customerSheets = new ArrayList<>();
+        Predicate predicateForCustomers = ExpressionUtils.and(predicate, CUSTOMERS_ARCHIVED.apply(false));
+        customerSheets.add(new FullCustomersEntitySheet(this, predicateForCustomers,"Customers"));
+        if (isArchived) {
+            Predicate predicateForArchived = ExpressionUtils.and(predicate, CUSTOMERS_ARCHIVED.apply(true));
+            customerSheets.add(new FullCustomersEntitySheet(this, predicateForArchived,"Archived"));
         }
         return excelExportService.exportSheets(customerSheets);
     }
@@ -227,8 +290,12 @@ class CustomerServiceImpl implements CustomerService {
         return modelMapper.map(customer, GetCustomerDTO.class);
     }
 
-    private CustomerExportDTO mapToExportDto(GetCustomerDTO customer) {
-        return modelMapper.map(customer, CustomerExportDTO.class);
+    private ShortCustomerExportDTO mapToShortExportDto(GetCustomerDTO customer) {
+        return modelMapper.map(customer, ShortCustomerExportDTO.class);
+    }
+
+    private FullCustomerExportDTO mapToFullExportDto(Customer customer) {
+        return modelMapper.map(customer, FullCustomerExportDTO.class);
     }
 
     //endregion

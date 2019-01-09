@@ -1,0 +1,1 @@
+drop view if exists main.customers_export_excel;

@@ -23,6 +23,10 @@ public interface DocumentRepository extends JpaRepository<Document, Long>, Query
 
     boolean existsByNameAndCustomerId(String name, Long customerId);
 
+    long countByCustomerId(Long customerId);
+
+    long countByCustomerIdAndArchivedFalse(Long customerId);
+
     /**
      * Deletes documents with the given IDs.
      *

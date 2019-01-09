@@ -55,6 +55,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, Query
      */
     Optional<Employee> findByUsername(String username);
 
+    long countByCustomerId(Long customerId);
+
+    long countByCustomerIdAndArchivedFalse(Long customerId);
+
     /**
      * @param username Username
      * @return {@code true} if there is user with provided name

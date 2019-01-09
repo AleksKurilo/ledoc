@@ -14,6 +14,7 @@ import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface LocationRepository extends JpaRepository<Location, Long>, QuerydslPredicateExecutor<Location>,
         QuerydslBinderCustomizer<QLocation> {
@@ -35,7 +36,11 @@ public interface LocationRepository extends JpaRepository<Location, Long>, Query
      */
     boolean existsByNameAndCustomerId(String name, Long customerId);
 
+    long countByCustomerId(Long customerId);
+
     long countByCustomerIdAndArchivedFalse(Long customerId);
+
+    Optional<Location> getByCustomerIdAndIsCustomerFirstTrue(Long customerId);
 
     /**
      * Deletes locations with the given IDs.
