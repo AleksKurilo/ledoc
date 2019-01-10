@@ -33,12 +33,15 @@ public class AuthenticationSuccessHandlerImpl implements AuthenticationSuccessHa
         String domain = request.getServerName();
 
         Cookie cookie = new Cookie("id", user.getId().toString());
+        cookie.setPath("/");
         response.addCookie(cookie);
 
         cookie = new Cookie("email", username);
+        cookie.setPath("/");
         response.addCookie(cookie);
 
         cookie = new Cookie("authorities", authentication.getAuthorities().toString());
+        cookie.setPath("/");
         response.addCookie(cookie);
     }
 }
