@@ -30,6 +30,8 @@ public class AuthenticationSuccessHandlerImpl implements AuthenticationSuccessHa
 
         response.setHeader("Access-Control-Allow-Credentials", "true");
 
+        String domain = request.getServerName();
+
         Cookie cookie = new Cookie("id", user.getId().toString());
         response.addCookie(cookie);
 

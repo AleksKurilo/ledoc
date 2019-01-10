@@ -121,7 +121,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setExposedHeaders(Arrays.asList(HttpHeaders.LOCATION, HttpHeaders.AUTHORIZATION));
         configuration.setAllowedOrigins(Arrays.asList("http://testledocsystem.chisw.us",
-                "http://192.168.2.218", "http://localhost:3000", "http://127.0.0.1:3000", "http://10.93.91.143:3000", "http://dev-ledoc.chisw.us", "http://192.168.2.64"));
+                "http://192.168.2.218", "http://localhost:3000", "http://127.0.0.1:3000", "http://10.93.91.143:3000", "http://dev-ledoc.chisw.us", "http://192.168.2.64", "http://localhost"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
