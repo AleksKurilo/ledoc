@@ -16,13 +16,6 @@ public class LoginLogoutController {
     private final JwtTokenService tokenService;
 
     @PreAuthorize("isFullyAuthenticated()")
-    @GetMapping("/logout")
-    public void logout(HttpServletResponse response) {
-        String token = response.getHeader(HttpHeaders.AUTHORIZATION).replace("Bearer ", "");
-        tokenService.invalidateToken(token);
-    }
-
-    @PreAuthorize("isFullyAuthenticated()")
     @GetMapping("/offline")
     public void setOffline(HttpServletResponse response) {
         String token = response.getHeader(HttpHeaders.AUTHORIZATION).replace("Bearer ", "");
