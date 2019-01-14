@@ -1,19 +1,19 @@
-package dk.ledocsystem.data.model;
+package dk.ledocsystem.data.model.supplier;
 
+import dk.ledocsystem.data.model.DoubleNamed;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.*;
-import java.util.Set;
 
 @Setter
 @Getter
 @Entity
 @Table(name = "supplier_categories")
-@ToString(of = {"name"})
-public class SupplierCategory {
+@ToString(of = "nameEn")
+public class SupplierCategory implements DoubleNamed {
 
     @EqualsAndHashCode.Include
     @Id
@@ -21,8 +21,11 @@ public class SupplierCategory {
     @SequenceGenerator(name = "supplier_cat_seq", sequenceName = "supplier_cat_seq")
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String name;
+    @Column(name = "name_en", nullable = false, unique = true)
+    private String nameEn;
+
+    @Column(name = "name_da", nullable = false, unique = true)
+    private String nameDa;
 
     @Column
     private String description;

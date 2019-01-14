@@ -31,6 +31,9 @@ public final class ErrorMessageKey {
     public static final String LOCATION_NAME_IS_ALREADY_IN_USE = "location.name.already.in.use";
     public static final String REVIEW_QUESTION_ID_NOT_FOUND = "review.question.id.not.found";
     public static final String REVIEW_TEMPLATE_ID_NOT_FOUND = "review.template.id.not.found";
+    public static final String SUPPLIER_ID_NOT_FOUND = "supplier.id.not.found";
+    public static final String SUPPLIER_CATEGORY_ID_NOT_FOUND = "supplier.category.id.not.found";
+    public static final String SUPPLIER_NAME_IS_ALREADY_IN_USE = "UniqueName.dk.ledocsystem.service.api.dto.inbound.customer.SupplierDTO.name";
 
     public static final String USER_NAME_NOT_FOUND = "username.not.found";
     public static final String USER_PASSWORD_INVALID = "username.password.invalid";

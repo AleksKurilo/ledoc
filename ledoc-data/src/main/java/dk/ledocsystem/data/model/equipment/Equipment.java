@@ -2,17 +2,17 @@ package dk.ledocsystem.data.model.equipment;
 
 import dk.ledocsystem.data.model.Customer;
 import dk.ledocsystem.data.model.Location;
-import dk.ledocsystem.data.model.Supplier;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
+import dk.ledocsystem.data.model.supplier.Supplier;
 import lombok.*;
 import org.hibernate.annotations.*;
 
 import javax.persistence.CascadeType;
-import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
 import javax.persistence.Table;
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Period;
