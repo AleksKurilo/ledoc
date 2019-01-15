@@ -4,13 +4,13 @@ import dk.ledocsystem.data.model.Customer;
 import dk.ledocsystem.data.model.Location;
 import dk.ledocsystem.data.model.document.FollowedDocument;
 import dk.ledocsystem.data.model.equipment.FollowedEquipment;
+import dk.ledocsystem.data.model.logging.EmployeeLog;
 import dk.ledocsystem.data.model.security.UserAuthorities;
 import lombok.*;
 import org.hibernate.annotations.*;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
 import javax.persistence.Table;
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -23,7 +23,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Table(name = "employees")
-@ToString(of = {"username", "firstName", "lastName"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @DynamicInsert
 @DynamicUpdate
 public class Employee {
@@ -102,14 +102,9 @@ public class Employee {
     @Column(name = "authority", nullable = false)
     private Set<UserAuthorities> authorities = new HashSet<>();
 
-    @ManyToMany
-    @JoinTable(name = "employee_logs",
-            joinColumns = {@JoinColumn(name = "target_employee_id")},
-            inverseJoinColumns = {@JoinColumn(name = "employee_id",
-                    foreignKey = @ForeignKey(foreignKeyDefinition = "foreign key (employee_id) references employees on delete cascade"))})
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @WhereJoinTable(clause = "type = 'Read' OR type = 'Archive'")
-    private Set<Employee> visitedBy;
+    @OneToMany(mappedBy = "targetEmployee")
+    @Where(clause = "type = 'Read' OR type = 'Archive'")
+    private Set<EmployeeLog> visitedBy;
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(name = "employee_location",
@@ -156,5 +151,10 @@ public class Employee {
                 followedEmployee.getEmployee().getFollowedEmployees().remove(followedEmployee);
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        return getName();
     }
 }

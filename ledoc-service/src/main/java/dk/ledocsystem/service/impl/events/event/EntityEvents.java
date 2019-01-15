@@ -16,10 +16,7 @@ public class EntityEvents<T> implements ResolvableTypeProvider {
     private boolean saveLog;
 
     public EntityEvents(T source, Employee loggedInEmployee, LogType logType) {
-        this.source = source;
-        this.loggedInEmployee = loggedInEmployee;
-        this.logType = logType;
-        this.saveLog = true;
+        this(source, loggedInEmployee, logType, true);
     }
 
     @Override

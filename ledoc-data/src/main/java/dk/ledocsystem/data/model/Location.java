@@ -16,7 +16,7 @@ import java.util.Set;
 @Setter
 @Entity
 @Table(name = "locations", uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "customer_id"})})
-@ToString(of = {"id", "name"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @DynamicInsert
 @DynamicUpdate
 public class Location {
@@ -92,5 +92,10 @@ public class Location {
             this.address.setLocation(null);
         }
         this.address = null;
+    }
+
+    @Override
+    public String toString() {
+        return getName();
     }
 }

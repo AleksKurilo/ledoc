@@ -10,8 +10,8 @@ import dk.ledocsystem.data.model.logging.QDocumentLog;
 import dk.ledocsystem.data.repository.DocumentLogRepository;
 import dk.ledocsystem.data.repository.DocumentRepository;
 import dk.ledocsystem.service.api.DocumentLogService;
-import dk.ledocsystem.service.api.dto.outbound.AbstractLogDTO;
-import dk.ledocsystem.service.api.dto.outbound.LogsDTO;
+import dk.ledocsystem.service.api.dto.outbound.logs.AbstractLogDTO;
+import dk.ledocsystem.service.api.dto.outbound.logs.LogsDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
@@ -36,22 +36,21 @@ public class DocumentLogServiceImpl implements DocumentLogService {
     private final DocumentLogRepository documentLogRepository;
 
     @Override
-    public DocumentLog createLog(Employee loggedInUser, Document document, LogType logType) {
+    public void createLog(Employee loggedInUser, Document document, LogType logType) {
         DocumentLog log = new DocumentLog();
         log.setEmployee(loggedInUser);
         log.setDocument(document);
         log.setLogType(logType);
-        return documentLogRepository.save(log);
+        documentLogRepository.save(log);
     }
 
     @Override
     @Transactional
-    public LogsDTO getAllDocumentLogs(Long documentId, Predicate predicate) {
+    public LogsDTO getAllLogsByTargetId(Long documentId, Predicate predicate) {
         List<AbstractLogDTO> resultList = new ArrayList<>();
-        String documentName = "";
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new NotFoundException(DOCUMENT_ID_NOT_FOUND, documentId.toString()));
-        documentName = document.getName();
+        String documentName = document.getName();
 
         Predicate combinePredicate = ExpressionUtils.and(predicate, DOCUMENT_EQUALS_TO.apply(documentId));
 
@@ -63,16 +62,10 @@ public class DocumentLogServiceImpl implements DocumentLogService {
             log.setId(documentLog.getId());
             log.setLogType(documentLog.getLogType());
             log.setLogTypeMessage(documentLog.getLogType().getDescription());
-            log.setActionActor(actionActor.getFirstName() + " " + actionActor.getLastName() + " (" + actionActor.getUsername() + ")");
+            log.setActionActor(actionActor.getName() + " (" + actionActor.getUsername() + ")");
             log.setDate(sdf.format(documentLog.getCreated()));
             resultList.add(log);
         });
-        LogsDTO result = new LogsDTO(documentName, resultList);
-        return result;
-    }
-
-    @Override
-    public List<DocumentLog> getAllLogsByTargetId(Long documentId) {
-        return documentLogRepository.getAllByDocumentId(documentId);
+        return new LogsDTO(documentName, resultList);
     }
 }
