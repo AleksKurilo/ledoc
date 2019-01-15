@@ -11,13 +11,20 @@ import dk.ledocsystem.data.model.supplier.Supplier;
 import dk.ledocsystem.data.repository.SupplierLogRepository;
 import dk.ledocsystem.data.repository.SupplierRepository;
 import dk.ledocsystem.service.api.SupplierLogService;
+import dk.ledocsystem.service.api.dto.outbound.AbstractLogDTO;
 import dk.ledocsystem.service.api.dto.outbound.LogsDTO;
+import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+
+import static dk.ledocsystem.service.impl.constant.ErrorMessageKey.SUPPLIER_ID_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
@@ -39,13 +46,33 @@ public class SupplierLogServiceImpl implements SupplierLogService {
     }
 
     @Override
+    @Transactional
     public LogsDTO getAllSupplierLogs(Long supplierId, Predicate predicate) {
+        List<AbstractLogDTO> resultList = new ArrayList<>();
+        String supplierName = "";
+        Supplier supplier = supplierRepository.findById(supplierId)
+                .orElseThrow(() -> new NotFoundException(SUPPLIER_ID_NOT_FOUND, supplierId.toString()));
 
-        return null;
+        Predicate combinePredicate = ExpressionUtils.and(predicate, SUPPLIER_EQUALS_TO.apply(supplierId));
+
+        supplierLogRepository.findAll(combinePredicate).forEach(supplierLog -> {
+            Employee actionActor = supplierLog.getEmployee();
+            SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+
+            AbstractLogDTO log = new AbstractLogDTO();
+            log.setId(supplierLog.getId());
+            log.setLogType(supplierLog.getLogType());
+            log.setLogTypeMessage(supplierLog.getLogType().getDescription());
+            log.setActionActor(actionActor.getFirstName() + " " + actionActor.getLastName() + " (" + actionActor.getUsername() + ")");
+            log.setDate(dateFormat.format(supplierLog.getCreated()));
+            resultList.add(log);
+        });
+        LogsDTO result = new LogsDTO(supplierName, resultList);
+        return result;
     }
 
     @Override
     public List<? extends AbstractLog> getAllLogsByTargetId(Long targetId) {
-        return null;
+        return supplierLogRepository.getAllBySupplierId(targetId);
     }
 }
