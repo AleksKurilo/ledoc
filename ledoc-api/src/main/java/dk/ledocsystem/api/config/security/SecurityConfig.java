@@ -51,6 +51,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final AuthenticationSuccessHandlerImpl authenticationSuccessHandlerImpl;
 
+    private final SwitchUserAuthenticationSuccessHandlerImpl switchUserAuthenticationSuccessHandlerImpl;
+
     @Bean
     public UserDetailsService userDetailsService() {
         return new UserDetailsServiceImpl();
@@ -103,7 +105,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public SwitchUserFilter switchUserFilter() {
         SwitchUserFilter filter = new SwitchUserFilter();
         filter.setUserDetailsService(userDetailsService());
-        filter.setSuccessHandler(authenticationSuccessHandlerImpl);
+        filter.setSuccessHandler(switchUserAuthenticationSuccessHandlerImpl);
         filter.setFailureHandler(new CustomAuthenticationFailureHandler(messageSource, localeResolver));
         return filter;
     }
