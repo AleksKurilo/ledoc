@@ -21,10 +21,5 @@ public abstract class AbstractEditDetails implements Serializable {
     @Column(name = "cur_value", columnDefinition = "varchar")
     private String currentValue;
 
-    @Id
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 15)
-    private EditType editType;
-
     public abstract<LogT extends AbstractLog> LogT getLog();
 }

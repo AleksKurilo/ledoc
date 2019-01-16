@@ -25,7 +25,6 @@ public class EditEvent<T> extends EntityEvents<T> {
                     editDetails.setProperty(diff.getProperty());
                     editDetails.setPreviousValue(diff.getPreviousValue());
                     editDetails.setCurrentValue(diff.getCurrentValue());
-                    editDetails.setEditType(diff.getEditType());
                     return editDetails;
                 })
                 .collect(Collectors.toList());

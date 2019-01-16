@@ -1,10 +1,7 @@
 package dk.ledocsystem.service.impl.utils.diff;
 
-import dk.ledocsystem.data.model.logging.EditType;
-import dk.ledocsystem.service.impl.utils.diff.changes.CollectionChange;
 import dk.ledocsystem.service.impl.utils.diff.changes.ValueChange;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -26,22 +23,6 @@ public class DiffFinder {
             result.add(new SingleDiff(propertyName, Objects.toString(leftValue, null), Objects.toString(rightValue, null)));
         }
 
-        for (CollectionChange collectionChange : diff.getChangesByType(CollectionChange.class)) {
-            String propertyName = collectionChange.getPropertyName();
-            List<?> addedValues = collectionChange.getAddedValues();
-            if (!addedValues.isEmpty()) {
-                result.add(new SingleDiff(propertyName, null, joinList(addedValues), EditType.ADDED));
-            }
-            List<?> removedValues = collectionChange.getRemovedValues();
-            if (!removedValues.isEmpty()) {
-                result.add(new SingleDiff(propertyName, null, joinList(removedValues), EditType.REMOVED));
-            }
-        }
-
         return result;
-    }
-
-    private String joinList(List<?> list) {
-        return StringUtils.join(list, ", ");
     }
 }

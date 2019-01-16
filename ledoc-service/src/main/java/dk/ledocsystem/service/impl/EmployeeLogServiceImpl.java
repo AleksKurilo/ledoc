@@ -87,7 +87,7 @@ public class EmployeeLogServiceImpl implements EmployeeLogService {
     private List<EditDetailsDTO> mapDetailsToDto(List<EmployeeEditDetails> editDetails) {
         return editDetails.stream()
                 .map(details -> new EditDetailsDTO(details.getProperty(), details.getPreviousValue(),
-                        details.getCurrentValue(), details.getEditType()))
+                        details.getCurrentValue()))
                 .collect(Collectors.toList());
     }
 }

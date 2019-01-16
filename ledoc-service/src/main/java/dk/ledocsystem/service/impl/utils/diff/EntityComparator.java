@@ -1,8 +1,7 @@
 package dk.ledocsystem.service.impl.utils.diff;
 
-import dk.ledocsystem.service.impl.utils.diff.changes.CollectionChange;
 import dk.ledocsystem.service.impl.utils.diff.changes.ValueChange;
-import dk.ledocsystem.service.impl.utils.diff.comparators.SetComparator;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 import java.util.Set;
@@ -18,9 +17,8 @@ public interface EntityComparator<T> {
     }
 
     default void compareSets(Set<?> left, Set<?> right, String propertyName, Diff diff) {
-        CollectionChange changes = SetComparator.INSTANCE.compare(left, right, propertyName);
-        if (changes.hasAnyChange()) {
-            diff.addChange(changes);
+        if (!Objects.equals(left, right)) {
+            diff.addChange(new ValueChange(propertyName, StringUtils.join(left, ", "), StringUtils.join(right, ", ")));
         }
     }
 }
