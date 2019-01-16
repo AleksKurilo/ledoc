@@ -23,8 +23,8 @@ public class CustomHttp403ForbiddenEntryPoint extends Http403ForbiddenEntryPoint
             logger.debug("Pre-authenticated entry point called. Rejecting access");
         }
 
-        if (request.getSession(false) == null) {
-            Arrays.stream(request.getCookies()).forEach(cookie -> {
+        if (request.getSession(false) == null && request.getCookies() != null) {
+            Arrays.stream(request.getCookies()).filter(cookie -> cookie != null).forEach(cookie -> {
                 Cookie cookieToDelete = new Cookie(cookie.getName(), null);
                 cookieToDelete.setPath("/");
                 cookieToDelete.setMaxAge(0);
