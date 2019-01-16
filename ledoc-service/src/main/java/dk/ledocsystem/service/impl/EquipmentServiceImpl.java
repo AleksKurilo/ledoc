@@ -33,6 +33,7 @@ import dk.ledocsystem.service.impl.utils.PredicateBuilder;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.modelmapper.ModelMapper;
@@ -56,7 +57,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static dk.ledocsystem.service.impl.constant.ErrorMessageKey.*;
-import static java.util.Objects.nonNull;
 
 @Service
 @RequiredArgsConstructor
@@ -341,36 +341,38 @@ class EquipmentServiceImpl implements EquipmentService {
     public Page<GetEquipmentDTO> getAllByCustomer(@NonNull Long customerId, String searchString, Predicate predicate, @NonNull Pageable pageable) {
         QEquipment equipment = QEquipment.equipment;
 
-        List<Predicate> predicates = Stream.of(
-                Pair.of(equipment.name, searchString),
-                Pair.of(equipment.idNumber, searchString),
-                Pair.of(equipment.serialNumber, searchString),
-                Pair.of(equipment.category.nameEn, searchString),
-                Pair.of(equipment.localId, searchString),
-                Pair.of(equipment.location.name, searchString),
-                Pair.of(equipment.responsible.firstName, searchString),
-                Pair.of(equipment.responsible.lastName, searchString),
-                Pair.of(equipment.manufacturer, searchString),
-                Pair.of(equipment.authenticationType.nameEn, searchString),
-                Pair.of(equipment.supplier.name, searchString),
-                Pair.of(equipment.comment, searchString)
-        ).filter(pair -> nonNull(pair.getRight()))
-                .filter(pair -> !pair.getRight().isEmpty())
-                .map(pair -> predicateBuilder.toStringPredicate(pair))
-                .collect(Collectors.toList());
-
-        if (!searchString.isEmpty()) {
-            predicates.add(predicateBuilder.toNumberPredicate(Pair.of("price", searchString), Equipment.class));
-        }
-
-        Predicate combinePredicate = ExpressionUtils.and(ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId)), ExpressionUtils.anyOf(predicates));
-
         JPAQuery query = new JPAQuery<>(entityManager);
-        query.from(equipment).leftJoin(equipment.supplier, QSupplier.supplier)
+        query.from(equipment);
+
+        List<Predicate> predicates = new ArrayList<>();
+        if (StringUtils.isNotEmpty(searchString)) {
+            predicates = Stream.of(
+                    Pair.of(equipment.name, searchString),
+                    Pair.of(equipment.idNumber, searchString),
+                    Pair.of(equipment.serialNumber, searchString),
+                    Pair.of(equipment.category.nameEn, searchString),
+                    Pair.of(equipment.localId, searchString),
+                    Pair.of(equipment.location.name, searchString),
+                    Pair.of(equipment.responsible.firstName, searchString),
+                    Pair.of(equipment.responsible.lastName, searchString),
+                    Pair.of(equipment.manufacturer, searchString),
+                    Pair.of(equipment.authenticationType.nameEn, searchString),
+                    Pair.of(equipment.supplier.name, searchString),
+                    Pair.of(equipment.comment, searchString)
+            ).map(pair -> predicateBuilder.toStringPredicate(pair))
+                    .collect(Collectors.toList());
+
+            predicates.add(predicateBuilder.toNumberPredicate(Pair.of("price", searchString), Equipment.class));
+
+            query.leftJoin(equipment.supplier, QSupplier.supplier)
                 .leftJoin(equipment.authenticationType, QAuthenticationType.authenticationType)
                 .leftJoin(equipment.category ,QEquipmentCategory.equipmentCategory)
                 .leftJoin(equipment.location ,QLocation.location)
                 .leftJoin(equipment.responsible ,QEmployee.employee);
+        }
+
+        Predicate combinePredicate = ExpressionUtils.and(ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId)), ExpressionUtils.anyOf(predicates));
+
         query.where(combinePredicate);
 
         List<Sort.Order> sorts = pageable.getSort().get().collect(Collectors.toList());
