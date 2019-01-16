@@ -1,16 +1,16 @@
 package dk.ledocsystem.service.api;
 
-import dk.ledocsystem.data.model.logging.AbstractLog;
-
-import java.util.List;
+import com.querydsl.core.types.Predicate;
+import dk.ledocsystem.service.api.dto.outbound.logs.LogsDTO;
 
 public interface AbstractLogService {
 
     /**
-     * Returns list of all logs actioned target
-     * @param targetId - the ID of actioned target
-     * @return list of all logs
+     * Returns the required log information to display
+     *
+     * @param targetId  ID of target entity
+     * @param predicate QueryDSL predicate
+     * @return Name of employee and list of logs
      */
-    List<? extends AbstractLog> getAllLogsByTargetId(Long targetId);
-
+    LogsDTO getAllLogsByTargetId(Long targetId, Predicate predicate);
 }

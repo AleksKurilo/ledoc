@@ -4,7 +4,6 @@ import dk.ledocsystem.data.model.Customer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -33,7 +32,7 @@ import java.util.Set;
 @Setter
 @Entity
 @Table(name = "review_templates", uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "customer_id"})})
-@ToString(of = {"name"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @DiscriminatorColumn(name = "module", discriminatorType = DiscriminatorType.STRING)
 public abstract class ReviewTemplate {
 
@@ -74,5 +73,10 @@ public abstract class ReviewTemplate {
     // as for now all not editable reviews are referred to as simple reviews
     public boolean isSimpleReview() {
         return !editable;
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }

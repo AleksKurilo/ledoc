@@ -10,8 +10,8 @@ import dk.ledocsystem.data.model.logging.QEquipmentLog;
 import dk.ledocsystem.data.repository.EquipmentLogRepository;
 import dk.ledocsystem.data.repository.EquipmentRepository;
 import dk.ledocsystem.service.api.EquipmentLogService;
-import dk.ledocsystem.service.api.dto.outbound.AbstractLogDTO;
-import dk.ledocsystem.service.api.dto.outbound.LogsDTO;
+import dk.ledocsystem.service.api.dto.outbound.logs.AbstractLogDTO;
+import dk.ledocsystem.service.api.dto.outbound.logs.LogsDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
@@ -37,22 +37,21 @@ public class EquipmentLogServiceImpl implements EquipmentLogService {
     private final EquipmentLogRepository equipmentLogRepository;
 
     @Override
-    public EquipmentLog createLog(Employee loggedInUser, Equipment equipment, LogType logType) {
+    public void createLog(Employee loggedInUser, Equipment equipment, LogType logType) {
         EquipmentLog log = new EquipmentLog();
         log.setEmployee(loggedInUser);
         log.setEquipment(equipment);
         log.setLogType(logType);
-        return equipmentLogRepository.save(log);
+        equipmentLogRepository.save(log);
     }
 
     @Override
     @Transactional
-    public LogsDTO getAllEquipmentLogs(Long equipmentId, Predicate predicate) {
+    public LogsDTO getAllLogsByTargetId(Long equipmentId, Predicate predicate) {
         List<AbstractLogDTO> resultList = new ArrayList<>();
-        String equipmentName = "";
         Equipment equipment = equipmentRepository.findById(equipmentId)
                 .orElseThrow(() -> new NotFoundException(EQUIPMENT_ID_NOT_FOUND, equipmentId.toString()));
-        equipmentName = equipment.getName();
+        String equipmentName = equipment.getName();
 
         Predicate combinePredicate = ExpressionUtils.and(predicate, EQUIPMENT_EQUALS_TO.apply(equipmentId));
 
@@ -64,16 +63,10 @@ public class EquipmentLogServiceImpl implements EquipmentLogService {
             log.setId(equipmentLog.getId());
             log.setLogType(equipmentLog.getLogType());
             log.setLogTypeMessage(equipmentLog.getLogType().getDescription());
-            log.setActionActor(actionActor.getFirstName() + " " + actionActor.getLastName() + " (" + actionActor.getUsername() + ")");
+            log.setActionActor(actionActor.getName() + " (" + actionActor.getUsername() + ")");
             log.setDate(sdf.format(equipmentLog.getCreated()));
             resultList.add(log);
         });
-        LogsDTO result = new LogsDTO(equipmentName, resultList);
-        return result;
-    }
-
-    @Override
-    public List<EquipmentLog> getAllLogsByTargetId(Long equipmentId) {
-        return equipmentLogRepository.getAllByEquipmentId(equipmentId);
+        return new LogsDTO(equipmentName, resultList);
     }
 }

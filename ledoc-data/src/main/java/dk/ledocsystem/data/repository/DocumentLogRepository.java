@@ -10,17 +10,8 @@ import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.querydsl.binding.SingleValueBinding;
 
-import java.util.List;
-
-public interface DocumentLogRepository extends JpaRepository<DocumentLog, Long>
-        , QuerydslPredicateExecutor<DocumentLog>, QuerydslBinderCustomizer<QDocumentLog> {
-
-    /**
-     * Get list of logs by equipment.
-     *
-     * @param documentId The ID of affected equipment.
-     */
-    List<DocumentLog> getAllByDocumentId(Long documentId);
+public interface DocumentLogRepository extends JpaRepository<DocumentLog, Long>,
+        QuerydslPredicateExecutor<DocumentLog>, QuerydslBinderCustomizer<QDocumentLog> {
 
     @Override
     default void customize(QuerydslBindings bindings, QDocumentLog root) {

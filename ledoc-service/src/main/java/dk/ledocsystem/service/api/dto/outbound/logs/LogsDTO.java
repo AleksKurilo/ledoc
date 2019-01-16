@@ -1,4 +1,4 @@
-package dk.ledocsystem.service.api.dto.outbound;
+package dk.ledocsystem.service.api.dto.outbound.logs;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
