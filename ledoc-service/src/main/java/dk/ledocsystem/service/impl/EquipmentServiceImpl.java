@@ -36,6 +36,8 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -47,6 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -79,6 +82,7 @@ class EquipmentServiceImpl implements EquipmentService {
     private final LocationRepository locationRepository;
     private final ReviewTemplateService reviewTemplateService;
     private final EquipmentProducer equipmentProducer;
+    private final EntityManagerFactory entityManagerFactory;
     private final PredicateBuilder predicateBuilder;
 
     private final BaseValidator<EquipmentDTO> equipmentDtoValidator;
@@ -120,9 +124,9 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     @Transactional
-    public GetEquipmentDTO updateEquipment(@NonNull EquipmentDTO equipmentDTO, UserDetails creatorDetails) {
-        Employee creator = employeeRepository.findByUsername(creatorDetails.getUsername()).orElseThrow(IllegalStateException::new);
-        Customer customer = creator.getCustomer();
+    public GetEquipmentDTO updateEquipment(@NonNull EquipmentDTO equipmentDTO, UserDetails currentUserDetails) {
+        Employee currentUser = employeeRepository.findByUsername(currentUserDetails.getUsername()).orElseThrow(IllegalStateException::new);
+        Customer customer = currentUser.getCustomer();
         equipmentDtoValidator.validate(equipmentDTO, ImmutableMap.of("customerId", customer.getId()), equipmentDTO.getValidationGroups());
 
         Equipment equipment = equipmentRepository.findById(equipmentDTO.getId())
@@ -138,12 +142,16 @@ class EquipmentServiceImpl implements EquipmentService {
         if (!responsibleId.equals(equipment.getResponsible().getId())) {
             Employee responsible = resolveResponsible(responsibleId);
             equipment.setResponsible(responsible);
-            equipmentProducer.edit(equipment, creator);
         }
 
         ApprovalType approvalType = equipmentDTO.getApprovalType();
         if (approvalType == ApprovalType.NO_NEED) {
             equipment.eraseReviewDetails();
+        }
+
+        try (Session session = entityManagerFactory.unwrap(SessionFactory.class).openSession()) {
+            Equipment equipmentBeforeEdit = session.get(Equipment.class, equipment.getId());
+            equipmentProducer.edit(equipmentBeforeEdit, equipment, currentUser);
         }
         return mapToDto(equipmentRepository.save(equipment));
     }
@@ -190,7 +198,7 @@ class EquipmentServiceImpl implements EquipmentService {
         return ExpressionUtils.allOf(
                 EQUIPMENT_ARCHIVED.apply(Boolean.FALSE),
                 CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId()),
-                ExpressionUtils.notIn(Expressions.constant(employee), QEquipment.equipment.visitedBy));
+                ExpressionUtils.eqConst(QEquipment.equipment.visitedBy.any().employee, employee).not());
     }
 
     @Override
@@ -359,7 +367,7 @@ class EquipmentServiceImpl implements EquipmentService {
                     Pair.of(equipment.authenticationType.nameEn, searchString),
                     Pair.of(equipment.supplier.name, searchString),
                     Pair.of(equipment.comment, searchString)
-            ).map(pair -> predicateBuilder.toStringPredicate(pair))
+            ).map(predicateBuilder::toStringPredicate)
                     .collect(Collectors.toList());
 
             predicates.add(predicateBuilder.toNumberPredicate(Pair.of("price", searchString), Equipment.class));
@@ -404,7 +412,7 @@ class EquipmentServiceImpl implements EquipmentService {
         Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
         if (isNew) {
             combinePredicate = ExpressionUtils.allOf(combinePredicate,
-                    ExpressionUtils.notIn(Expressions.constant(employee), QEquipment.equipment.visitedBy));
+                    ExpressionUtils.eqConst(QEquipment.equipment.visitedBy.any().employee, employee).not());
         }
         return equipmentRepository.findAll(combinePredicate).stream().map(this::mapToExportDto).collect(Collectors.toList());
     }

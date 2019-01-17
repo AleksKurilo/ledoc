@@ -15,7 +15,6 @@ import dk.ledocsystem.data.model.logging.QEmployeeLog;
 import dk.ledocsystem.data.repository.EmployeeLogRepository;
 import dk.ledocsystem.service.api.EmployeeLogService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +28,7 @@ import static dk.ledocsystem.service.impl.constant.ErrorMessageKey.EMPLOYEE_ID_N
 
 
 @Service
-@RequiredArgsConstructor(onConstructor_ = {@Lazy})
+@RequiredArgsConstructor
 public class EmployeeLogServiceImpl implements EmployeeLogService {
 
     private static final Function<Long, Predicate> EMPLOYEE_EQUALS_TO =
@@ -42,7 +41,8 @@ public class EmployeeLogServiceImpl implements EmployeeLogService {
     public void createLog(Employee loggedInUser, Employee targetUser, LogType logType) {
         EmployeeLog log = new EmployeeLog();
         log.setEmployee(loggedInUser);
-        log.setLogType(logType);log.setTargetEmployee(targetUser);
+        log.setLogType(logType);
+        log.setTargetEmployee(targetUser);
         employeeLogRepository.save(log);
     }
 

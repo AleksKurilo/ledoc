@@ -1,16 +1,21 @@
 package dk.ledocsystem.service.impl.events.event_listener;
 
 import dk.ledocsystem.data.model.employee.Employee;
+import dk.ledocsystem.data.model.logging.EmployeeEditDetails;
 import dk.ledocsystem.service.api.EmployeeLogService;
 import dk.ledocsystem.service.impl.events.event.EditEvent;
 import dk.ledocsystem.service.impl.events.event.EntityEvents;
-import lombok.AllArgsConstructor;
+import dk.ledocsystem.service.impl.utils.diff.SingleDiff;
+import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class EmployeeEventListener {
     private final EmployeeLogService employeeLogService;
 
@@ -29,6 +34,12 @@ public class EmployeeEventListener {
         Employee loggedInEmployee = event.getLoggedInEmployee();
         Employee employee = event.getSource();
 
-        employeeLogService.createEditLog(loggedInEmployee, employee, event.getEditDetails());
+        employeeLogService.createEditLog(loggedInEmployee, employee, convertDiff(event.getDiffList()));
+    }
+
+    private List<EmployeeEditDetails> convertDiff(List<SingleDiff> diffList) {
+        return diffList.stream()
+                .map(diff -> new EmployeeEditDetails(diff.getProperty(), diff.getPreviousValue(), diff.getCurrentValue()))
+                .collect(Collectors.toList());
     }
 }

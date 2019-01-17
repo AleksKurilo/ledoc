@@ -2,7 +2,6 @@ package dk.ledocsystem.service.api.dto.inbound.equipment;
 
 import dk.ledocsystem.service.api.validation.NonCyrillic;
 import dk.ledocsystem.data.model.equipment.ApprovalType;
-import dk.ledocsystem.data.model.equipment.Status;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -46,8 +45,6 @@ public class EquipmentDTO {
 
     @NotNull(groups = MustBeSkillAssessed.class)
     private Long reviewTemplateId;
-
-    private Status status;
 
     @Size(min = 3, max = 40)
     @NonCyrillic

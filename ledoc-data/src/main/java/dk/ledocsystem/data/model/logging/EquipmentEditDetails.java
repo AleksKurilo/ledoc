@@ -7,22 +7,26 @@ import lombok.ToString;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 @Getter
 @Setter
 @ToString
 @Entity
-@Table(name = "employee_edit_details")
+@Table(name = "equipment_edit_details")
 @NoArgsConstructor
-public class EmployeeEditDetails extends AbstractEditDetails {
+public class EquipmentEditDetails extends AbstractEditDetails {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @Id
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private EmployeeLog log;
+    private EquipmentLog log;
 
-    public EmployeeEditDetails(String property, String previousValue, String currentValue) {
+    public EquipmentEditDetails(String property, String previousValue, String currentValue) {
         super(property, previousValue, currentValue);
     }
 }

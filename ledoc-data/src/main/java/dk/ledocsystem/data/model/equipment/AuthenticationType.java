@@ -5,7 +5,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -20,7 +19,7 @@ import javax.persistence.Table;
 @NoArgsConstructor
 @Entity
 @Table(name = "authentication_types")
-@ToString(of = {"nameEn"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class AuthenticationType implements DoubleNamed {
 
     @EqualsAndHashCode.Include
@@ -34,4 +33,9 @@ public class AuthenticationType implements DoubleNamed {
 
     @Column
     private String nameDa;
+
+    @Override
+    public String toString() {
+        return nameEn;
+    }
 }
