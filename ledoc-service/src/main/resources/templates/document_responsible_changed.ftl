@@ -1,0 +1,1 @@
+<p>You're now a responsible of document ${documentName}</p>

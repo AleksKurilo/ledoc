@@ -132,7 +132,7 @@ public class Equipment {
 
     @OneToMany(mappedBy = "equipment")
     @Where(clause = "type = 'Read' OR type = 'Archive'")
-    private Set<EquipmentLog> visitedBy;
+    private Set<EquipmentLog> visitedLogs;
 
     public boolean isLoaned() {
         return loan != null;

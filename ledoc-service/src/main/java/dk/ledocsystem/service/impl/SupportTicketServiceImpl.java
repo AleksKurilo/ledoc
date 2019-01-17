@@ -14,8 +14,8 @@ import lombok.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -24,9 +24,9 @@ import static dk.ledocsystem.service.impl.constant.ErrorMessageKey.EMPLOYEE_ID_N
 @Service
 @AllArgsConstructor
 class SupportTicketServiceImpl implements SupportTicketService {
+    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss");
 
     private final EmailNotificationRepository emailNotificationRepository;
-
     private final SupportTicketRepository supportTicketRepository;
     private final EmployeeRepository employeeRepository;
 
@@ -44,7 +44,7 @@ class SupportTicketServiceImpl implements SupportTicketService {
     @Override
     public void createSupportTicket(SupportTicketDTO supportTicketDTO) {
         SupportTicket ticket = new SupportTicket();
-        ticket.setCreated(new Date());
+        ticket.setCreated(LocalDateTime.now());
         ticket.setEmployee(employeeRepository.findById(supportTicketDTO.getEmployeeId())
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, supportTicketDTO.getEmployeeId().toString())));
         ticket.setTheme(supportTicketDTO.getTheme());
@@ -56,10 +56,8 @@ class SupportTicketServiceImpl implements SupportTicketService {
     }
 
     private void sendNotificationToResponsible(SupportTicket ticket, String email) {
-        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-
         Map<String, Object> model = ImmutableMap.<String, Object>builder()
-                .put("created", sdf.format(ticket.getCreated()))
+                .put("created", ticket.getCreated().format(dateTimeFormatter))
                 .put("theme", ticket.getTheme())
                 .put("message", ticket.getMessage())
                 .put("employeeName", ticket.getEmployee().getUsername())

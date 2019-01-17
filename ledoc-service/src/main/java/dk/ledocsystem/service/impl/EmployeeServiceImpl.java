@@ -379,7 +379,7 @@ class EmployeeServiceImpl implements EmployeeService {
                 EMPLOYEES_ARCHIVED.apply(Boolean.FALSE),
                 CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId()),
                 ExpressionUtils.neConst(QEmployee.employee.id, employee.getId()),
-                ExpressionUtils.eqConst(QEmployee.employee.visitedBy.any().employee, employee).not());
+                ExpressionUtils.eqConst(QEmployee.employee.visitedLogs.any().employee, employee).not());
     }
 
     @Override
@@ -504,7 +504,7 @@ class EmployeeServiceImpl implements EmployeeService {
         Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
         if (isNew) {
             combinePredicate = ExpressionUtils.allOf(combinePredicate,
-                    ExpressionUtils.eqConst(QEmployee.employee.visitedBy.any().employee, employee).not());
+                    ExpressionUtils.eqConst(QEmployee.employee.visitedLogs.any().employee, employee).not());
         }
         return employeeRepository.findAll(combinePredicate).stream().map(this::mapToExportDto).collect(Collectors.toList());
     }

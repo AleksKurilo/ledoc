@@ -30,10 +30,9 @@ public class EmployeeProducer {
         publisher.publishEvent(new EntityEvents<>(employee, loggedInEmployee, LogType.Create));
 
         if (employeeCreateDTO.isWelcomeMessage()) {
-            Map<String, Object> model = ImmutableMap.<String, Object>builder()
-                    .put("username", employeeCreateDTO.getUsername())
-                    .put("password", employeeCreateDTO.getPassword())
-                    .build();
+            Map<String, Object> model = ImmutableMap.of(
+                    "username", employeeCreateDTO.getUsername(),
+                    "password", employeeCreateDTO.getPassword());
             publisher.publishEvent(new NotificationEvents(employeeCreateDTO.getUsername(), "welcome", model));
         }
 

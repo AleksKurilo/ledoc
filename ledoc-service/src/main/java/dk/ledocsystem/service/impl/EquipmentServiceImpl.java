@@ -198,7 +198,7 @@ class EquipmentServiceImpl implements EquipmentService {
         return ExpressionUtils.allOf(
                 EQUIPMENT_ARCHIVED.apply(Boolean.FALSE),
                 CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId()),
-                ExpressionUtils.eqConst(QEquipment.equipment.visitedBy.any().employee, employee).not());
+                ExpressionUtils.eqConst(QEquipment.equipment.visitedLogs.any().employee, employee).not());
     }
 
     @Override
@@ -412,7 +412,7 @@ class EquipmentServiceImpl implements EquipmentService {
         Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
         if (isNew) {
             combinePredicate = ExpressionUtils.allOf(combinePredicate,
-                    ExpressionUtils.eqConst(QEquipment.equipment.visitedBy.any().employee, employee).not());
+                    ExpressionUtils.eqConst(QEquipment.equipment.visitedLogs.any().employee, employee).not());
         }
         return equipmentRepository.findAll(combinePredicate).stream().map(this::mapToExportDto).collect(Collectors.toList());
     }
