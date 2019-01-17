@@ -16,7 +16,6 @@ import dk.ledocsystem.data.model.security.UserAuthorities;
 import dk.ledocsystem.data.repository.*;
 import dk.ledocsystem.service.api.EmployeeService;
 import dk.ledocsystem.service.api.ExcelExportService;
-import dk.ledocsystem.service.api.JwtTokenService;
 import dk.ledocsystem.service.api.ReviewQuestionService;
 import dk.ledocsystem.service.api.ReviewTemplateService;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
@@ -77,7 +76,6 @@ class EmployeeServiceImpl implements EmployeeService {
     private final ExcelExportService excelExportService;
     private final PasswordEncoder passwordEncoder;
     private final EntityManagerFactory entityManagerFactory;
-    private final JwtTokenService tokenService;
     private final EmployeeReviewRepository employeeReviewRepository;
     private final ModelMapper modelMapper;
     private final BaseValidator<EmployeeDTO> employeeDtoValidator;
@@ -232,8 +230,6 @@ class EmployeeServiceImpl implements EmployeeService {
         } else {
             authorities.remove(UserAuthorities.CAN_CREATE_PERSONAL_LOCATION);
         }
-
-        tokenService.updateTokens(employee.getId(), authorities);
     }
 
     private boolean roleChanged(Employee employee, UserAuthorities newRole) {
@@ -288,7 +284,6 @@ class EmployeeServiceImpl implements EmployeeService {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
         employee.getAuthorities().add(authorities);
-        tokenService.updateTokens(employeeId, employee.getAuthorities());
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
@@ -297,7 +292,6 @@ class EmployeeServiceImpl implements EmployeeService {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
         employee.getAuthorities().remove(authorities);
-        tokenService.updateTokens(employeeId, employee.getAuthorities());
     }
 
     @Transactional
@@ -524,14 +518,12 @@ class EmployeeServiceImpl implements EmployeeService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public void deleteById(@NonNull Long id) {
-        tokenService.invalidateByUserId(id);
         employeeRepository.deleteById(id);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public void deleteByIds(@NonNull Iterable<Long> employeeIds) {
-        tokenService.invalidateByUserIds(employeeIds);
         employeeRepository.deleteByIdIn(employeeIds);
     }
 

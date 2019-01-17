@@ -14,11 +14,9 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +34,7 @@ public class SwitchUserAuthenticationSuccessHandlerImpl implements Authenticatio
     private static final String ROLE_PREFIX = "ROLE_";
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
         String username = authentication.getName();
         Employee user = employeeRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, username));
@@ -65,7 +63,6 @@ public class SwitchUserAuthenticationSuccessHandlerImpl implements Authenticatio
 
         Cookie cookie = new Cookie("info", builder.compact());
         cookie.setPath("/");
-        cookie.setMaxAge(-1);
         response.addCookie(cookie);
     }
 

@@ -9,6 +9,7 @@ import dk.ledocsystem.data.repository.EmployeeRepository;
 import dk.ledocsystem.service.api.*;
 import dk.ledocsystem.service.api.dto.outbound.employee.GetEmployeeDTO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -24,7 +25,7 @@ class DashboardServiceImpl implements DashboardService {
     private final DocumentService documentService;
     private final EmployeeRepository employeeRepository;
     private final CustomerRepository customerRepository;
-    private final JwtTokenService tokenService;
+    private final SessionRegistry sessionRegistry;
 
     @Override
     public Dashboard createDashboard(UserDetails currentUserDetails) {
@@ -44,7 +45,7 @@ class DashboardServiceImpl implements DashboardService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public SuperAdminStatistic createStatistic() {
         SuperAdminStatistic statistic = new SuperAdminStatistic();
-        statistic.setUsersOnline(tokenService.countUsersOnline());
+        statistic.setUsersOnline(sessionRegistry.getAllPrincipals().size());
         statistic.setTotalActiveCustomersCount(customerRepository.countAllByArchivedFalse());
         UserStat userStat = new UserStat();
         userStat.setTotalActiveAdminsCount(employeeRepository.countAllByAuthoritiesContainsAndArchivedIsFalse(UserAuthorities.ADMIN));
