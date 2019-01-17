@@ -14,7 +14,6 @@ import dk.ledocsystem.service.api.dto.outbound.logs.AbstractLogDTO;
 import dk.ledocsystem.service.api.dto.outbound.logs.LogsDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,13 +25,13 @@ import java.util.function.Function;
 import static dk.ledocsystem.service.impl.constant.ErrorMessageKey.DOCUMENT_ID_NOT_FOUND;
 
 @Service
-@RequiredArgsConstructor(onConstructor_ = {@Lazy})
+@RequiredArgsConstructor
 public class DocumentLogServiceImpl implements DocumentLogService {
 
     private static final Function<Long, Predicate> DOCUMENT_EQUALS_TO =
             documentId -> ExpressionUtils.eqConst(QDocumentLog.documentLog.document.id, documentId);
 
-    final DocumentRepository documentRepository;
+    private final DocumentRepository documentRepository;
     private final DocumentLogRepository documentLogRepository;
 
     @Override

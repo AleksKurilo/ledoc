@@ -4,7 +4,6 @@ import dk.ledocsystem.data.model.employee.Employee;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -16,7 +15,7 @@ import javax.persistence.*;
 @Entity
 @Table(name = "suppliers",
         uniqueConstraints = @UniqueConstraint(columnNames = {"name", "customer_id"}))
-@ToString(of = {"name", "contactPhone", "contactEmail"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Supplier {
 
     @EqualsAndHashCode.Include
@@ -57,4 +56,9 @@ public class Supplier {
     @JoinColumn(name = "customer_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Customer customer;
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }

@@ -42,15 +42,16 @@ public class EmployeeProducer {
         }
     }
 
-    public void read(Employee employee, Employee loggedInEmployee, final boolean saveLog) {
+    public void read(Employee employee, Employee loggedInEmployee, boolean saveLog) {
         publisher.publishEvent(new EntityEvents<>(employee, loggedInEmployee, LogType.Read, saveLog));
     }
 
     public void edit(Employee employeeBeforeEdit, Employee employeeAfterEdit, Employee loggedInEmployee) {
         List<SingleDiff> diffList = diffFinder.findDiff(employeeBeforeEdit, employeeAfterEdit, EmployeeComparator.INSTANCE);
         publisher.publishEvent(new EditEvent<>(employeeAfterEdit, loggedInEmployee, diffList));
-        if (employeeAfterEdit.getResponsible() != null) {
-            publisher.publishEvent(new NotificationEvents(employeeAfterEdit.getResponsible().getUsername(), "employee_edited"));
+        if (employeeAfterEdit.getResponsible() != null && !employeeAfterEdit.getResponsible().equals(employeeBeforeEdit.getResponsible())) {
+            publisher.publishEvent(new NotificationEvents(employeeAfterEdit.getResponsible().getUsername(),
+                    "employee_responsible_changed", ImmutableMap.of("employeeName", employeeAfterEdit.getName())));
         }
     }
 
@@ -68,9 +69,7 @@ public class EmployeeProducer {
 
     public void follow(Employee employee, Employee follower, boolean forced, boolean followed) {
         if (forced) {
-            Map<String, Object> model = ImmutableMap.<String, Object>builder()
-                    .put("employee", employee.getUsername())
-                    .build();
+            Map<String, Object> model = ImmutableMap.of("employee", employee.getUsername());
             if (followed) {
                 publisher.publishEvent(new NotificationEvents(follower.getUsername(), "employee_follow_forced", model));
             } else {

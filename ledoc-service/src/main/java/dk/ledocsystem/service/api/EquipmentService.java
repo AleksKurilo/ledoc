@@ -30,11 +30,11 @@ public interface EquipmentService extends CustomerBasedDomainService<GetEquipmen
     /**
      * Updates the properties of the equipment with the given ID with properties of {@code equipmentCreateDTO}.
      *
-     * @param equipmentDTO   New properties of the equipment
-     * @param creatorDetails Creator
+     * @param equipmentDTO       New properties of the equipment
+     * @param currentUserDetails Current user
      * @return Updated {@link GetEquipmentDTO equipment}
      */
-    GetEquipmentDTO updateEquipment(EquipmentDTO equipmentDTO, UserDetails creatorDetails);
+    GetEquipmentDTO updateEquipment(EquipmentDTO equipmentDTO, UserDetails currentUserDetails);
 
     /**
      * Changes the archived status according to data from {@code archivedStatusDTO}.
