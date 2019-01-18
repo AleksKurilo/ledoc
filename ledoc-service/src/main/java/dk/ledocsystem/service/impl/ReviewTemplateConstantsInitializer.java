@@ -23,22 +23,22 @@ class ReviewTemplateConstantsInitializer {
 
     static void createConstants(ReviewTemplateRepository reviewTemplateRepository) {
         ReviewQuestion reviewQuestionForEmployee = ReviewQuestion.builder()
-                .title("Approved/Not approved")
+                .title("Approved/Declined")
                 .wording("Is employee approved?")
                 .questionType(QuestionType.YES_NO)
                 .build();
         ReviewQuestion reviewQuestionForEquipment = ReviewQuestion.builder()
-                .title("Approved/Not approved")
+                .title("Approved/Declined")
                 .wording("Is equipment approved?")
                 .questionType(QuestionType.YES_NO)
                 .build();
         ReviewQuestion reviewQuestionForDocument = ReviewQuestion.builder()
-                .title("Approved/Not approved")
+                .title("Approved/Declined")
                 .wording("Is document approved?")
                 .questionType(QuestionType.YES_NO)
                 .build();
         ReviewQuestion reviewQuestionForSupplier = ReviewQuestion.builder()
-                .title("Approved/Not approved")
+                .title("Approved/Declined")
                 .wording("Is supplier approved?")
                 .questionType(QuestionType.YES_NO)
                 .build();
@@ -64,25 +64,25 @@ class ReviewTemplateConstantsInitializer {
         employeeQuickReviewTemplate.setName(EMPLOYEE_QUICK_REVIEW_TEMPLATE_NAME);
         employeeQuickReviewTemplate.setIsGlobal(true);
         employeeQuickReviewTemplate.setEditable(false);
-        employeeQuickReviewTemplate.setQuestionGroups(Collections.singleton(questionGroupForEmployee));
+        employeeQuickReviewTemplate.setQuestionGroups(Collections.singletonList(questionGroupForEmployee));
 
         ReviewTemplate equipmentQuickReviewTemplate = new EquipmentReviewTemplate();
         equipmentQuickReviewTemplate.setName(EQUIPMENT_QUICK_REVIEW_TEMPLATE_NAME);
         equipmentQuickReviewTemplate.setIsGlobal(true);
         equipmentQuickReviewTemplate.setEditable(false);
-        equipmentQuickReviewTemplate.setQuestionGroups(Collections.singleton(questionGroupForEquipment));
+        equipmentQuickReviewTemplate.setQuestionGroups(Collections.singletonList(questionGroupForEquipment));
 
         ReviewTemplate documentQuickReviewTemplate = new DocumentReviewTemplate();
         documentQuickReviewTemplate.setName(DOCUMENT_QUICK_REVIEW_TEMPLATE_NAME);
         documentQuickReviewTemplate.setIsGlobal(true);
         documentQuickReviewTemplate.setEditable(false);
-        documentQuickReviewTemplate.setQuestionGroups(Collections.singleton(questionGroupForDocument));
+        documentQuickReviewTemplate.setQuestionGroups(Collections.singletonList(questionGroupForDocument));
 
         ReviewTemplate supplierQuickReviewTemplate = new SupplierReviewTemplate();
         supplierQuickReviewTemplate.setName(SUPPLIER_QUICK_REVIEW_TEMPLATE_NAME);
         supplierQuickReviewTemplate.setIsGlobal(true);
         supplierQuickReviewTemplate.setEditable(false);
-        supplierQuickReviewTemplate.setQuestionGroups(Collections.singleton(questionGroupForSupplier));
+        supplierQuickReviewTemplate.setQuestionGroups(Collections.singletonList(questionGroupForSupplier));
 
         reviewTemplateRepository.saveAll(Arrays.asList(employeeQuickReviewTemplate, equipmentQuickReviewTemplate,
                 documentQuickReviewTemplate, supplierQuickReviewTemplate));

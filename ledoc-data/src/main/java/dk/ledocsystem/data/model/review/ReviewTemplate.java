@@ -26,7 +26,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @Setter
@@ -64,14 +64,14 @@ public abstract class ReviewTemplate {
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(joinColumns = @JoinColumn(name = "review_template_id"),
             inverseJoinColumns = @JoinColumn(name = "question_group_id"))
-    private Set<QuestionGroup> questionGroups;
+    private List<QuestionGroup> questionGroups;
 
     @ColumnDefault("false")
     @Column(nullable = false)
     private Boolean archived;
 
     // as for now all not editable reviews are referred to as simple reviews
-    public boolean isSimpleReview() {
+    public boolean isSimple() {
         return !editable;
     }
 

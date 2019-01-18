@@ -3,6 +3,8 @@ package dk.ledocsystem.api.controller;
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.api.config.security.CurrentUser;
 import dk.ledocsystem.data.model.equipment.Equipment;
+import dk.ledocsystem.service.api.dto.inbound.review.ReviewDTO;
+import dk.ledocsystem.service.api.dto.inbound.review.SimpleReviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.service.api.CustomerService;
 import dk.ledocsystem.service.api.EquipmentService;
@@ -135,8 +137,20 @@ public class EquipmentController {
 
     @GetMapping("/followed")
     public Iterable<GetFollowedEquipmentDTO> getFollowedEquipment(@RequestParam("employeeId") Long employeeId,
-                                                                                          Pageable pageable) {
+                                                                  Pageable pageable) {
         return equipmentService.getFollowedEquipment(employeeId, pageable);
+    }
+
+    @PostMapping("/{equipmentId}/simple-review")
+    public void performSimpleReview(@PathVariable Long equipmentId, @RequestBody SimpleReviewDTO reviewDTO,
+                                    @CurrentUser UserDetails currentUser) {
+        equipmentService.performSimpleReview(equipmentId, reviewDTO, currentUser);
+    }
+
+    @PostMapping("/{equipmentId}/review")
+    public void performReview(@PathVariable Long equipmentId, @RequestBody ReviewDTO reviewDTO,
+                              @CurrentUser UserDetails currentUser) {
+        equipmentService.performReview(equipmentId, reviewDTO, currentUser);
     }
 
     @GetMapping("/export")

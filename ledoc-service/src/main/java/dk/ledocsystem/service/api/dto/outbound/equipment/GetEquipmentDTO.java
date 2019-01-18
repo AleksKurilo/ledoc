@@ -26,11 +26,17 @@ public class GetEquipmentDTO {
 
     private String category;
 
+    private Long responsibleId;
+
     private String responsible;
 
     private LocalDate nextReviewDate;
 
     private Period approvalRate;
+
+    private Long reviewTemplateId;
+
+    private boolean simpleReview;
 
     private String manufacturer;
 

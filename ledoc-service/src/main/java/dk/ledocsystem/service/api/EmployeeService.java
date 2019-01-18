@@ -8,6 +8,7 @@ import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeCreateDTO;
 import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeDTO;
 import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeFollowDTO;
 import dk.ledocsystem.service.api.dto.inbound.review.ReviewDTO;
+import dk.ledocsystem.service.api.dto.inbound.review.SimpleReviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.employee.EmployeeExportDTO;
 import dk.ledocsystem.service.api.dto.outbound.employee.EmployeePreviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.employee.EmployeeSummary;
@@ -94,6 +95,14 @@ public interface EmployeeService extends CustomerBasedDomainService<GetEmployeeD
      * @param authorities Authorities
      */
     void revokeAuthorities(Long employeeId, UserAuthorities authorities);
+
+    /**
+     * Performs simple review of the given employee.
+     *
+     * @param employeeId ID of the employee
+     * @param reviewDTO  Information about performed review
+     */
+    void performSimpleReview(Long employeeId, SimpleReviewDTO reviewDTO, UserDetails currentUser);
 
     /**
      * Performs review of the given employee.

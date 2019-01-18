@@ -12,11 +12,7 @@ public class EquipmentEditDto extends GetEquipmentDTO {
 
     private Long categoryId;
 
-    private Long responsibleId;
-
     private Long locationId;
 
     private ApprovalType approvalType;
-
-    private Long reviewTemplateId;
 }
