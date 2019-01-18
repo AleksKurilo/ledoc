@@ -28,6 +28,8 @@ public class GetEquipmentDTO {
 
     private String responsible;
 
+    private LocalDate nextReviewDate;
+
     private Period approvalRate;
 
     private String manufacturer;
