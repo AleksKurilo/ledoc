@@ -1,11 +1,12 @@
 package dk.ledocsystem.service.api;
 
-import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.logging.LogType;
+import dk.ledocsystem.data.model.logging.SupplierEditDetails;
 import dk.ledocsystem.data.model.logging.SupplierLog;
 import dk.ledocsystem.data.model.supplier.Supplier;
-import dk.ledocsystem.service.api.dto.outbound.LogsDTO;
+
+import java.util.List;
 
 public interface SupplierLogService extends AbstractLogService {
 
@@ -18,11 +19,9 @@ public interface SupplierLogService extends AbstractLogService {
     SupplierLog createLog(Employee loggedInEmployee, Supplier supplier, LogType logType);
 
     /**
-     * Returns the required log information to display
-     *
-     * @param supplierId - id of target supplier
-     * @param predicate
-     * @return Name of employee and list of log properties
+     * @param loggedInEmployee employee who performed an action
+     * @param supplier        affected supplier
+     * @param editDetails      List of edit details
      */
-    LogsDTO getAllSupplierLogs(Long supplierId, Predicate predicate);
+    void createEditLog(Employee loggedInEmployee, Supplier supplier, List<SupplierEditDetails> editDetails);
 }

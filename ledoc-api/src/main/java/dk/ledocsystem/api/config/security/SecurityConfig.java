@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,7 +19,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
-import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
+import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfFilter;
@@ -49,6 +50,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final LocaleResolver localeResolver;
 
     private final AuthenticationSuccessHandlerImpl authenticationSuccessHandlerImpl;
+
+    private final SwitchUserAuthenticationSuccessHandlerImpl switchUserAuthenticationSuccessHandlerImpl;
 
     @Bean
     public UserDetailsService userDetailsService() {
@@ -81,9 +84,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID", "info")
                 .permitAll()
+                .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK))
                 .and()
             .exceptionHandling()
-                .authenticationEntryPoint(new Http403ForbiddenEntryPoint())
+                .authenticationEntryPoint(new CustomHttp403ForbiddenEntryPoint())
                 .and()
             .cors()
                 .and()
@@ -101,7 +105,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public SwitchUserFilter switchUserFilter() {
         SwitchUserFilter filter = new SwitchUserFilter();
         filter.setUserDetailsService(userDetailsService());
-        filter.setSuccessHandler(authenticationSuccessHandlerImpl);
+        filter.setSuccessHandler(switchUserAuthenticationSuccessHandlerImpl);
         filter.setFailureHandler(new CustomAuthenticationFailureHandler(messageSource, localeResolver));
         return filter;
     }

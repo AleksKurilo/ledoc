@@ -4,7 +4,6 @@ import dk.ledocsystem.data.model.DoubleNamed;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 import javax.persistence.*;
 import java.time.Period;
@@ -13,7 +12,7 @@ import java.time.Period;
 @Getter
 @Entity
 @Table(name = "equipment_categories")
-@ToString(of = "nameEn")
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class EquipmentCategory implements DoubleNamed {
 
     @EqualsAndHashCode.Include
@@ -30,4 +29,9 @@ public class EquipmentCategory implements DoubleNamed {
 
     @Column(name = "review_frequency")
     private Period reviewFrequency;
+
+    @Override
+    public String toString() {
+        return nameEn;
+    }
 }

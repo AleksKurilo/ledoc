@@ -2,7 +2,6 @@ package dk.ledocsystem.service.impl;
 
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.dsl.Expressions;
 import dk.ledocsystem.data.model.Customer;
 import dk.ledocsystem.data.model.Location;
 import dk.ledocsystem.data.model.employee.Employee;
@@ -14,12 +13,11 @@ import dk.ledocsystem.data.model.review.EmployeeReviewQuestionAnswer;
 import dk.ledocsystem.data.model.review.ReviewQuestion;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
 import dk.ledocsystem.data.model.security.UserAuthorities;
-import dk.ledocsystem.data.repository.*;
-import dk.ledocsystem.service.api.EmployeeService;
-import dk.ledocsystem.service.api.ExcelExportService;
-import dk.ledocsystem.service.api.JwtTokenService;
-import dk.ledocsystem.service.api.ReviewQuestionService;
-import dk.ledocsystem.service.api.ReviewTemplateService;
+import dk.ledocsystem.data.repository.CustomerRepository;
+import dk.ledocsystem.data.repository.EmployeeRepository;
+import dk.ledocsystem.data.repository.EmployeeReviewRepository;
+import dk.ledocsystem.data.repository.LocationRepository;
+import dk.ledocsystem.service.api.*;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.ChangePasswordDTO;
 import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeCreateDTO;
@@ -40,6 +38,8 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -52,6 +52,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManagerFactory;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -74,6 +75,7 @@ class EmployeeServiceImpl implements EmployeeService {
     private final ReviewQuestionService reviewQuestionService;
     private final ExcelExportService excelExportService;
     private final PasswordEncoder passwordEncoder;
+    private final EntityManagerFactory entityManagerFactory;
     private final JwtTokenService tokenService;
     private final EmployeeReviewRepository employeeReviewRepository;
     private final ModelMapper modelMapper;
@@ -168,7 +170,9 @@ class EmployeeServiceImpl implements EmployeeService {
             employee.setResponsible(responsible);
         }
 
-        employee.setLocations(resolveLocations(employeeDTO.getLocationIds()));
+        if (locationsChanged(employee, employeeDTO.getLocationIds())) {
+            employee.setLocations(resolveLocations(employeeDTO.getLocationIds()));
+        }
 
         if (employeeDetailsPresent(employeeDTO)) {
             updateReviewDetails(employeeDTO.getDetails(), employee.getDetails());
@@ -177,7 +181,10 @@ class EmployeeServiceImpl implements EmployeeService {
         updateAuthorities(employee, employeeDTO);
 
         Employee currentUser = employeeRepository.findByUsername(currentUserDetails.getUsername()).orElseThrow(IllegalStateException::new);
-        employeeProducer.edit(employee, currentUser);
+        try (Session session = entityManagerFactory.unwrap(SessionFactory.class).openSession()) {
+            Employee employeeBeforeEdit = session.get(Employee.class, employee.getId());
+            employeeProducer.edit(employeeBeforeEdit, employee, currentUser);
+        }
 
         return mapToDto(employeeRepository.save(employee));
     }
@@ -201,6 +208,14 @@ class EmployeeServiceImpl implements EmployeeService {
     private boolean responsibleChanged(Employee oldResponsible, Long responsibleId) {
         Long oldResponsibleId = (oldResponsible != null) ? oldResponsible.getId() : null;
         return !Objects.equals(oldResponsibleId, responsibleId);
+    }
+
+    private boolean locationsChanged(Employee employee, Set<Long> locationIds) {
+        return !employee.getLocations()
+                .stream()
+                .map(Location::getId)
+                .collect(Collectors.toSet())
+                .equals(locationIds);
     }
 
     private void updateAuthorities(Employee employee, EmployeeDTO employeeDTO) {
@@ -363,7 +378,7 @@ class EmployeeServiceImpl implements EmployeeService {
                 EMPLOYEES_ARCHIVED.apply(Boolean.FALSE),
                 CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId()),
                 ExpressionUtils.neConst(QEmployee.employee.id, employee.getId()),
-                ExpressionUtils.notIn(Expressions.constant(employee), QEmployee.employee.visitedBy));
+                ExpressionUtils.eqConst(QEmployee.employee.visitedLogs.any().employee, employee).not());
     }
 
     @Override
@@ -372,11 +387,8 @@ class EmployeeServiceImpl implements EmployeeService {
                                                           @NonNull UserDetails currentUserDetails) {
         Optional<Employee> employee = employeeRepository.findById(employeeId);
 
-
         Employee currentUser = employeeRepository.findByUsername(currentUserDetails.getUsername()).orElseThrow(IllegalStateException::new);
-        employee.ifPresent(empl -> {
-            employeeProducer.read(empl, currentUser, isSaveLog);
-        });
+        employee.ifPresent(empl -> employeeProducer.read(empl, currentUser, isSaveLog));
         return employee.map(this::mapToPreviewDto);
     }
 
@@ -491,7 +503,7 @@ class EmployeeServiceImpl implements EmployeeService {
         Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
         if (isNew) {
             combinePredicate = ExpressionUtils.allOf(combinePredicate,
-                    ExpressionUtils.notIn(Expressions.constant(employee), QEmployee.employee.visitedBy));
+                    ExpressionUtils.eqConst(QEmployee.employee.visitedLogs.any().employee, employee).not());
         }
         return employeeRepository.findAll(combinePredicate).stream().map(this::mapToExportDto).collect(Collectors.toList());
     }

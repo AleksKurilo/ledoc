@@ -21,11 +21,14 @@ import dk.ledocsystem.service.api.dto.inbound.supplier.SupplierDTO;
 import dk.ledocsystem.service.api.dto.outbound.supplier.GetSupplierDTO;
 import dk.ledocsystem.service.api.dto.outbound.supplier.SupplierPreviewDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
+import dk.ledocsystem.service.impl.events.producer.SupplierProducer;
 import dk.ledocsystem.service.impl.property_maps.document.SupplierToSupplierPreviewDtoPropertyMap;
 import dk.ledocsystem.service.impl.property_maps.supplier.SupplierToGetSupplierDtoPropertyMap;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +37,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManagerFactory;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -59,6 +63,8 @@ public class SupplierServiceImpl implements SupplierService {
     private final ReviewTemplateService reviewTemplateService;
     private final ModelMapper modelMapper;
     private final BaseValidator<SupplierDTO> validator;
+    private final SupplierProducer supplierProducer;
+    private final EntityManagerFactory entityManagerFactory;
 
     @PostConstruct
     private void init() {
@@ -83,7 +89,7 @@ public class SupplierServiceImpl implements SupplierService {
         supplier.setReviewTemplate(resolveReviewTemplate(supplierDTO.getReviewTemplateId()));
         supplier.setLocations(resolveLocations(supplierDTO.getLocationIds()));
 
-        //TODO supplierProducer.create(supplier, creator)
+        supplierProducer.create(supplier, creator);
         return mapToDto(supplierRepository.save(supplier));
     }
 
@@ -113,9 +119,8 @@ public class SupplierServiceImpl implements SupplierService {
 
     @Override
     @Transactional
-    public GetSupplierDTO update(SupplierDTO supplierDTO, UserDetails currentUser) {
-        Employee creator = employeeRepository.findByUsername(currentUser.getUsername())
-                .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, currentUser.getUsername()));
+    public GetSupplierDTO update(SupplierDTO supplierDTO, UserDetails currentUserDetails) {
+        Employee currentUser = employeeRepository.findByUsername(currentUserDetails.getUsername()).orElseThrow(IllegalStateException::new);
         Customer customer = resolveCustomerByUsername(currentUser.getUsername());
         validator.validate(supplierDTO, ImmutableMap.of("customerId", customer.getId()), supplierDTO.getValidationGroups());
 
@@ -132,7 +137,11 @@ public class SupplierServiceImpl implements SupplierService {
         if (!responsibleId.equals(supplier.getResponsible().getId())) {
             Employee responsible = resolveResponsible(responsibleId);
             supplier.setResponsible(responsible);
-            //TODO supplierProducer.edit(supplier, creator);
+        }
+
+        try (Session session = entityManagerFactory.unwrap(SessionFactory.class).openSession()) {
+            Supplier supplierBeforeEdit = session.get(Supplier.class, supplier.getId());
+            supplierProducer.edit(supplierBeforeEdit, supplier, currentUser);
         }
         return mapToDto(supplierRepository.save(supplier));
     }
@@ -143,8 +152,7 @@ public class SupplierServiceImpl implements SupplierService {
         Employee creator = employeeRepository.findByUsername(currentUser.getUsername()).orElseThrow(IllegalStateException::new);
         Supplier supplier = supplierRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(SUPPLIER_ID_NOT_FOUND, id.toString()));
-        //TODO add supplierProducer.read(supplier, creator, isSaveLog);
-
+        supplierProducer.read(supplier, creator, isSaveLog);
         return supplierRepository.findById(id).map(this::mapToPreviewDto);
     }
 
@@ -160,7 +168,11 @@ public class SupplierServiceImpl implements SupplierService {
         supplier.setArchiveReason(archivedStatusDTO.getArchiveReason());
         supplierRepository.save(supplier);
 
-        //TODO add data to logs equipmentProducer.archive(equipment, creator) or equipmentProducer.unarchive
+        if (archivedStatusDTO.isArchived()) {
+            supplierProducer.archive(supplier, creator);
+        } else {
+            supplierProducer.unarchive(supplier, creator);
+        }
     }
 
     private SupplierPreviewDTO mapToPreviewDto(Supplier supplier) {

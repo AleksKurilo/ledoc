@@ -4,36 +4,18 @@ import dk.ledocsystem.data.model.Customer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.DiscriminatorColumn;
-import javax.persistence.DiscriminatorType;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+import javax.persistence.*;
 import java.util.Set;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "review_templates", uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "customer_id"})})
-@ToString(of = {"name"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @DiscriminatorColumn(name = "module", discriminatorType = DiscriminatorType.STRING)
 public abstract class ReviewTemplate {
 
@@ -74,5 +56,10 @@ public abstract class ReviewTemplate {
     // as for now all not editable reviews are referred to as simple reviews
     public boolean isSimpleReview() {
         return !editable;
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }

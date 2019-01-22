@@ -13,10 +13,11 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Entity
 @Table(name = "document_categories")
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class DocumentCategory implements DoubleNamed {
 
-    @Id
     @EqualsAndHashCode.Include
+    @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "document_categories_seq")
     @SequenceGenerator(name = "document_categories_seq", sequenceName = "document_categories_seq")
     private Long id;
@@ -29,4 +30,9 @@ public class DocumentCategory implements DoubleNamed {
 
     @Enumerated(EnumType.STRING)
     private DocumentCategoryType type;
+
+    @Override
+    public String toString() {
+        return nameEn;
+    }
 }

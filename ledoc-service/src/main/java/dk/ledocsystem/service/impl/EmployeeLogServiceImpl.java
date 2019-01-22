@@ -2,33 +2,36 @@ package dk.ledocsystem.service.impl;
 
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
-import dk.ledocsystem.data.repository.EmployeeRepository;
-import dk.ledocsystem.service.api.dto.outbound.AbstractLogDTO;
-import dk.ledocsystem.service.api.dto.outbound.LogsDTO;
-import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.data.model.employee.Employee;
+import dk.ledocsystem.data.model.logging.EmployeeEditDetails;
 import dk.ledocsystem.data.model.logging.EmployeeLog;
 import dk.ledocsystem.data.model.logging.LogType;
 import dk.ledocsystem.data.model.logging.QEmployeeLog;
 import dk.ledocsystem.data.repository.EmployeeLogRepository;
+import dk.ledocsystem.data.repository.EmployeeRepository;
 import dk.ledocsystem.service.api.EmployeeLogService;
+import dk.ledocsystem.service.api.dto.outbound.logs.AbstractLogDTO;
+import dk.ledocsystem.service.api.dto.outbound.logs.EditDetailsDTO;
+import dk.ledocsystem.service.api.dto.outbound.logs.LogsDTO;
+import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static dk.ledocsystem.service.impl.constant.ErrorMessageKey.EMPLOYEE_ID_NOT_FOUND;
 
 
 @Service
-@RequiredArgsConstructor(onConstructor_ = {@Lazy})
+@RequiredArgsConstructor
 public class EmployeeLogServiceImpl implements EmployeeLogService {
 
+    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss");
     private static final Function<Long, Predicate> EMPLOYEE_EQUALS_TO =
             employeeId -> ExpressionUtils.eqConst(QEmployeeLog.employeeLog.targetEmployee.id, employeeId);
 
@@ -36,17 +39,27 @@ public class EmployeeLogServiceImpl implements EmployeeLogService {
     private final EmployeeLogRepository employeeLogRepository;
 
     @Override
-    public EmployeeLog createLog(Employee loggedInUser, Employee targetUser, LogType logType) {
+    public void createLog(Employee loggedInUser, Employee targetUser, LogType logType) {
         EmployeeLog log = new EmployeeLog();
         log.setEmployee(loggedInUser);
         log.setLogType(logType);
         log.setTargetEmployee(targetUser);
-        return employeeLogRepository.save(log);
+        employeeLogRepository.save(log);
+    }
+
+    @Override
+    public void createEditLog(Employee loggedInUser, Employee targetUser, List<EmployeeEditDetails> editDetails) {
+        EmployeeLog log = new EmployeeLog();
+        log.setEmployee(loggedInUser);
+        log.setLogType(LogType.Edit);
+        log.setEditDetails(editDetails);
+        log.setTargetEmployee(targetUser);
+        employeeLogRepository.save(log);
     }
 
     @Override
     @Transactional
-    public LogsDTO getAllEmployeeLogs(Long employeeId, Predicate predicate) {
+    public LogsDTO getAllLogsByTargetId(Long employeeId, Predicate predicate) {
         List<AbstractLogDTO> resultList = new ArrayList<>();
         Employee currentUser = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
@@ -56,21 +69,25 @@ public class EmployeeLogServiceImpl implements EmployeeLogService {
 
         employeeLogRepository.findAll(combinePredicate).forEach(employeeLog -> {
             Employee actionActor = employeeLog.getEmployee();
-            SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 
             AbstractLogDTO log = new AbstractLogDTO();
             log.setId(employeeLog.getId());
             log.setLogType(employeeLog.getLogType());
             log.setLogTypeMessage(employeeLog.getLogType().getDescription());
-            log.setActionActor(actionActor.getFirstName() + " " + actionActor.getLastName() + " (" + actionActor.getUsername() + ")");
-            log.setDate(sdf.format(employeeLog.getCreated()));
+            log.setActionActor(actionActor.getName() + " (" + actionActor.getUsername() + ")");
+            log.setDate(employeeLog.getCreated().format(dateTimeFormatter));
+            if (employeeLog.isEditLog()) {
+                log.setEditDetails(mapDetailsToDto(employeeLog.getEditDetails()));
+            }
             resultList.add(log);
         });
         return new LogsDTO(employeeName, resultList);
     }
 
-    @Override
-    public List<EmployeeLog> getAllLogsByTargetId(Long employeeId) {
-        return employeeLogRepository.getAllByTargetEmployeeId(employeeId);
+    private List<EditDetailsDTO> mapDetailsToDto(List<EmployeeEditDetails> editDetails) {
+        return editDetails.stream()
+                .map(details -> new EditDetailsDTO(details.getProperty(), details.getPreviousValue(),
+                        details.getCurrentValue()))
+                .collect(Collectors.toList());
     }
 }

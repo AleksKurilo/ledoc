@@ -3,14 +3,17 @@ package dk.ledocsystem.data.model.equipment;
 import dk.ledocsystem.data.model.Customer;
 import dk.ledocsystem.data.model.Location;
 import dk.ledocsystem.data.model.employee.Employee;
+import dk.ledocsystem.data.model.logging.EquipmentLog;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
 import dk.ledocsystem.data.model.supplier.Supplier;
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 import org.hibernate.annotations.*;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
 import javax.persistence.Table;
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -23,7 +26,7 @@ import java.util.Set;
 @Getter
 @Entity
 @Table(name = "equipment", uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "customer_id"})})
-@ToString(of = {"id", "name"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @DynamicInsert
 @DynamicUpdate
 public class Equipment {
@@ -130,14 +133,9 @@ public class Equipment {
     @OneToMany(mappedBy = "followed", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
     private Set<FollowedEquipment> followedEquipments;
 
-    @ManyToMany
-    @JoinTable(name = "equipment_logs",
-            joinColumns = { @JoinColumn(name = "equipment_id")},
-            inverseJoinColumns = { @JoinColumn(name = "employee_id",
-                    foreignKey = @ForeignKey(foreignKeyDefinition = "foreign key (employee_id) references employees on delete cascade")) })
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @WhereJoinTable(clause = "type = 'Read' OR type = 'Archive'")
-    private Set<Employee> visitedBy;
+    @OneToMany(mappedBy = "equipment")
+    @Where(clause = "type = 'Read' OR type = 'Archive'")
+    private Set<EquipmentLog> visitedLogs;
 
     public boolean isLoaned() {
         return loan != null;
@@ -192,5 +190,10 @@ public class Equipment {
                 followedEquipment.getEmployee().getFollowedEquipments().remove(followedEquipment);
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }

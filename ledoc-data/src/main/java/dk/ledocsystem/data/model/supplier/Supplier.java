@@ -7,7 +7,6 @@ import dk.ledocsystem.data.model.review.ReviewTemplate;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -22,7 +21,7 @@ import java.util.Set;
 @Entity
 @Table(name = "suppliers",
         uniqueConstraints = @UniqueConstraint(columnNames = {"name", "customer_id"}))
-@ToString(of = {"name", "contactPhone", "contactEmail"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Supplier {
 
     @EqualsAndHashCode.Include
@@ -111,6 +110,11 @@ public class Supplier {
 
     private LocalDate getPrevReviewDate() {
         return (nextReviewDate != null) ? nextReviewDate.minus(approvalRate) : LocalDate.now();
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 
 }

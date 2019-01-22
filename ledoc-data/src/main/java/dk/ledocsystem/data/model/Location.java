@@ -2,7 +2,10 @@ package dk.ledocsystem.data.model;
 
 import dk.ledocsystem.data.model.document.Document;
 import dk.ledocsystem.data.model.employee.Employee;
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 import org.hibernate.annotations.*;
 
 import javax.persistence.CascadeType;
@@ -16,7 +19,7 @@ import java.util.Set;
 @Setter
 @Entity
 @Table(name = "locations", uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "customer_id"})})
-@ToString(of = {"id", "name"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @DynamicInsert
 @DynamicUpdate
 public class Location {
@@ -92,5 +95,10 @@ public class Location {
             this.address.setLocation(null);
         }
         this.address = null;
+    }
+
+    @Override
+    public String toString() {
+        return getName();
     }
 }

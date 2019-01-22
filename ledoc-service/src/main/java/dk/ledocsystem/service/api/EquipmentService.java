@@ -1,9 +1,9 @@
 package dk.ledocsystem.service.api;
 
 import com.querydsl.core.types.Predicate;
-import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.equipment.*;
+import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.service.api.dto.outbound.equipment.EquipmentExportDTO;
 import dk.ledocsystem.service.api.dto.outbound.equipment.EquipmentPreviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.equipment.GetEquipmentDTO;
@@ -30,11 +30,11 @@ public interface EquipmentService extends CustomerBasedDomainService<GetEquipmen
     /**
      * Updates the properties of the equipment with the given ID with properties of {@code equipmentCreateDTO}.
      *
-     * @param equipmentDTO   New properties of the equipment
-     * @param creatorDetails Creator
+     * @param equipmentDTO       New properties of the equipment
+     * @param currentUserDetails Current user
      * @return Updated {@link GetEquipmentDTO equipment}
      */
-    GetEquipmentDTO updateEquipment(EquipmentDTO equipmentDTO, UserDetails creatorDetails);
+    GetEquipmentDTO updateEquipment(EquipmentDTO equipmentDTO, UserDetails currentUserDetails);
 
     /**
      * Changes the archived status according to data from {@code archivedStatusDTO}.

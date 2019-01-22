@@ -53,6 +53,7 @@ public class AuthenticationSuccessHandlerImpl implements AuthenticationSuccessHa
 
         Cookie cookie = new Cookie("info", builder.compact());
         cookie.setPath("/");
+        cookie.setMaxAge(-1);
         response.addCookie(cookie);
     }
 

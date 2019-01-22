@@ -1,10 +1,10 @@
 package dk.ledocsystem.data.model;
 
 import dk.ledocsystem.data.model.document.Document;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -17,9 +17,10 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Table(name = "trades")
-@ToString(of = {"nameEn"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Trade implements DoubleNamed {
 
+    @EqualsAndHashCode.Include
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "trades_seq")
     @SequenceGenerator(name = "trades_seq", sequenceName = "trades_seq")
@@ -38,4 +39,9 @@ public class Trade implements DoubleNamed {
     @ManyToMany(mappedBy = "trades")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Document> documents;
+
+    @Override
+    public String toString() {
+        return nameEn;
+    }
 }

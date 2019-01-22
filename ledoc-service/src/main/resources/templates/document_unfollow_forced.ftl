@@ -1,0 +1,1 @@
+<p>The monitoring of document ${documentName} was stopped</p>

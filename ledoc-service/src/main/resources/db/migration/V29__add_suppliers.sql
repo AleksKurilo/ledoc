@@ -87,5 +87,27 @@ create table main.supplier_logs
 alter table main.supplier_logs
   owner to ledoc;
 
+--create supplier_edit_details
+create table main.supplier_edit_details
+(
+  property   varchar(50) not null,
+  prev_value varchar,
+  cur_value  varchar,
+  log_id     bigint      not null
+    constraint fk_supplier_edit_details_logs
+      references main.supplier_logs
+      on delete cascade,
+  constraint supplier_edit_details_pkey primary key (property, log_id)
+);
+
+ALTER TABLE main.supplier_edit_details
+  OWNER TO ledoc;
+
+update main.suppliers
+set responsible_id = 1
+where main.suppliers.responsible_id is null;
+alter table main.suppliers
+  alter column responsible_id set not null;
+
 
 

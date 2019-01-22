@@ -10,17 +10,8 @@ import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.querydsl.binding.SingleValueBinding;
 
-import java.util.List;
-
 public interface EmployeeLogRepository extends JpaRepository<EmployeeLog, Long>,
         QuerydslPredicateExecutor<EmployeeLog>, QuerydslBinderCustomizer<QEmployeeLog> {
-
-    /**
-     * Get list of logs by affected employee.
-     *
-     * @param employeeId The ID of affected employee.
-     */
-    List<EmployeeLog> getAllByTargetEmployeeId(Long employeeId);
 
     @Override
     default void customize(QuerydslBindings bindings, QEmployeeLog root) {
