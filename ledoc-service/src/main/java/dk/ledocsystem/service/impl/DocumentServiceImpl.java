@@ -35,6 +35,8 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -47,6 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.EntityManagerFactory;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -76,6 +79,7 @@ class DocumentServiceImpl implements DocumentService {
     private final CustomerService customerService;
     private final DocumentCategoryRepository categoryRepository;
     private final FollowedDocumentRepository followedDocumentRepository;
+    private final EntityManagerFactory entityManagerFactory;
 
     private final ExcelExportService excelExportService;
     private final ModelMapper modelMapper;
@@ -95,15 +99,15 @@ class DocumentServiceImpl implements DocumentService {
 
     @Override
     @Transactional
-    public GetDocumentDTO create(@NonNull DocumentDTO documentDTO, @NonNull UserDetails userDetails) {
-        Document document = modelMapper.map(documentDTO, Document.class);
-        Customer customer = resolveCustomerByUsername(userDetails.getUsername());
+    public GetDocumentDTO create(@NonNull DocumentDTO documentDTO, @NonNull UserDetails creatorDetails) {
+        Customer customer = resolveCustomerByUsername(creatorDetails.getUsername());
         documentDtoValidator.validate(documentDTO, ImmutableMap.of("customerId", customer.getId()), documentDTO.getValidationGroups());
 
+        Document document = modelMapper.map(documentDTO, Document.class);
         document.setCustomer(customer);
-        Employee creator = employeeRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, userDetails.getUsername()));
 
+        Employee creator = employeeRepository.findByUsername(creatorDetails.getUsername())
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, creatorDetails.getUsername()));
         document.setCreator(creator);
         document.setResponsible(resolveResponsible(documentDTO.getResponsibleId()));
         setNestedParameters(documentDTO, document);
@@ -120,15 +124,13 @@ class DocumentServiceImpl implements DocumentService {
 
     @Override
     @Transactional
-    public GetDocumentDTO update(@NonNull DocumentDTO documentDTO, @NonNull UserDetails userDetails) {
+    public GetDocumentDTO update(@NonNull DocumentDTO documentDTO, @NonNull UserDetails currentUserDetails) {
+        Customer customer = resolveCustomerByUsername(currentUserDetails.getUsername());
+        documentDtoValidator.validate(documentDTO, ImmutableMap.of("customerId", customer.getId()), documentDTO.getValidationGroups());
+
         Document document = documentRepository.findById(documentDTO.getId())
                 .orElseThrow(() -> new NotFoundException(DOCUMENT_ID_NOT_FOUND, documentDTO.getId().toString()));
-
         modelMapper.map(documentDTO, document);
-        Customer customer = resolveCustomerByUsername(userDetails.getUsername());
-        documentDtoValidator.validate(documentDTO, ImmutableMap.of("customerId", customer.getId()), documentDTO.getValidationGroups());
-        Employee creator = employeeRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, userDetails.getUsername()));
 
         setNestedParameters(documentDTO, document);
 
@@ -136,9 +138,13 @@ class DocumentServiceImpl implements DocumentService {
         if (!responsibleId.equals(document.getResponsible().getId())) {
             Employee responsible = resolveResponsible(responsibleId);
             document.setResponsible(responsible);
-            documentProducer.edit(document, creator);
         }
 
+        Employee currentUser = employeeRepository.findByUsername(currentUserDetails.getUsername()).orElseThrow(IllegalStateException::new);
+        try (Session session = entityManagerFactory.unwrap(SessionFactory.class).openSession()) {
+            Document documentBeforeEdit = session.get(Document.class, document.getId());
+            documentProducer.edit(documentBeforeEdit, document, currentUser);
+        }
         return mapToDto(documentRepository.save(document));
     }
 
@@ -205,15 +211,14 @@ class DocumentServiceImpl implements DocumentService {
         Employee employee = employeeRepository.findByUsername(user.getUsername())
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, user.getUsername()));
 
-
-        Predicate newDocumentsPredicate = ExpressionUtils.allOf(CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId()), getNewDocumentsPredicate(employee));
+        Predicate newDocumentsPredicate = getNewDocumentsPredicate(employee);
         return documentRepository.count(newDocumentsPredicate);
     }
 
     private Predicate getNewDocumentsPredicate(Employee employee) {
         return ExpressionUtils.allOf(
                 DOCUMENTS_ARCHIVED.apply(Boolean.FALSE),
-                ExpressionUtils.notIn(Expressions.constant(employee), QDocument.document.visitedBy));
+                ExpressionUtils.eqConst(QDocument.document.visitedLogs.any().employee, employee).not());
     }
 
     @Override

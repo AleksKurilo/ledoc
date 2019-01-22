@@ -4,6 +4,7 @@ import dk.ledocsystem.data.model.Customer;
 import dk.ledocsystem.data.model.Location;
 import dk.ledocsystem.data.model.Trade;
 import dk.ledocsystem.data.model.employee.Employee;
+import dk.ledocsystem.data.model.logging.DocumentLog;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -13,7 +14,6 @@ import org.hibernate.annotations.*;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
 import javax.persistence.Table;
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -28,13 +28,16 @@ import java.util.Set;
 @NoArgsConstructor
 @Entity
 @Table(name = "documents", uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "customer_id"})})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@DynamicInsert
+@DynamicUpdate
 public class Document {
 
     @EqualsAndHashCode.Include
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "document_seq")
     @SequenceGenerator(name = "document_seq", sequenceName = "document_seq")
-    private long id;
+    private Long id;
 
     @Column(nullable = false, length = 40)
     private String name;
@@ -74,7 +77,8 @@ public class Document {
 
     private LocalDate lastUpdate;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "responsible_id", nullable = false)
     private Employee responsible;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -110,14 +114,9 @@ public class Document {
             inverseJoinColumns = {@JoinColumn(name = "trade_id")})
     private Set<Trade> trades;
 
-    @ManyToMany
-    @JoinTable(name = "document_logs",
-            joinColumns = {@JoinColumn(name = "document_id")},
-            inverseJoinColumns = {@JoinColumn(name = "employee_id",
-                    foreignKey = @ForeignKey(foreignKeyDefinition = "foreign key (employee_id) references employees on delete cascade"))})
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @WhereJoinTable(clause = "type = 'Read' OR type = 'Archive'")
-    private Set<Employee> visitedBy;
+    @OneToMany(mappedBy = "document")
+    @Where(clause = "type = 'Read' OR type = 'Archive'")
+    private Set<DocumentLog> visitedLogs;
 
     @OneToMany(mappedBy = "followed", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
@@ -179,5 +178,10 @@ public class Document {
                 .findAny();
 
         return followed.isPresent() && followed.get().isRead();
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }

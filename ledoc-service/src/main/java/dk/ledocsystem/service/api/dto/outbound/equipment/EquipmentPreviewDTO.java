@@ -25,6 +25,8 @@ public class EquipmentPreviewDTO {
 
     private ApprovalType approvalType;
 
+    private LocalDate nextReviewDate;
+
     private Period approvalRate;
 
     private String reviewTemplateName;

@@ -11,6 +11,9 @@ public class EquipmentToGetEquipmentDtoPropertyMap extends PropertyMap<Equipment
     protected void configure() {
         map().setLocation(source.getLocation().getName());
         map().setResponsible(source.getResponsible().getName());
+        map().setResponsibleId(source.getResponsible().getId());
+        map().setReviewTemplateId(source.getReviewTemplate().getId());
+        map().setSimpleReview(source.getReviewTemplate().isSimple());
         using(DoubleNamedLocalizedConverter.INSTANCE).map(source.getCategory(), destination.getCategory());
         using(DoubleNamedLocalizedConverter.INSTANCE).map(source.getAuthenticationType(), destination.getAuthenticationType());
         map().getLoan().setBorrower(source.getLoan().getBorrower().getName());

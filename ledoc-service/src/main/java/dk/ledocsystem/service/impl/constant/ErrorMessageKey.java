@@ -18,6 +18,7 @@ public final class ErrorMessageKey {
     public static final String EMPLOYEE_ID_NOT_FOUND = "employee.id.not.found";
     public static final String EMPLOYEE_USERNAME_NOT_FOUND = "employee.username.not.found";
     public static final String EMPLOYEE_REVIEW_NOT_APPLICABLE = "employee.review.not.applicable";
+    public static final String EMPLOYEE_SIMPLE_REVIEW_NOT_APPLICABLE = "employee.simple.review.not.applicable";
     public static final String EMPLOYEE_USERNAME_IS_ALREADY_IN_USE = "employee.username.already.in.use";
     public static final String EMPLOYEE_RESPONSIBLE_NOT_FOUND = "employee.responsible.not.found";
     public static final String EMPLOYEE_RESPONSIBLE_OF_SKILL_NOT_FOUND = "employee.responsible.of.skills.not.found";
@@ -26,6 +27,8 @@ public final class ErrorMessageKey {
     public static final String EQUIPMENT_CATEGORY_NOT_FOUND = "equipment.category.not.found";
     public static final String EQUIPMENT_AUTHENTICATION_TYPE_NOT_FOUND = "equipment.authentication.type.not.found";
     public static final String EQUIPMENT_BORROWER_NOT_FOUND = "equipment.borrower.not.found";
+    public static final String EQUIPMENT_REVIEW_NOT_APPLICABLE = "equipment.review.not.applicable";
+    public static final String EQUIPMENT_SIMPLE_REVIEW_NOT_APPLICABLE = "equipment.simple.review.not.applicable";
     public static final String LOCATION_ID_NOT_FOUND = "location.id.not.found";
     public static final String LOCATION_ADDRESS_LOCATION_NOT_FOUND = "location.address.location.not.found";
     public static final String LOCATION_NAME_IS_ALREADY_IN_USE = "location.name.already.in.use";

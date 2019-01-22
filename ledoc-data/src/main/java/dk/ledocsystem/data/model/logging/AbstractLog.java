@@ -7,7 +7,7 @@ import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -21,10 +21,8 @@ public abstract class AbstractLog {
     @SequenceGenerator(name = "log_seq", sequenceName = "log_seq")
     private Long id;
 
-    @Basic(optional = false)
     @Column(nullable = false, insertable = false, updatable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date created;
+    private LocalDateTime created;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id", nullable = false)

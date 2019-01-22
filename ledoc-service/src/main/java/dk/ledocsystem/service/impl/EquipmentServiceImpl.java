@@ -11,17 +11,25 @@ import dk.ledocsystem.data.model.QSupplier;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.employee.QEmployee;
 import dk.ledocsystem.data.model.equipment.*;
+import dk.ledocsystem.data.model.review.EquipmentReview;
+import dk.ledocsystem.data.model.review.EquipmentReviewQuestionAnswer;
+import dk.ledocsystem.data.model.review.ReviewQuestion;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
 import dk.ledocsystem.data.repository.*;
 import dk.ledocsystem.service.api.EquipmentService;
 import dk.ledocsystem.service.api.ExcelExportService;
+import dk.ledocsystem.service.api.ReviewQuestionService;
 import dk.ledocsystem.service.api.ReviewTemplateService;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.equipment.*;
 import dk.ledocsystem.service.api.dto.inbound.equipment.EquipmentLoanDTO;
+import dk.ledocsystem.service.api.dto.inbound.review.ReviewDTO;
+import dk.ledocsystem.service.api.dto.inbound.review.ReviewQuestionAnswerDTO;
+import dk.ledocsystem.service.api.dto.inbound.review.SimpleReviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.service.api.dto.outbound.equipment.*;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
+import dk.ledocsystem.service.api.exceptions.ReviewNotApplicableException;
 import dk.ledocsystem.service.impl.events.producer.EquipmentProducer;
 import dk.ledocsystem.service.impl.excel.sheets.EntitySheet;
 import dk.ledocsystem.service.impl.excel.sheets.equipment.EquipmentEntitySheet;
@@ -49,6 +57,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceContext;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -75,9 +84,11 @@ class EquipmentServiceImpl implements EquipmentService {
     private final EquipmentRepository equipmentRepository;
     private final EquipmentCategoryRepository equipmentCategoryRepository;
     private final AuthenticationTypeRepository authenticationTypeRepository;
+    private final EquipmentReviewRepository equipmentReviewRepository;
     private final EmployeeRepository employeeRepository;
     private final LocationRepository locationRepository;
     private final ReviewTemplateService reviewTemplateService;
+    private final ReviewQuestionService reviewQuestionService;
     private final EquipmentProducer equipmentProducer;
     private final EntityManagerFactory entityManagerFactory;
     private final PredicateBuilderAndParser predicateBuilderAndParser;
@@ -86,6 +97,8 @@ class EquipmentServiceImpl implements EquipmentService {
     private final BaseValidator<EquipmentLoanDTO> equipmentLoanDtoValidator;
     private final BaseValidator<AuthenticationTypeDTO> authenticationTypeDtoValidator;
     private final BaseValidator<EquipmentCategoryCreateDTO> equipmentCategoryCreateDtoValidator;
+    private final BaseValidator<ReviewDTO> reviewDtoValidator;
+    private final BaseValidator<SimpleReviewDTO> simpleReviewDtoValidator;
 
     @PostConstruct
     private void init() {
@@ -98,7 +111,7 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     @Transactional
-    public GetEquipmentDTO createEquipment(@NonNull EquipmentDTO equipmentDTO, UserDetails creatorDetails) {
+    public GetEquipmentDTO createEquipment(@NonNull EquipmentDTO equipmentDTO, @NonNull UserDetails creatorDetails) {
         Employee creator = employeeRepository.findByUsername(creatorDetails.getUsername()).orElseThrow(IllegalStateException::new);
         Customer customer = creator.getCustomer();
         equipmentDtoValidator.validate(equipmentDTO, ImmutableMap.of("customerId", customer.getId()), equipmentDTO.getValidationGroups());
@@ -121,7 +134,7 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     @Transactional
-    public GetEquipmentDTO updateEquipment(@NonNull EquipmentDTO equipmentDTO, UserDetails currentUserDetails) {
+    public GetEquipmentDTO updateEquipment(@NonNull EquipmentDTO equipmentDTO, @NonNull UserDetails currentUserDetails) {
         Employee currentUser = employeeRepository.findByUsername(currentUserDetails.getUsername()).orElseThrow(IllegalStateException::new);
         Customer customer = currentUser.getCustomer();
         equipmentDtoValidator.validate(equipmentDTO, ImmutableMap.of("customerId", customer.getId()), equipmentDTO.getValidationGroups());
@@ -155,7 +168,7 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     @Transactional
-    public void changeArchivedStatus(@NonNull Long equipmentId, @NonNull ArchivedStatusDTO archivedStatusDTO, UserDetails creatorDetails) {
+    public void changeArchivedStatus(@NonNull Long equipmentId, @NonNull ArchivedStatusDTO archivedStatusDTO, @NonNull UserDetails creatorDetails) {
         Equipment equipment = equipmentRepository.findById(equipmentId)
                 .orElseThrow(() -> new NotFoundException("equipment.id.not.found", equipmentId.toString()));
 
@@ -171,6 +184,83 @@ class EquipmentServiceImpl implements EquipmentService {
         }
     }
 
+    @Transactional
+    @Override
+    public void performSimpleReview(@NonNull Long equipmentId, @NonNull SimpleReviewDTO reviewDTO, @NonNull UserDetails currentUserDetails) {
+        simpleReviewDtoValidator.validate(reviewDTO);
+
+        Equipment equipment = equipmentRepository.findById(equipmentId)
+                .orElseThrow(() -> new NotFoundException(EQUIPMENT_ID_NOT_FOUND, equipmentId.toString()));
+        Employee currentUser = employeeRepository.findByUsername(currentUserDetails.getUsername()).orElseThrow(IllegalStateException::new);
+
+        ReviewTemplate reviewTemplate = equipment.getReviewTemplate();
+        if (reviewTemplate == null || !reviewTemplate.isSimple()) {
+            throw new ReviewNotApplicableException(EQUIPMENT_SIMPLE_REVIEW_NOT_APPLICABLE, equipment.getId());
+        }
+
+        EquipmentReview equipmentReview = mapSimpleEquipmentReview(reviewDTO, reviewTemplate);
+        equipmentReview.setReviewTemplate(reviewTemplate);
+        equipmentReview.setSubject(equipment);
+        equipmentReview.setReviewer(currentUser);
+
+        equipment.setStatus(reviewDTO.getStatus());
+        equipmentReviewRepository.save(equipmentReview);
+        equipmentProducer.review(equipment, currentUser);
+    }
+
+    private EquipmentReview mapSimpleEquipmentReview(SimpleReviewDTO reviewDTO, ReviewTemplate reviewTemplate) {
+        EquipmentReview equipmentReview = new EquipmentReview();
+
+        EquipmentReviewQuestionAnswer questionAnswer = new EquipmentReviewQuestionAnswer();
+        questionAnswer.setReviewQuestion(reviewTemplate.getQuestionGroups().get(0).getReviewQuestions().get(0));
+        questionAnswer.setReview(equipmentReview);
+        questionAnswer.setAnswer(reviewDTO.getStatus().toString());
+
+        equipmentReview.setAnswers(Collections.singletonList(questionAnswer));
+        return equipmentReview;
+    }
+
+    @Transactional
+    @Override
+    public void performReview(@NonNull Long equipmentId, @NonNull ReviewDTO reviewDTO, @NonNull UserDetails currentUserDetails) {
+        reviewDtoValidator.validate(reviewDTO);
+
+        Equipment equipment = equipmentRepository.findById(equipmentId)
+                .orElseThrow(() -> new NotFoundException(EQUIPMENT_ID_NOT_FOUND, equipmentId.toString()));
+        Employee currentUser = employeeRepository.findByUsername(currentUserDetails.getUsername()).orElseThrow(IllegalStateException::new);
+
+        ReviewTemplate reviewTemplate = equipment.getReviewTemplate();
+        if (reviewTemplate == null) {
+            throw new ReviewNotApplicableException(EQUIPMENT_REVIEW_NOT_APPLICABLE, equipment.getId());
+        }
+
+        EquipmentReview equipmentReview = mapEquipmentReview(reviewDTO);
+        equipmentReview.setReviewTemplate(reviewTemplate);
+        equipmentReview.setSubject(equipment);
+        equipmentReview.setReviewer(currentUser);
+
+        equipmentReviewRepository.save(equipmentReview);
+        equipmentProducer.review(equipment, currentUser);
+    }
+
+    private EquipmentReview mapEquipmentReview(ReviewDTO reviewDTO) {
+        EquipmentReview equipmentReview = new EquipmentReview();
+
+        List<EquipmentReviewQuestionAnswer> questionAnswers = new ArrayList<>();
+        for (ReviewQuestionAnswerDTO answer : reviewDTO.getAnswers()) {
+            ReviewQuestion reviewQuestion = reviewQuestionService.getById(answer.getQuestionId())
+                    .orElseThrow(() -> new NotFoundException(REVIEW_QUESTION_ID_NOT_FOUND, answer.getQuestionId().toString()));
+            EquipmentReviewQuestionAnswer questionAnswer = new EquipmentReviewQuestionAnswer();
+            questionAnswer.setReviewQuestion(reviewQuestion);
+            questionAnswer.setReview(equipmentReview);
+            questionAnswer.setAnswer(answer.getAnswer());
+            questionAnswer.setComment(answer.getComment());
+            questionAnswers.add(questionAnswer);
+        }
+        equipmentReview.setAnswers(questionAnswers);
+        return equipmentReview;
+    }
+
     @Override
     @Transactional(readOnly = true)
     public long countNewEquipment(@NonNull UserDetails user) {
@@ -184,12 +274,12 @@ class EquipmentServiceImpl implements EquipmentService {
     private Predicate getNewEquipmentPredicate(Employee employee) {
         return ExpressionUtils.allOf(
                 EQUIPMENT_ARCHIVED.apply(Boolean.FALSE),
-                ExpressionUtils.eqConst(QEquipment.equipment.visitedBy.any().employee, employee).not());
+                ExpressionUtils.eqConst(QEquipment.equipment.visitedLogs.any().employee, employee).not());
     }
 
     @Override
     @Transactional
-    public void loanEquipment(Long equipmentId, EquipmentLoanDTO equipmentLoanDTO) {
+    public void loanEquipment(@NonNull Long equipmentId, @NonNull EquipmentLoanDTO equipmentLoanDTO) {
         equipmentLoanDtoValidator.validate(equipmentLoanDTO);
 
         EquipmentLoan equipmentLoan = modelMapper.map(equipmentLoanDTO, EquipmentLoan.class);
@@ -203,7 +293,7 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     @Transactional
-    public void returnLoanedEquipment(Long equipmentId) {
+    public void returnLoanedEquipment(@NonNull Long equipmentId) {
         Equipment equipment = equipmentRepository.findById(equipmentId)
                 .orElseThrow(() -> new NotFoundException(EQUIPMENT_ID_NOT_FOUND, equipmentId.toString()));
         equipment.removeLoan();
@@ -211,7 +301,7 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public Workbook exportToExcel(UserDetails currentUserDetails, String searchString, Predicate predicate, boolean isNew) {
+    public Workbook exportToExcel(@NonNull UserDetails currentUserDetails, String searchString, Predicate predicate, boolean isNew) {
         List<EntitySheet> equipmentSheets = new ArrayList<>();
         Predicate predicateForEquipment = ExpressionUtils.and(predicate, EQUIPMENT_ARCHIVED.apply(false));
         equipmentSheets.add(new EquipmentEntitySheet(this, currentUserDetails, searchString, predicateForEquipment, isNew, "Equipment"));

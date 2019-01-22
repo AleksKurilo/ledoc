@@ -1,6 +1,9 @@
 package dk.ledocsystem.service.api;
 
 import com.querydsl.core.types.Predicate;
+import dk.ledocsystem.service.api.dto.inbound.review.ReviewDTO;
+import dk.ledocsystem.service.api.dto.inbound.review.SimpleReviewDTO;
+import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.equipment.*;
 import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
@@ -40,6 +43,22 @@ public interface EquipmentService extends CustomerBasedDomainService<GetEquipmen
      * Changes the archived status according to data from {@code archivedStatusDTO}.
      */
     void changeArchivedStatus(Long equipmentId, ArchivedStatusDTO archivedStatusDTO, UserDetails creatorDetails);
+
+    /**
+     * Performs simple review of the given equipment.
+     *
+     * @param equipmentId ID of the equipment
+     * @param reviewDTO   Information about performed review
+     */
+    void performSimpleReview(Long equipmentId, SimpleReviewDTO reviewDTO, UserDetails currentUser);
+
+    /**
+     * Performs review of the given equipment.
+     *
+     * @param equipmentId ID of the equipment
+     * @param reviewDTO   Information about performed review
+     */
+    void performReview(Long equipmentId, ReviewDTO reviewDTO, UserDetails currentUser);
 
     long countNewEquipment(UserDetails user);
 

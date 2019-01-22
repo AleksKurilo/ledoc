@@ -12,6 +12,7 @@ import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeCreateDTO;
 import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeDTO;
 import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeFollowDTO;
 import dk.ledocsystem.service.api.dto.inbound.review.ReviewDTO;
+import dk.ledocsystem.service.api.dto.inbound.review.SimpleReviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.employee.EmployeePreviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.employee.EmployeeSummary;
 import dk.ledocsystem.service.api.dto.outbound.employee.GetEmployeeDTO;
@@ -107,6 +108,12 @@ public class EmployeeController {
     @PutMapping("/{employeeId}/roles")
     public void updateAuthorities(@PathVariable Long employeeId, @RequestParam String role) {
         employeeService.grantAuthorities(employeeId, UserAuthorities.fromString(role));
+    }
+
+    @PostMapping("/{employeeId}/simple-review")
+    public void performSimpleReview(@PathVariable Long employeeId, @RequestBody SimpleReviewDTO reviewDTO,
+                                    @CurrentUser UserDetails currentUser) {
+        employeeService.performSimpleReview(employeeId, reviewDTO, currentUser);
     }
 
     @PostMapping("/{employeeId}/review")
