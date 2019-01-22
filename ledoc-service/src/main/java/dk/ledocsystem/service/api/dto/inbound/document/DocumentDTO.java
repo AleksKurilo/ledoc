@@ -6,6 +6,7 @@ import dk.ledocsystem.data.model.document.DocumentType;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.validation.groups.Default;
@@ -54,10 +55,10 @@ public class DocumentDTO {
     @NotNull
     private Long subcategoryId;
 
-    @NotNull
+    @NotEmpty
     private Set<Long> locationIds;
 
-    @NotNull
+    @NotEmpty
     private Set<Long> tradeIds;
 
     interface MustBeReviewed {

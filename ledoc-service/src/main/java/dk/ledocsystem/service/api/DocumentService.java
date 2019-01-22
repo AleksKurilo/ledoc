@@ -20,7 +20,7 @@ public interface DocumentService extends CustomerBasedDomainService<GetDocumentD
 
     GetDocumentDTO create(DocumentDTO documentDTO, UserDetails creator);
 
-    GetDocumentDTO update(DocumentDTO documentDTO, UserDetails creator);
+    GetDocumentDTO update(DocumentDTO documentDTO, UserDetails currentUserDetails);
 
     /**
      * Changes the archived status according to data from {@code archivedStatusDTO}.

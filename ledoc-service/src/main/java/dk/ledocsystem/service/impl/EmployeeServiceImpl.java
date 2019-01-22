@@ -26,6 +26,7 @@ import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeDetailsDTO;
 import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeFollowDTO;
 import dk.ledocsystem.service.api.dto.inbound.review.ReviewDTO;
 import dk.ledocsystem.service.api.dto.inbound.review.ReviewQuestionAnswerDTO;
+import dk.ledocsystem.service.api.dto.inbound.review.SimpleReviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.employee.*;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.service.api.exceptions.ReviewNotApplicableException;
@@ -77,12 +78,14 @@ class EmployeeServiceImpl implements EmployeeService {
     private final PasswordEncoder passwordEncoder;
     private final EntityManagerFactory entityManagerFactory;
     private final EmployeeReviewRepository employeeReviewRepository;
+    private final EmployeeProducer employeeProducer;
     private final ModelMapper modelMapper;
+
     private final BaseValidator<EmployeeDTO> employeeDtoValidator;
     private final BaseValidator<EmployeeCreateDTO> employeeCreateDtoValidator;
-    private final BaseValidator<ReviewDTO> reviewDtoBaseValidator;
+    private final BaseValidator<ReviewDTO> reviewDtoValidator;
+    private final BaseValidator<SimpleReviewDTO> simpleReviewDtoValidator;
     private final BaseValidator<ChangePasswordDTO> changePasswordDtoValidator;
-    private final EmployeeProducer employeeProducer;
 
     @PostConstruct
     private void init() {
@@ -296,31 +299,64 @@ class EmployeeServiceImpl implements EmployeeService {
 
     @Transactional
     @Override
-    public void performReview(@NonNull Long employeeId, @NonNull ReviewDTO reviewDTO, @NonNull UserDetails currentUserDetails) {
-        reviewDtoBaseValidator.validate(reviewDTO);
+    public void performSimpleReview(@NonNull Long employeeId, @NonNull SimpleReviewDTO reviewDTO, @NonNull UserDetails currentUserDetails) {
+        simpleReviewDtoValidator.validate(reviewDTO);
 
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
-        EmployeeReview employeeReview = mapEmployeeReview(reviewDTO, employee);
+        Employee currentUser = employeeRepository.findByUsername(currentUserDetails.getUsername()).orElseThrow(IllegalStateException::new);
+
+        ReviewTemplate reviewTemplate = employee.getDetails().getReviewTemplate();
+        if (reviewTemplate == null || !reviewTemplate.isSimple()) {
+            throw new ReviewNotApplicableException(EMPLOYEE_SIMPLE_REVIEW_NOT_APPLICABLE, employee.getId());
+        }
+
+        EmployeeReview employeeReview = mapSimpleEmployeeReview(reviewDTO, reviewTemplate);
+        employeeReview.setReviewTemplate(reviewTemplate);
+        employeeReview.setSubject(employee);
+        employeeReview.setReviewer(currentUser);
+
+        employeeReviewRepository.save(employeeReview);
+        employeeProducer.review(employee, currentUser);
+    }
+
+    private EmployeeReview mapSimpleEmployeeReview(SimpleReviewDTO reviewDTO, ReviewTemplate reviewTemplate) {
+        EmployeeReview employeeReview = new EmployeeReview();
+
+        EmployeeReviewQuestionAnswer questionAnswer = new EmployeeReviewQuestionAnswer();
+        questionAnswer.setReviewQuestion(reviewTemplate.getQuestionGroups().get(0).getReviewQuestions().get(0));
+        questionAnswer.setReview(employeeReview);
+        questionAnswer.setAnswer(reviewDTO.getStatus().toString());
+
+        employeeReview.setAnswers(Collections.singletonList(questionAnswer));
+        return employeeReview;
+    }
+
+    @Transactional
+    @Override
+    public void performReview(@NonNull Long employeeId, @NonNull ReviewDTO reviewDTO, @NonNull UserDetails currentUserDetails) {
+        reviewDtoValidator.validate(reviewDTO);
+
+        Employee employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new NotFoundException(EMPLOYEE_ID_NOT_FOUND, employeeId.toString()));
+        Employee currentUser = employeeRepository.findByUsername(currentUserDetails.getUsername()).orElseThrow(IllegalStateException::new);
 
         ReviewTemplate reviewTemplate = employee.getDetails().getReviewTemplate();
         if (reviewTemplate == null) {
             throw new ReviewNotApplicableException(EMPLOYEE_REVIEW_NOT_APPLICABLE, employee.getId());
         }
+
+        EmployeeReview employeeReview = mapEmployeeReview(reviewDTO);
         employeeReview.setReviewTemplate(reviewTemplate);
+        employeeReview.setSubject(employee);
+        employeeReview.setReviewer(currentUser);
 
         employeeReviewRepository.save(employeeReview);
-
-        Employee currentUser = employeeRepository.findByUsername(currentUserDetails.getUsername()).orElseThrow(IllegalStateException::new);
         employeeProducer.review(employee, currentUser);
     }
 
-    private EmployeeReview mapEmployeeReview(ReviewDTO reviewDTO, Employee subject) {
-        reviewDtoBaseValidator.validate(reviewDTO);
-
+    private EmployeeReview mapEmployeeReview(ReviewDTO reviewDTO) {
         EmployeeReview employeeReview = new EmployeeReview();
-        employeeReview.setSubject(subject);
-        employeeReview.setReviewer(subject.getDetails().getResponsibleOfSkills());
 
         List<EmployeeReviewQuestionAnswer> questionAnswers = new ArrayList<>();
         for (ReviewQuestionAnswerDTO answer : reviewDTO.getAnswers()) {
@@ -373,7 +409,7 @@ class EmployeeServiceImpl implements EmployeeService {
                 EMPLOYEES_ARCHIVED.apply(Boolean.FALSE),
                 CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId()),
                 ExpressionUtils.neConst(QEmployee.employee.id, employee.getId()),
-                ExpressionUtils.eqConst(QEmployee.employee.visitedBy.any().employee, employee).not());
+                ExpressionUtils.eqConst(QEmployee.employee.visitedLogs.any().employee, employee).not());
     }
 
     @Override
@@ -498,7 +534,7 @@ class EmployeeServiceImpl implements EmployeeService {
         Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
         if (isNew) {
             combinePredicate = ExpressionUtils.allOf(combinePredicate,
-                    ExpressionUtils.eqConst(QEmployee.employee.visitedBy.any().employee, employee).not());
+                    ExpressionUtils.eqConst(QEmployee.employee.visitedLogs.any().employee, employee).not());
         }
         return employeeRepository.findAll(combinePredicate).stream().map(this::mapToExportDto).collect(Collectors.toList());
     }

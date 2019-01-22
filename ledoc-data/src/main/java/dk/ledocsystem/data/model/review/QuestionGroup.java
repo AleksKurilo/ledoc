@@ -26,6 +26,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -61,5 +62,5 @@ public class QuestionGroup {
     @JoinTable(joinColumns = @JoinColumn(name = "question_group_id"),
             inverseJoinColumns = @JoinColumn(name = "review_question_id"))
     @Singular
-    private Set<ReviewQuestion> reviewQuestions;
+    private List<ReviewQuestion> reviewQuestions;
 }

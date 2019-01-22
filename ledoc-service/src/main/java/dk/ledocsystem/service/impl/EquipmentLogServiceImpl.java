@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -32,6 +32,7 @@ import static dk.ledocsystem.service.impl.constant.ErrorMessageKey.EQUIPMENT_ID_
 @RequiredArgsConstructor
 public class EquipmentLogServiceImpl implements EquipmentLogService {
 
+    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss");
     private static final Function<Long, Predicate> EQUIPMENT_EQUALS_TO =
             equipmentId -> ExpressionUtils.eqConst(QEquipmentLog.equipmentLog.equipment.id, equipmentId);
 
@@ -69,14 +70,13 @@ public class EquipmentLogServiceImpl implements EquipmentLogService {
 
         equipmentLogRepository.findAll(combinePredicate).forEach(equipmentLog -> {
             Employee actionActor = equipmentLog.getEmployee();
-            SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 
             AbstractLogDTO log = new AbstractLogDTO();
             log.setId(equipmentLog.getId());
             log.setLogType(equipmentLog.getLogType());
             log.setLogTypeMessage(equipmentLog.getLogType().getDescription());
             log.setActionActor(actionActor.getName() + " (" + actionActor.getUsername() + ")");
-            log.setDate(sdf.format(equipmentLog.getCreated()));
+            log.setDate(equipmentLog.getCreated().format(dateTimeFormatter));
             if (equipmentLog.isEditLog()) {
                 log.setEditDetails(mapDetailsToDto(equipmentLog.getEditDetails()));
             }

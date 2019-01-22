@@ -104,7 +104,7 @@ public class Employee {
 
     @OneToMany(mappedBy = "targetEmployee")
     @Where(clause = "type = 'Read' OR type = 'Archive'")
-    private Set<EmployeeLog> visitedBy;
+    private Set<EmployeeLog> visitedLogs;
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(name = "employee_location",
