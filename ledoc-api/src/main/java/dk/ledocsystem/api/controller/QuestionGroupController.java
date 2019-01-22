@@ -39,8 +39,7 @@ public class QuestionGroupController {
     public Iterable<QuestionGroup> getAllQuestionGroupsByCustomer(@CurrentUser UserDetails currentUser,
                                                                   @QuerydslPredicate(root = QuestionGroup.class) Predicate predicate,
                                                                   Pageable pageable) {
-        Long customerId = getCustomerId(currentUser);
-        return questionGroupService.getAllByCustomer(customerId, predicate, pageable);
+        return questionGroupService.getAllByCustomer(currentUser, predicate, pageable);
     }
 
     @GetMapping("/{questionGroupId}")

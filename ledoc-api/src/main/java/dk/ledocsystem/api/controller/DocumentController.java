@@ -79,19 +79,14 @@ public class DocumentController {
                 .orElseThrow(() -> new NotFoundException(DOCUMENT_ID_NOT_FOUND, id.toString()));
     }
 
-    @GetMapping("/new")
-    public Iterable<GetDocumentDTO> getNewDocumentsForCurrentUser(@CurrentUser UserDetails currentUser,
-                                                                  @QuerydslPredicate(root = Document.class) Predicate predicate,
-                                                                  Pageable pageable) {
-        return documentService.getNewDocument(currentUser, pageable, predicate);
-    }
-
     @GetMapping
     public Iterable<GetDocumentDTO> getAllDocument(@CurrentUser UserDetails currentUser,
+                                                   @RequestParam(value = "search", required = false, defaultValue = "") String searchString,
                                                    @QuerydslPredicate(root = Document.class) Predicate predicate,
+                                                   @RequestParam(value = "new", required = false, defaultValue = "false") boolean isNew,
                                                    @PageableDefault(sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
         Long customerId = getCustomerId(currentUser);
-        return documentService.getAllByCustomer(customerId, predicate, pageable, currentUser);
+        return documentService.getAllByCustomer(currentUser, searchString, predicate, pageable, isNew);
     }
 
     @DeleteMapping(path = "/{id}")
@@ -179,13 +174,13 @@ public class DocumentController {
 
     @GetMapping("/export")
     public ResponseEntity<StreamingResponseBody> exportDocuments(@CurrentUser UserDetails currentUser,
+                                                                 @RequestParam(value = "search", required = false, defaultValue = "") String searchString,
                                                                  @QuerydslPredicate(root = Document.class) Predicate predicate,
-                                                                 @RequestParam(value = "new", required = false, defaultValue = "false") boolean isNew,
-                                                                 @RequestParam(value = "isarchived", required = false, defaultValue = "false") boolean isArchived) {
+                                                                 @RequestParam(value = "new", required = false, defaultValue = "false") boolean isNew) {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, "application/ms-excel")
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"All documents.xlsx\"")
-                .body(outputStream -> documentService.exportToExcel(currentUser, predicate, isNew, isArchived).write(outputStream));
+                .body(outputStream -> documentService.exportToExcel(currentUser, searchString, predicate, isNew).write(outputStream));
     }
 
     private Long getCustomerId(UserDetails user) {

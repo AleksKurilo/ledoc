@@ -119,7 +119,7 @@ public interface EmployeeService extends CustomerBasedDomainService<GetEmployeeD
 
     Page<GetFollowedEmployeeDTO> getFollowedEmployees(Long employeeId, Pageable pageable);
 
-    List<EmployeeExportDTO> getAllForExport(UserDetails user, Predicate predicate, boolean isNew);
+    List<EmployeeExportDTO> getAllForExport(UserDetails user, String searchString, Predicate predicate, boolean isNew);
 
-    Workbook exportToExcel(UserDetails currentUserDetails, Predicate predicate, boolean isNew, boolean isArchived);
+    Workbook exportToExcel(UserDetails currentUserDetails, String searchString, Predicate predicate, boolean isNew);
 }

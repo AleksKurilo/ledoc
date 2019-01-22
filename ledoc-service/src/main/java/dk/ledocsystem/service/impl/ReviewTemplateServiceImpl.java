@@ -6,12 +6,14 @@ import dk.ledocsystem.data.model.review.Module;
 import dk.ledocsystem.data.model.review.QReviewTemplate;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
 import dk.ledocsystem.data.repository.ReviewTemplateRepository;
+import dk.ledocsystem.service.api.CustomerService;
 import dk.ledocsystem.service.api.ReviewTemplateService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.IterableUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +31,7 @@ class ReviewTemplateServiceImpl implements ReviewTemplateService {
     private static final Function<Module, Predicate> MODULE_EQUALS =
             module -> ExpressionUtils.eqConst(QReviewTemplate.reviewTemplate.module, module);
 
+    private final CustomerService customerService;
     private final ReviewTemplateRepository reviewTemplateRepository;
 
     @PostConstruct
@@ -61,28 +64,28 @@ class ReviewTemplateServiceImpl implements ReviewTemplateService {
     }
 
     @Override
-    public List<ReviewTemplate> getAllByCustomer(@NonNull Long customerId) {
-        return getAllByCustomer(customerId, Pageable.unpaged()).getContent();
+    public List<ReviewTemplate> getAllByCustomer(@NonNull UserDetails currentUser) {
+        return getAllByCustomer(currentUser, Pageable.unpaged()).getContent();
     }
 
     @Override
-    public Page<ReviewTemplate> getAllByCustomer(@NonNull Long customerId, @NonNull Pageable pageable) {
-        return getAllByCustomer(customerId, null, pageable);
+    public Page<ReviewTemplate> getAllByCustomer(@NonNull UserDetails currentUser, @NonNull Pageable pageable) {
+        return getAllByCustomer(currentUser, null, pageable);
     }
 
     @Override
-    public List<ReviewTemplate> getAllByCustomer(@NonNull Long customerId, Predicate predicate) {
-        return getAllByCustomer(customerId, predicate, Pageable.unpaged()).getContent();
+    public List<ReviewTemplate> getAllByCustomer(@NonNull UserDetails currentUser, Predicate predicate) {
+        return getAllByCustomer(currentUser, predicate, Pageable.unpaged()).getContent();
     }
 
     @Override
-    public Page<ReviewTemplate> getAllByCustomer(@NonNull Long customerId, Predicate predicate, @NonNull Pageable pageable) {
-        return getAllByCustomer(customerId, "", predicate, pageable);
+    public Page<ReviewTemplate> getAllByCustomer(@NonNull UserDetails currentUser, Predicate predicate, @NonNull Pageable pageable) {
+        return getAllByCustomer(currentUser, "", predicate, pageable, false);
     }
 
     @Override
-    public Page<ReviewTemplate> getAllByCustomer(@NonNull Long customerId, String searchString, Predicate predicate, @NonNull Pageable pageable) {
-        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
+    public Page<ReviewTemplate> getAllByCustomer(@NonNull UserDetails currentUser, String searchString, Predicate predicate, @NonNull Pageable pageable, boolean isNew) {
+        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerService.getByUsername(currentUser.getUsername()).getId()));
         return reviewTemplateRepository.findAll(combinePredicate, pageable);
     }
 

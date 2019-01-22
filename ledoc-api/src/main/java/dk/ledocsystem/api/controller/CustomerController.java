@@ -79,19 +79,17 @@ public class CustomerController {
 
     @RolesAllowed("super_admin")
     @GetMapping("/export/short")
-    public ResponseEntity<StreamingResponseBody> exportCustomersShort(@QuerydslPredicate(root = Customer.class) Predicate predicate,
-                                                                      @RequestParam(value = "isarchived", required = false, defaultValue = "false") boolean isArchived) {
+    public ResponseEntity<StreamingResponseBody> exportCustomersShort(@QuerydslPredicate(root = Customer.class) Predicate predicate) {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"Customers.xlsx\"")
-                .body(outputStream -> customerService.exportToExcelShort(predicate, isArchived).write(outputStream));
+                .body(outputStream -> customerService.exportToExcelShort(predicate).write(outputStream));
     }
 
     @RolesAllowed("super_admin")
     @GetMapping("/export/full")
-    public ResponseEntity<StreamingResponseBody> exportCustomersFull(@QuerydslPredicate(root = Customer.class) Predicate predicate,
-                                                                     @RequestParam(value = "isarchived", required = false, defaultValue = "false") boolean isArchived) {
+    public ResponseEntity<StreamingResponseBody> exportCustomersFull(@QuerydslPredicate(root = Customer.class) Predicate predicate) {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"Customers.xlsx\"")
-                .body(outputStream -> customerService.exportToExcelFull(predicate, isArchived).write(outputStream));
+                .body(outputStream -> customerService.exportToExcelFull(predicate).write(outputStream));
     }
 }

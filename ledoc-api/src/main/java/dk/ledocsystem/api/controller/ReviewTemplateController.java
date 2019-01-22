@@ -43,8 +43,7 @@ public class ReviewTemplateController {
     public Iterable<ReviewTemplate> getAllReviewTemplatesByCustomer(@CurrentUser UserDetails currentUser,
                                                                     @QuerydslPredicate(root = ReviewTemplate.class) Predicate predicate,
                                                                     Pageable pageable) {
-        Long customerId = getCustomerId(currentUser);
-        return reviewTemplateService.getAllByCustomer(customerId, predicate, pageable);
+        return reviewTemplateService.getAllByCustomer(currentUser, predicate, pageable);
     }
 
     @GetMapping("/module")

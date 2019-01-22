@@ -1,16 +1,18 @@
 package dk.ledocsystem.service.impl;
 
 import com.google.common.collect.ImmutableMap;
-import com.querydsl.core.types.ExpressionUtils;
-import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.*;
+import com.querydsl.core.types.dsl.BooleanOperation;
+import com.querydsl.core.types.dsl.EnumPath;
 import com.querydsl.core.types.dsl.Expressions;
-import dk.ledocsystem.data.model.Customer;
-import dk.ledocsystem.data.model.Location;
-import dk.ledocsystem.data.model.Trade;
+import com.querydsl.jpa.impl.JPAQuery;
+import dk.ledocsystem.data.model.*;
 import dk.ledocsystem.data.model.document.*;
 import dk.ledocsystem.data.model.employee.Employee;
+import dk.ledocsystem.data.model.employee.QEmployee;
 import dk.ledocsystem.data.model.review.ReviewTemplate;
 import dk.ledocsystem.data.repository.*;
+import dk.ledocsystem.service.api.CustomerService;
 import dk.ledocsystem.service.api.DocumentService;
 import dk.ledocsystem.service.api.ExcelExportService;
 import dk.ledocsystem.service.api.ReviewTemplateService;
@@ -26,21 +28,29 @@ import dk.ledocsystem.service.impl.events.producer.DocumentProducer;
 import dk.ledocsystem.service.impl.excel.sheets.EntitySheet;
 import dk.ledocsystem.service.impl.excel.sheets.documents.DocumentsEntitySheet;
 import dk.ledocsystem.service.impl.property_maps.document.*;
+import dk.ledocsystem.service.impl.utils.PredicateBuilderAndParser;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static dk.ledocsystem.service.impl.constant.ErrorMessageKey.*;
 import static java.util.Objects.requireNonNull;
@@ -54,12 +64,16 @@ class DocumentServiceImpl implements DocumentService {
     private static final Function<Boolean, Predicate> DOCUMENTS_ARCHIVED =
             archived -> ExpressionUtils.eqConst(QDocument.document.archived, archived);
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     private final TradeRepository tradeRepository;
     private final DocumentProducer documentProducer;
     private final DocumentRepository documentRepository;
     private final EmployeeRepository employeeRepository;
     private final LocationRepository locationRepository;
     private final ReviewTemplateService reviewTemplateService;
+    private final CustomerService customerService;
     private final DocumentCategoryRepository categoryRepository;
     private final FollowedDocumentRepository followedDocumentRepository;
 
@@ -67,6 +81,7 @@ class DocumentServiceImpl implements DocumentService {
     private final ModelMapper modelMapper;
     private final BaseValidator<DocumentDTO> documentDtoValidator;
     private final BaseValidator<DocumentCategoryDTO> categoryDtoValidator;
+    private final PredicateBuilderAndParser predicateBuilderAndParser;
 
     @PostConstruct
     private void init() {
@@ -190,24 +205,14 @@ class DocumentServiceImpl implements DocumentService {
         Employee employee = employeeRepository.findByUsername(user.getUsername())
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, user.getUsername()));
 
-        Predicate newDocumentsPredicate = getNewDocumentsPredicate(employee);
+
+        Predicate newDocumentsPredicate = ExpressionUtils.allOf(CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId()), getNewDocumentsPredicate(employee));
         return documentRepository.count(newDocumentsPredicate);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<GetDocumentDTO> getNewDocument(@NonNull UserDetails user, @NonNull Pageable pageable, Predicate predicate) {
-        Employee employee = employeeRepository.findByUsername(user.getUsername())
-                .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, user.getUsername()));
-
-        Predicate combinePredicate = ExpressionUtils.and(predicate, getNewDocumentsPredicate(employee));
-        return getAll(combinePredicate, pageable);
     }
 
     private Predicate getNewDocumentsPredicate(Employee employee) {
         return ExpressionUtils.allOf(
                 DOCUMENTS_ARCHIVED.apply(Boolean.FALSE),
-                CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId()),
                 ExpressionUtils.notIn(Expressions.constant(employee), QDocument.document.visitedBy));
     }
 
@@ -286,13 +291,13 @@ class DocumentServiceImpl implements DocumentService {
 
     @Override
     @Transactional(readOnly = true)
-    public Workbook exportToExcel(UserDetails currentUserDetails, Predicate predicate, boolean isNew, boolean isArchived) {
+    public Workbook exportToExcel(UserDetails currentUserDetails, String searchString, Predicate predicate, boolean isNew) {
         List<EntitySheet> documentSheets = new ArrayList<>();
         Predicate predicateForDocuments = ExpressionUtils.and(predicate, DOCUMENTS_ARCHIVED.apply(false));
-        documentSheets.add(new DocumentsEntitySheet(this, currentUserDetails, predicateForDocuments, isNew, "Documents"));
-        if (isArchived) {
+        documentSheets.add(new DocumentsEntitySheet(this, currentUserDetails, searchString, predicateForDocuments, isNew, "Documents"));
+        if (isPredicateArchived(predicate)) {
             Predicate predicateForArchived = ExpressionUtils.and(predicate, DOCUMENTS_ARCHIVED.apply(true));
-            documentSheets.add(new DocumentsEntitySheet(this, currentUserDetails, predicateForArchived, isNew, "Archived"));
+            documentSheets.add(new DocumentsEntitySheet(this, currentUserDetails, searchString, predicateForArchived, false, "Archived"));
         }
         return excelExportService.exportSheets(documentSheets);
     }
@@ -348,20 +353,6 @@ class DocumentServiceImpl implements DocumentService {
 
     //region GET/DELETE standard API
 
-    @Override
-    @Transactional(readOnly = true)
-    public Page<GetDocumentDTO> getAllByCustomer(@NonNull Long customerId, Predicate predicate, @NonNull Pageable pageable, UserDetails creatorDetails) {
-        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
-        Long employeeId = employeeRepository.findByUsername(creatorDetails.getUsername()).orElseThrow(IllegalStateException::new).getId();
-
-        return documentRepository.findAll(combinePredicate, pageable)
-                .map(document -> {
-                    GetDocumentDTO dto = mapToDto(document);
-                    dto.setRead(document.getRead(employeeId));
-                    return dto;
-                });
-    }
-
     private GetDocumentDTO mapToDto(Document document) {
         return modelMapper.map(document, GetDocumentDTO.class);
     }
@@ -388,46 +379,70 @@ class DocumentServiceImpl implements DocumentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<GetDocumentDTO> getAllByCustomer(@NonNull Long customerId) {
-        return getAllByCustomer(customerId, Pageable.unpaged()).getContent();
+    public List<GetDocumentDTO> getAllByCustomer(@NonNull UserDetails currentUser) {
+        return getAllByCustomer(currentUser, Pageable.unpaged()).getContent();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<GetDocumentDTO> getAllByCustomer(@NonNull Long customerId, @NonNull Pageable pageable) {
-        return getAllByCustomer(customerId, null, pageable);
+    public Page<GetDocumentDTO> getAllByCustomer(@NonNull UserDetails currentUser, @NonNull Pageable pageable) {
+        return getAllByCustomer(currentUser, null, pageable);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<GetDocumentDTO> getAllByCustomer(@NonNull Long customerId, Predicate predicate) {
-        return getAllByCustomer(customerId, predicate, Pageable.unpaged()).getContent();
+    public List<GetDocumentDTO> getAllByCustomer(@NonNull UserDetails currentUser, Predicate predicate) {
+        return getAllByCustomer(currentUser, predicate, Pageable.unpaged()).getContent();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<GetDocumentDTO> getAllByCustomer(@NonNull Long customerId, Predicate predicate, @NonNull Pageable pageable) {
-        return getAllByCustomer(customerId, "", predicate, pageable);
+    public Page<GetDocumentDTO> getAllByCustomer(@NonNull UserDetails currentUser, Predicate predicate, @NonNull Pageable pageable) {
+        return getAllByCustomer(currentUser, "", predicate, pageable, false);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<GetDocumentDTO> getAllByCustomer(@NonNull Long customerId, String searchString, Predicate predicate, @NonNull Pageable pageable) {
-        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
-        return documentRepository.findAll(combinePredicate, pageable).map(this::mapToDto);
-    }
+    public Page<GetDocumentDTO> getAllByCustomer(@NonNull UserDetails currentUser, String searchString, Predicate predicate, @NonNull Pageable pageable, boolean isNew) {
+        QDocument qDocument = QDocument.document;
+        Employee employee = employeeRepository.findByUsername(currentUser.getUsername()).orElseThrow(IllegalStateException::new);
+        JPAQuery query = getAllByCustomerForPreviewAndExport(currentUser, searchString, predicate, isNew);
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<DocumentExportDTO> getAllForExport(UserDetails creatorDetails, Predicate predicate, boolean isNew) {
-        Employee employee = employeeRepository.findByUsername(creatorDetails.getUsername()).orElseThrow(IllegalStateException::new);
-        Long customerId = employee.getCustomer().getId();
-        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
-        if (isNew) {
-            combinePredicate = ExpressionUtils.allOf(combinePredicate,
-                    ExpressionUtils.notIn(Expressions.constant(employee), QDocument.document.visitedBy));
+        List<Sort.Order> sorts = pageable.getSort().get().collect(Collectors.toList());
+
+        List<OrderSpecifier> sortParams = new LinkedList<>();
+        if (sorts.size() > 0) {
+            sorts.forEach(order -> {
+                sortParams.add(new OrderSpecifier(Order.valueOf(order.getDirection().name()), Expressions.stringPath(qDocument, order.getProperty())));
+            });
+
+            query.orderBy(sortParams.toArray(new OrderSpecifier[sortParams.size()]));
         }
-        return documentRepository.findAll(combinePredicate).stream().map(this::mapToExportDto).collect(Collectors.toList());
+
+        long count = query.fetchCount();
+
+        query.offset(pageable.getOffset());
+        query.limit(pageable.getPageSize());
+
+
+        Page<Document> result = new PageImpl<>(query.fetch(), pageable, count);
+        return result.map(document -> {
+            GetDocumentDTO dto = mapToDto(document);
+            dto.setRead(document.getRead(employee.getId()));
+            return dto;
+        });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DocumentExportDTO> getAllForExport(UserDetails creatorDetails, String searchString, Predicate predicate, boolean isNew) {
+        QDocument document = QDocument.document;
+
+        JPAQuery query = getAllByCustomerForPreviewAndExport(creatorDetails, searchString, predicate, isNew);
+        query.orderBy(document.name.asc());
+
+        List<Document> resultList = query.fetch();
+        return resultList.stream().map(this::mapToExportDto).collect(Collectors.toList());
     }
 
     @Override
@@ -463,5 +478,58 @@ class DocumentServiceImpl implements DocumentService {
         return modelMapper.map(category, IdAndLocalizedName.class);
     }
 
-    //endregion
+    JPAQuery getAllByCustomerForPreviewAndExport(UserDetails currentUser, String searchString, Predicate predicate, boolean isNew) {
+        QDocument document = QDocument.document;
+
+        JPAQuery query = new JPAQuery<>(entityManager);
+        query.from(document);
+
+        List<Predicate> predicates = new ArrayList<>();
+        if (StringUtils.isNotEmpty(searchString)) {
+            predicates = Stream.of(
+                    Pair.of(document.name, searchString),
+                    Pair.of(document.idNumber, searchString),
+                    Pair.of(document.category.nameEn, searchString),
+                    Pair.of(document.subcategory.nameEn, searchString),
+                    Pair.of(document.responsible.firstName, searchString),
+                    Pair.of(document.responsible.lastName, searchString),
+                    Pair.of(document.trades.any().nameEn, searchString),
+                    Pair.of(document.locations.any().name, searchString),
+                    Pair.of((EnumPath) document.type.getRoot(), searchString),
+                    Pair.of((EnumPath) document.source.getRoot(), searchString),
+                    Pair.of((EnumPath) document.status.getRoot(), searchString)
+            ).map(predicateBuilderAndParser::toPredicate)
+                    .collect(Collectors.toList());
+
+            query.leftJoin(document.category, QDocumentCategory.documentCategory)
+                    .leftJoin(document.subcategory, QDocumentCategory.documentCategory)
+                    .leftJoin(document.trades, QTrade.trade)
+                    .leftJoin(document.locations , QLocation.location)
+                    .leftJoin(document.responsible , QEmployee.employee);
+        }
+
+        Employee employee = employeeRepository.findByUsername(currentUser.getUsername()).orElseThrow(IllegalStateException::new);
+
+        Predicate combinePredicate = ExpressionUtils.and(ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId())), ExpressionUtils.anyOf(predicates));
+
+
+        if (isPredicateArchived(predicate) && isNew) {
+            combinePredicate = ExpressionUtils.allOf(combinePredicate,
+                    getNewDocumentsPredicate(employee));
+        }
+
+        query.where(combinePredicate);
+
+        return query;
+    }
+
+    boolean isPredicateArchived(Predicate predicate) {
+
+        QDocument document = QDocument.document;
+        List<Expression<?>> argsList = predicateBuilderAndParser.getArgs(predicate);
+        if (argsList.size() > 0) {
+            return (argsList.get(argsList.indexOf(document.archived) + 1).toString() != "true");
+        }
+        return false;
+    }
 }

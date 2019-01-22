@@ -1,10 +1,7 @@
 package dk.ledocsystem.service.impl;
 
 import com.google.common.collect.ImmutableMap;
-import com.querydsl.core.types.ExpressionUtils;
-import com.querydsl.core.types.Order;
-import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.*;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import dk.ledocsystem.data.model.Customer;
@@ -29,7 +26,7 @@ import dk.ledocsystem.service.impl.events.producer.EquipmentProducer;
 import dk.ledocsystem.service.impl.excel.sheets.EntitySheet;
 import dk.ledocsystem.service.impl.excel.sheets.equipment.EquipmentEntitySheet;
 import dk.ledocsystem.service.impl.property_maps.equipment.*;
-import dk.ledocsystem.service.impl.utils.PredicateBuilder;
+import dk.ledocsystem.service.impl.utils.PredicateBuilderAndParser;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -83,7 +80,7 @@ class EquipmentServiceImpl implements EquipmentService {
     private final ReviewTemplateService reviewTemplateService;
     private final EquipmentProducer equipmentProducer;
     private final EntityManagerFactory entityManagerFactory;
-    private final PredicateBuilder predicateBuilder;
+    private final PredicateBuilderAndParser predicateBuilderAndParser;
 
     private final BaseValidator<EquipmentDTO> equipmentDtoValidator;
     private final BaseValidator<EquipmentLoanDTO> equipmentLoanDtoValidator;
@@ -180,24 +177,13 @@ class EquipmentServiceImpl implements EquipmentService {
         Employee employee = employeeRepository.findByUsername(user.getUsername())
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, user.getUsername()));
 
-        Predicate newEquipmentPredicate = getNewEquipmentPredicate(employee);
+        Predicate newEquipmentPredicate = ExpressionUtils.allOf(CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId()), getNewEquipmentPredicate(employee));
         return equipmentRepository.count(newEquipmentPredicate);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<GetEquipmentDTO> getNewEquipment(@NonNull UserDetails user, @NonNull Pageable pageable, Predicate predicate) {
-        Employee employee = employeeRepository.findByUsername(user.getUsername())
-                .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, user.getUsername()));
-
-        Predicate combinePredicate = ExpressionUtils.and(predicate, getNewEquipmentPredicate(employee));
-        return getAll(combinePredicate, pageable);
     }
 
     private Predicate getNewEquipmentPredicate(Employee employee) {
         return ExpressionUtils.allOf(
                 EQUIPMENT_ARCHIVED.apply(Boolean.FALSE),
-                CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId()),
                 ExpressionUtils.eqConst(QEquipment.equipment.visitedBy.any().employee, employee).not());
     }
 
@@ -225,13 +211,13 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public Workbook exportToExcel(UserDetails currentUserDetails, Predicate predicate, boolean isNew, boolean isArchived) {
+    public Workbook exportToExcel(UserDetails currentUserDetails, String searchString, Predicate predicate, boolean isNew) {
         List<EntitySheet> equipmentSheets = new ArrayList<>();
         Predicate predicateForEquipment = ExpressionUtils.and(predicate, EQUIPMENT_ARCHIVED.apply(false));
-        equipmentSheets.add(new EquipmentEntitySheet(this, currentUserDetails, predicateForEquipment, isNew, "Equipment"));
-        if (isArchived) {
+        equipmentSheets.add(new EquipmentEntitySheet(this, currentUserDetails, searchString, predicateForEquipment, isNew, "Equipment"));
+        if (isPredicateArchived(predicate)) {
             Predicate predicateForArchived = ExpressionUtils.and(predicate, EQUIPMENT_ARCHIVED.apply(true));
-            equipmentSheets.add(new EquipmentEntitySheet(this, currentUserDetails, predicateForArchived, isNew, "Archived"));
+            equipmentSheets.add(new EquipmentEntitySheet(this, currentUserDetails, searchString, predicateForArchived, false, "Archived"));
         }
         return excelExportService.exportSheets(equipmentSheets);
     }
@@ -322,66 +308,34 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<GetEquipmentDTO> getAllByCustomer(@NonNull Long customerId) {
-        return getAllByCustomer(customerId, Pageable.unpaged()).getContent();
+    public List<GetEquipmentDTO> getAllByCustomer(@NonNull UserDetails currentUser) {
+        return getAllByCustomer(currentUser, Pageable.unpaged()).getContent();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<GetEquipmentDTO> getAllByCustomer(@NonNull Long customerId, @NonNull Pageable pageable) {
-        return getAllByCustomer(customerId, null, pageable);
+    public Page<GetEquipmentDTO> getAllByCustomer(@NonNull UserDetails currentUser, @NonNull Pageable pageable) {
+        return getAllByCustomer(currentUser, null, pageable);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<GetEquipmentDTO> getAllByCustomer(@NonNull Long customerId, Predicate predicate) {
-        return getAllByCustomer(customerId, predicate, Pageable.unpaged()).getContent();
+    public List<GetEquipmentDTO> getAllByCustomer(@NonNull UserDetails currentUser, Predicate predicate) {
+        return getAllByCustomer(currentUser, predicate, Pageable.unpaged()).getContent();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<GetEquipmentDTO> getAllByCustomer(@NonNull Long customerId, Predicate predicate, @NonNull Pageable pageable) {
-        return getAllByCustomer(customerId, "", predicate, pageable);
+    public Page<GetEquipmentDTO> getAllByCustomer(@NonNull UserDetails currentUser, Predicate predicate, @NonNull Pageable pageable) {
+        return getAllByCustomer(currentUser, "", predicate, pageable, false);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<GetEquipmentDTO> getAllByCustomer(@NonNull Long customerId, String searchString, Predicate predicate, @NonNull Pageable pageable) {
+    public Page<GetEquipmentDTO> getAllByCustomer(@NonNull UserDetails currentUser, String searchString, Predicate predicate, @NonNull Pageable pageable, boolean isNew) {
         QEquipment equipment = QEquipment.equipment;
 
-        JPAQuery query = new JPAQuery<>(entityManager);
-        query.from(equipment);
-
-        List<Predicate> predicates = new ArrayList<>();
-        if (StringUtils.isNotEmpty(searchString)) {
-            predicates = Stream.of(
-                    Pair.of(equipment.name, searchString),
-                    Pair.of(equipment.idNumber, searchString),
-                    Pair.of(equipment.serialNumber, searchString),
-                    Pair.of(equipment.category.nameEn, searchString),
-                    Pair.of(equipment.localId, searchString),
-                    Pair.of(equipment.location.name, searchString),
-                    Pair.of(equipment.responsible.firstName, searchString),
-                    Pair.of(equipment.responsible.lastName, searchString),
-                    Pair.of(equipment.manufacturer, searchString),
-                    Pair.of(equipment.authenticationType.nameEn, searchString),
-                    Pair.of(equipment.supplier.name, searchString),
-                    Pair.of(equipment.comment, searchString)
-            ).map(predicateBuilder::toStringPredicate)
-                    .collect(Collectors.toList());
-
-            predicates.add(predicateBuilder.toNumberPredicate(Pair.of("price", searchString), Equipment.class));
-
-            query.leftJoin(equipment.supplier, QSupplier.supplier)
-                .leftJoin(equipment.authenticationType, QAuthenticationType.authenticationType)
-                .leftJoin(equipment.category ,QEquipmentCategory.equipmentCategory)
-                .leftJoin(equipment.location ,QLocation.location)
-                .leftJoin(equipment.responsible ,QEmployee.employee);
-        }
-
-        Predicate combinePredicate = ExpressionUtils.and(ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId)), ExpressionUtils.anyOf(predicates));
-
-        query.where(combinePredicate);
+        JPAQuery query = getAllByCustomerForPreviewAndExport(currentUser, searchString, predicate, isNew);
 
         List<Sort.Order> sorts = pageable.getSort().get().collect(Collectors.toList());
 
@@ -400,21 +354,20 @@ class EquipmentServiceImpl implements EquipmentService {
         query.limit(pageable.getPageSize());
 
 
-        Page<Equipment> result = new PageImpl<>(query.fetch(),pageable, count);
+        Page<Equipment> result = new PageImpl<>(query.fetch(), pageable, count);
         return result.map(this::mapToDto);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<EquipmentExportDTO> getAllForExport(UserDetails creatorDetails, Predicate predicate, boolean isNew) {
-        Employee employee = employeeRepository.findByUsername(creatorDetails.getUsername()).orElseThrow(IllegalStateException::new);
-        Long customerId = employee.getCustomer().getId();
-        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
-        if (isNew) {
-            combinePredicate = ExpressionUtils.allOf(combinePredicate,
-                    ExpressionUtils.eqConst(QEquipment.equipment.visitedBy.any().employee, employee).not());
-        }
-        return equipmentRepository.findAll(combinePredicate).stream().map(this::mapToExportDto).collect(Collectors.toList());
+    public List<EquipmentExportDTO> getAllForExport(UserDetails creatorDetails, String searchString, Predicate predicate, boolean isNew) {
+        QEquipment equipment = QEquipment.equipment;
+
+        JPAQuery query = getAllByCustomerForPreviewAndExport(creatorDetails, searchString, predicate, isNew);
+        query.orderBy(equipment.name.asc());
+
+        List<Equipment> resultList = query.fetch();
+        return resultList.stream().map(this::mapToExportDto).collect(Collectors.toList());
     }
 
     @Override
@@ -504,6 +457,63 @@ class EquipmentServiceImpl implements EquipmentService {
             equipment.removeFollower(follower);
         }
         equipmentProducer.follow(equipment, follower, forced, equipmentFollowDTO.isFollowed());
+    }
+
+    JPAQuery getAllByCustomerForPreviewAndExport(UserDetails currentUser, String searchString, Predicate predicate, boolean isNew) {
+        QEquipment equipment = QEquipment.equipment;
+
+        JPAQuery query = new JPAQuery<>(entityManager);
+        query.from(equipment);
+
+        List<Predicate> predicates = new ArrayList<>();
+        if (StringUtils.isNotEmpty(searchString)) {
+            predicates = Stream.of(
+                    Pair.of(equipment.name, searchString),
+                    Pair.of(equipment.idNumber, searchString),
+                    Pair.of(equipment.serialNumber, searchString),
+                    Pair.of(equipment.category.nameEn, searchString),
+                    Pair.of(equipment.localId, searchString),
+                    Pair.of(equipment.location.name, searchString),
+                    Pair.of(equipment.responsible.firstName, searchString),
+                    Pair.of(equipment.responsible.lastName, searchString),
+                    Pair.of(equipment.manufacturer, searchString),
+                    Pair.of(equipment.authenticationType.nameEn, searchString),
+                    Pair.of(equipment.supplier.name, searchString),
+                    Pair.of(equipment.comment, searchString),
+                    Pair.of(equipment.price, searchString)
+            ).map(predicateBuilderAndParser::toPredicate)
+                    .collect(Collectors.toList());
+
+            query.leftJoin(equipment.supplier, QSupplier.supplier)
+                    .leftJoin(equipment.authenticationType, QAuthenticationType.authenticationType)
+                    .leftJoin(equipment.category ,QEquipmentCategory.equipmentCategory)
+                    .leftJoin(equipment.location ,QLocation.location)
+                    .leftJoin(equipment.responsible ,QEmployee.employee);
+        }
+
+        Employee employee = employeeRepository.findByUsername(currentUser.getUsername()).orElseThrow(IllegalStateException::new);
+
+        Predicate combinePredicate = ExpressionUtils.and(ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId())), ExpressionUtils.anyOf(predicates));
+
+
+        if (isPredicateArchived(predicate) && isNew) {
+            combinePredicate = ExpressionUtils.allOf(combinePredicate,
+                    getNewEquipmentPredicate(employee));
+        }
+
+        query.where(combinePredicate);
+
+        return query;
+    }
+
+    boolean isPredicateArchived(Predicate predicate) {
+
+        QEquipment equipment = QEquipment.equipment;
+        List<Expression<?>> argsList = predicateBuilderAndParser.getArgs(predicate);
+        if (argsList.size() > 0) {
+            return (argsList.get(argsList.indexOf(equipment.archived) + 1).toString() != "true");
+        }
+        return false;
     }
 
     //endregion

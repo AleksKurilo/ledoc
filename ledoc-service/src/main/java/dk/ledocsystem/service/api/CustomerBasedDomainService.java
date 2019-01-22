@@ -4,6 +4,7 @@ import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.data.model.Customer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
 
@@ -14,13 +15,13 @@ import java.util.List;
  */
 public interface CustomerBasedDomainService<T> extends DomainService<T> {
 
-    List<T> getAllByCustomer(Long customerId);
+    List<T> getAllByCustomer(UserDetails currentUser);
 
-    Page<T> getAllByCustomer(Long customerId, Pageable pageable);
+    Page<T> getAllByCustomer(UserDetails currentUser, Pageable pageable);
 
-    List<T> getAllByCustomer(Long customerId, Predicate predicate);
+    List<T> getAllByCustomer(UserDetails currentUser, Predicate predicate);
 
-    Page<T> getAllByCustomer(Long customerId, Predicate predicate, Pageable pageable);
+    Page<T> getAllByCustomer(UserDetails currentUser, Predicate predicate, Pageable pageable);
 
-    Page<T> getAllByCustomer(Long customerId, String searchString, Predicate predicate, Pageable pageable);
+    Page<T> getAllByCustomer(UserDetails currentUser, String searchString, Predicate predicate, Pageable pageable, boolean isNew);
 }

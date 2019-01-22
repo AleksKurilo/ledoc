@@ -31,11 +31,7 @@ public interface DocumentService extends CustomerBasedDomainService<GetDocumentD
 
     void changeReadStatus(Long documentId, UserDetails creator, DocumentReadStatusDTO documentReadStatusTO);
 
-    Page<GetDocumentDTO> getNewDocument(UserDetails user, Pageable pageable, Predicate predicate);
-
     Optional<DocumentPreviewDTO> getPreviewDtoById(Long documentId, boolean isSaveLog, UserDetails creatorDetails);
-
-    Page<GetDocumentDTO> getAllByCustomer(Long customerId, Predicate predicate, Pageable pageable, UserDetails creatorDetails);
 
     void follow(Long documentId, UserDetails currentUser, DocumentFollowDTO documentFollowDTO);
 
@@ -53,7 +49,7 @@ public interface DocumentService extends CustomerBasedDomainService<GetDocumentD
 
     void deleteCategory(Long id);
 
-    List<DocumentExportDTO> getAllForExport(UserDetails creatorDetails, Predicate predicate, boolean isNew);
+    List<DocumentExportDTO> getAllForExport(UserDetails creatorDetails, String searchString, Predicate predicate, boolean isNew);
 
-    Workbook exportToExcel(UserDetails currentUserDetails, Predicate predicate, boolean isNew, boolean isArchived);
+    Workbook exportToExcel(UserDetails currentUserDetails, String searchString, Predicate predicate, boolean isNew);
 }

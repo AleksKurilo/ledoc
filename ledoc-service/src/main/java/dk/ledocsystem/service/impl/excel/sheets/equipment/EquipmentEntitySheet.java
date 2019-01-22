@@ -18,6 +18,7 @@ public class EquipmentEntitySheet implements EntitySheet {
     private final EquipmentService equipmentService;
 
     private UserDetails currentUserDetails;
+    private String searchString;
     private Predicate predicate;
     private boolean isNew;
     private String name;
@@ -31,7 +32,7 @@ public class EquipmentEntitySheet implements EntitySheet {
 
     @Override
     public List<Row> getRows() {
-        return equipmentService.getAllForExport(currentUserDetails, predicate, isNew)
+        return equipmentService.getAllForExport(currentUserDetails, searchString, predicate, isNew)
                 .stream()
                 .map(EquipmentExportDTO::getFields)
                 .map(Row::new)

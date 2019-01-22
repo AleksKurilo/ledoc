@@ -3,11 +3,12 @@ package dk.ledocsystem.api.controller;
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.api.config.security.CurrentUser;
 import dk.ledocsystem.data.model.equipment.Equipment;
-import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
+import dk.ledocsystem.data.repository.EmployeeRepository;
 import dk.ledocsystem.service.api.CustomerService;
 import dk.ledocsystem.service.api.EquipmentService;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.equipment.*;
+import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.service.api.dto.outbound.equipment.EquipmentPreviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.equipment.GetEquipmentDTO;
 import dk.ledocsystem.service.api.dto.outbound.equipment.GetFollowedEquipmentDTO;
@@ -37,21 +38,15 @@ public class EquipmentController {
 
     private final EquipmentService equipmentService;
     private final CustomerService customerService;
+    private final EmployeeRepository employeeRepository;
 
     @GetMapping
     public Iterable<GetEquipmentDTO> getAllEquipments(@CurrentUser UserDetails currentUser,
                                                       @RequestParam(value = "search", required = false, defaultValue = "") String searchString,
                                                       @QuerydslPredicate(root = Equipment.class) Predicate predicate,
+                                                      @RequestParam(value = "new", required = false, defaultValue = "false") boolean isNew,
                                                       @PageableDefault(sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
-        Long customerId = getCustomerId(currentUser);
-        return equipmentService.getAllByCustomer(customerId, searchString, predicate, pageable);
-    }
-
-    @GetMapping("/new")
-    public Iterable<GetEquipmentDTO> getNewEquipmentsForCurrentUser(@CurrentUser UserDetails currentUser,
-                                                                    @QuerydslPredicate(root = Equipment.class) Predicate predicate,
-                                                                    Pageable pageable) {
-        return equipmentService.getNewEquipment(currentUser, pageable, predicate);
+        return equipmentService.getAllByCustomer(currentUser, searchString, predicate, pageable, isNew);
     }
 
     @GetMapping("/{equipmentId}")
@@ -141,16 +136,12 @@ public class EquipmentController {
 
     @GetMapping("/export")
     public ResponseEntity<StreamingResponseBody> exportEquipment(@CurrentUser UserDetails currentUser,
+                                                                 @RequestParam(value = "search", required = false, defaultValue = "") String searchString,
                                                                  @QuerydslPredicate(root = Equipment.class) Predicate predicate,
-                                                                 @RequestParam(value = "new", required = false, defaultValue = "false") boolean isNew,
-                                                                 @RequestParam(value = "isarchived", required = false, defaultValue = "false") boolean isArchived) {
+                                                                 @RequestParam(value = "new", required = false, defaultValue = "false") boolean isNew) {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, "application/ms-excel")
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"All equipment.xlsx\"")
-                .body(outputStream -> equipmentService.exportToExcel(currentUser, predicate, isNew, isArchived).write(outputStream));
-    }
-
-    private Long getCustomerId(UserDetails user) {
-        return customerService.getByUsername(user.getUsername()).getId();
+                .body(outputStream -> equipmentService.exportToExcel(currentUser, searchString, predicate, isNew).write(outputStream));
     }
 }

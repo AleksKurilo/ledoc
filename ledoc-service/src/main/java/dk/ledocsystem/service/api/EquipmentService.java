@@ -1,9 +1,9 @@
 package dk.ledocsystem.service.api;
 
 import com.querydsl.core.types.Predicate;
-import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.equipment.*;
+import dk.ledocsystem.service.api.dto.outbound.IdAndLocalizedName;
 import dk.ledocsystem.service.api.dto.outbound.equipment.EquipmentExportDTO;
 import dk.ledocsystem.service.api.dto.outbound.equipment.EquipmentPreviewDTO;
 import dk.ledocsystem.service.api.dto.outbound.equipment.GetEquipmentDTO;
@@ -43,8 +43,6 @@ public interface EquipmentService extends CustomerBasedDomainService<GetEquipmen
 
     long countNewEquipment(UserDetails user);
 
-    Page<GetEquipmentDTO> getNewEquipment(UserDetails user, Pageable pageable, Predicate predicate);
-
     Optional<EquipmentPreviewDTO> getPreviewDtoById(Long equipmentId, boolean isSaveLog, UserDetails creatorDetails);
 
     void loanEquipment(Long equipmentId, EquipmentLoanDTO equipmentLoanDTO);
@@ -63,7 +61,7 @@ public interface EquipmentService extends CustomerBasedDomainService<GetEquipmen
 
     Page<GetFollowedEquipmentDTO> getFollowedEquipment(Long employeeId, Pageable pageable);
 
-    List<EquipmentExportDTO> getAllForExport(UserDetails user, Predicate predicate, boolean isNew);
+    List<EquipmentExportDTO> getAllForExport(UserDetails creatorDetails, String searchString, Predicate predicate, boolean isNew);
 
-    Workbook exportToExcel(UserDetails currentUserDetails, Predicate predicate, boolean isNew, boolean isArchived);
+    Workbook exportToExcel(UserDetails currentUserDetails, String searchString, Predicate predicate, boolean isNew);
 }

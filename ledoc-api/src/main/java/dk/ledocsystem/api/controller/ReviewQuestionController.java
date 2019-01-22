@@ -36,8 +36,7 @@ public class ReviewQuestionController {
     public Iterable<ReviewQuestion> getAllReviewQuestionsByCustomer(@CurrentUser UserDetails currentUser,
                                                                     @QuerydslPredicate(root = ReviewQuestion.class) Predicate predicate,
                                                                     Pageable pageable) {
-        Long customerId = getCustomerId(currentUser);
-        return reviewQuestionService.getAllByCustomer(customerId, predicate, pageable);
+        return reviewQuestionService.getAllByCustomer(currentUser, predicate, pageable);
     }
 
     @GetMapping("/{reviewQuestionId}")
@@ -54,9 +53,5 @@ public class ReviewQuestionController {
     @DeleteMapping
     public void deleteByIds(@RequestParam("ids") Collection<Long> ids) {
         reviewQuestionService.deleteByIds(ids);
-    }
-
-    private Long getCustomerId(UserDetails user) {
-        return customerService.getByUsername(user.getUsername()).getId();
     }
 }

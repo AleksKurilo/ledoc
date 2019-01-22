@@ -3,22 +3,22 @@ package dk.ledocsystem.service.impl;
 import com.google.common.collect.ImmutableMap;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
-import dk.ledocsystem.data.repository.CustomerRepository;
-import dk.ledocsystem.data.repository.EmployeeRepository;
-import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
-import dk.ledocsystem.service.api.dto.inbound.location.AddressDTO;
-import dk.ledocsystem.service.api.dto.inbound.location.LocationDTO;
-import dk.ledocsystem.service.api.dto.outbound.location.LocationSummary;
-import dk.ledocsystem.service.api.dto.outbound.location.LocationEditDTO;
-import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.data.model.*;
 import dk.ledocsystem.data.model.email_notifications.EmailNotification;
 import dk.ledocsystem.data.model.employee.Employee;
+import dk.ledocsystem.data.repository.CustomerRepository;
 import dk.ledocsystem.data.repository.EmailNotificationRepository;
+import dk.ledocsystem.data.repository.EmployeeRepository;
 import dk.ledocsystem.data.repository.LocationRepository;
 import dk.ledocsystem.service.api.LocationService;
+import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
+import dk.ledocsystem.service.api.dto.inbound.location.AddressDTO;
+import dk.ledocsystem.service.api.dto.inbound.location.LocationDTO;
 import dk.ledocsystem.service.api.dto.outbound.location.GetLocationDTO;
+import dk.ledocsystem.service.api.dto.outbound.location.LocationEditDTO;
 import dk.ledocsystem.service.api.dto.outbound.location.LocationPreviewDTO;
+import dk.ledocsystem.service.api.dto.outbound.location.LocationSummary;
+import dk.ledocsystem.service.api.exceptions.NotFoundException;
 import dk.ledocsystem.service.impl.property_maps.location.LocationToEditDtoPropertyMap;
 import dk.ledocsystem.service.impl.property_maps.location.LocationToGetLocationDtoPropertyMap;
 import dk.ledocsystem.service.impl.property_maps.location.LocationToPhysicalLocationDtoPropertyMap;
@@ -264,32 +264,33 @@ class LocationServiceImpl implements LocationService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<GetLocationDTO> getAllByCustomer(@NonNull Long customerId) {
-        return getAllByCustomer(customerId, Pageable.unpaged()).getContent();
+    public List<GetLocationDTO> getAllByCustomer(@NonNull UserDetails currentUser) {
+        return getAllByCustomer(currentUser, Pageable.unpaged()).getContent();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<GetLocationDTO> getAllByCustomer(@NonNull Long customerId, @NonNull Pageable pageable) {
-        return getAllByCustomer(customerId, null, pageable);
+    public Page<GetLocationDTO> getAllByCustomer(@NonNull UserDetails currentUser, @NonNull Pageable pageable) {
+        return getAllByCustomer(currentUser, null, pageable);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<GetLocationDTO> getAllByCustomer(@NonNull Long customerId, Predicate predicate) {
-        return getAllByCustomer(customerId, predicate, Pageable.unpaged()).getContent();
+    public List<GetLocationDTO> getAllByCustomer(@NonNull UserDetails currentUser, Predicate predicate) {
+        return getAllByCustomer(currentUser, predicate, Pageable.unpaged()).getContent();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<GetLocationDTO> getAllByCustomer(@NonNull Long customerId, Predicate predicate, @NonNull Pageable pageable) {
-        return getAllByCustomer(customerId, "", predicate, pageable);
+    public Page<GetLocationDTO> getAllByCustomer(@NonNull UserDetails currentUser, Predicate predicate, @NonNull Pageable pageable) {
+        return getAllByCustomer(currentUser, "", predicate, pageable, false);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<GetLocationDTO> getAllByCustomer(@NonNull Long customerId, String searchString, Predicate predicate, @NonNull Pageable pageable) {
-        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
+    public Page<GetLocationDTO> getAllByCustomer(@NonNull UserDetails currentUser, String searchString, Predicate predicate, @NonNull Pageable pageable, boolean isNew) {
+        Employee employee = employeeRepository.findByUsername(currentUser.getUsername()).orElseThrow(IllegalStateException::new);
+        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId()));
         return locationRepository.findAll(combinePredicate, pageable).map(this::mapToDto);
     }
 

@@ -18,6 +18,7 @@ public class DocumentsEntitySheet implements EntitySheet {
     private final DocumentService documentService;
 
     private UserDetails currentUserDetails;
+    private String searchString;
     private Predicate predicate;
     private boolean isNew;
     private String name;
@@ -30,7 +31,7 @@ public class DocumentsEntitySheet implements EntitySheet {
 
     @Override
     public List<Row> getRows() {
-        return documentService.getAllForExport(currentUserDetails, predicate, isNew)
+        return documentService.getAllForExport(currentUserDetails, searchString, predicate, isNew)
                 .stream()
                 .map(DocumentExportDTO::getFields)
                 .map(Row::new)

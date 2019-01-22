@@ -1,42 +1,31 @@
 package dk.ledocsystem.service.impl;
 
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
-import dk.ledocsystem.data.model.QCustomer;
+import dk.ledocsystem.data.model.*;
+import dk.ledocsystem.data.model.email_notifications.EmailNotification;
+import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.review.Module;
-import dk.ledocsystem.data.repository.DocumentRepository;
-import dk.ledocsystem.data.repository.EmployeeRepository;
-import dk.ledocsystem.data.repository.EquipmentRepository;
-import dk.ledocsystem.data.repository.LocationRepository;
-import dk.ledocsystem.data.repository.ReviewTemplateRepository;
-import dk.ledocsystem.data.repository.SupplierRepository;
+import dk.ledocsystem.data.repository.*;
+import dk.ledocsystem.service.api.CustomerService;
+import dk.ledocsystem.service.api.EmployeeService;
 import dk.ledocsystem.service.api.ExcelExportService;
+import dk.ledocsystem.service.api.LocationService;
 import dk.ledocsystem.service.api.dto.inbound.customer.CustomerAdminDTO;
 import dk.ledocsystem.service.api.dto.inbound.customer.CustomerCreateDTO;
 import dk.ledocsystem.service.api.dto.inbound.customer.CustomerEditDTO;
 import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeCreateDTO;
 import dk.ledocsystem.service.api.dto.inbound.location.LocationDTO;
 import dk.ledocsystem.service.api.dto.outbound.customer.FullCustomerExportDTO;
-import dk.ledocsystem.service.api.dto.outbound.customer.ShortCustomerExportDTO;
 import dk.ledocsystem.service.api.dto.outbound.customer.GetCustomerDTO;
+import dk.ledocsystem.service.api.dto.outbound.customer.ShortCustomerExportDTO;
 import dk.ledocsystem.service.api.exceptions.NotFoundException;
-import dk.ledocsystem.data.model.AddressType;
-import dk.ledocsystem.data.model.Customer;
-import dk.ledocsystem.data.model.Location;
-import dk.ledocsystem.data.model.LocationType;
-import dk.ledocsystem.data.model.Trade;
-import dk.ledocsystem.data.model.email_notifications.EmailNotification;
-import dk.ledocsystem.data.model.employee.Employee;
-import dk.ledocsystem.data.repository.CustomerRepository;
-import dk.ledocsystem.data.repository.EmailNotificationRepository;
-import dk.ledocsystem.data.repository.TradeRepository;
-import dk.ledocsystem.service.api.CustomerService;
-import dk.ledocsystem.service.api.EmployeeService;
-import dk.ledocsystem.service.api.LocationService;
 import dk.ledocsystem.service.impl.excel.sheets.EntitySheet;
 import dk.ledocsystem.service.impl.excel.sheets.customers.FullCustomersEntitySheet;
 import dk.ledocsystem.service.impl.excel.sheets.customers.ShortCustomersEntitySheet;
 import dk.ledocsystem.service.impl.property_maps.customers.CustomerToFullExportDtoMap;
+import dk.ledocsystem.service.impl.utils.PredicateBuilderAndParser;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -78,6 +67,7 @@ class CustomerServiceImpl implements CustomerService {
     private final ModelMapper modelMapper;
     private final BaseValidator<CustomerCreateDTO> customerCreateDtoValidator;
     private final BaseValidator<CustomerEditDTO> customerEditDtoValidator;
+    private final PredicateBuilderAndParser predicateBuilderAndParser;
 
     @PostConstruct
     private void init() {
@@ -203,11 +193,11 @@ class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Workbook exportToExcelShort(Predicate predicate, boolean isArchived) {
+    public Workbook exportToExcelShort(Predicate predicate) {
         List<EntitySheet> customerSheets = new ArrayList<>();
         Predicate predicateForCustomers = ExpressionUtils.and(predicate, CUSTOMERS_ARCHIVED.apply(false));
         customerSheets.add(new ShortCustomersEntitySheet(this, predicateForCustomers,"Customers"));
-        if (isArchived) {
+        if (isPredicateArchived(predicate)) {
             Predicate predicateForArchived = ExpressionUtils.and(predicate, CUSTOMERS_ARCHIVED.apply(true));
             customerSheets.add(new ShortCustomersEntitySheet(this, predicateForArchived,"Archived"));
         }
@@ -216,11 +206,11 @@ class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional(readOnly = true)
-    public Workbook exportToExcelFull(Predicate predicate, boolean isArchived) {
+    public Workbook exportToExcelFull(Predicate predicate) {
         List<EntitySheet> customerSheets = new ArrayList<>();
         Predicate predicateForCustomers = ExpressionUtils.and(predicate, CUSTOMERS_ARCHIVED.apply(false));
         customerSheets.add(new FullCustomersEntitySheet(this, predicateForCustomers,"Customers"));
-        if (isArchived) {
+        if (isPredicateArchived(predicate)) {
             Predicate predicateForArchived = ExpressionUtils.and(predicate, CUSTOMERS_ARCHIVED.apply(true));
             customerSheets.add(new FullCustomersEntitySheet(this, predicateForArchived,"Archived"));
         }
@@ -296,6 +286,16 @@ class CustomerServiceImpl implements CustomerService {
 
     private FullCustomerExportDTO mapToFullExportDto(Customer customer) {
         return modelMapper.map(customer, FullCustomerExportDTO.class);
+    }
+
+    boolean isPredicateArchived(Predicate predicate) {
+
+        QCustomer customer = QCustomer.customer;
+        List<Expression<?>> argsList = predicateBuilderAndParser.getArgs(predicate);
+        if (argsList.size() > 0) {
+            return (argsList.get(argsList.indexOf(customer.archived) + 1).toString() != "true");
+        }
+        return false;
     }
 
     //endregion

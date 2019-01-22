@@ -5,12 +5,14 @@ import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.data.model.review.QReviewQuestion;
 import dk.ledocsystem.data.model.review.ReviewQuestion;
 import dk.ledocsystem.data.repository.ReviewQuestionRepository;
+import dk.ledocsystem.service.api.CustomerService;
 import dk.ledocsystem.service.api.ReviewQuestionService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.IterableUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,7 @@ class ReviewQuestionServiceImpl implements ReviewQuestionService {
     private static final Function<Long, Predicate> CUSTOMER_EQUALS_TO =
             customerId -> ExpressionUtils.eqConst(QReviewQuestion.reviewQuestion.customer.id, customerId);
 
+    private final CustomerService customerService;
     private final ReviewQuestionRepository reviewQuestionRepository;
 
     //region GET/DELETE standard API
@@ -49,28 +52,28 @@ class ReviewQuestionServiceImpl implements ReviewQuestionService {
     }
 
     @Override
-    public List<ReviewQuestion> getAllByCustomer(@NonNull Long customerId) {
-        return getAllByCustomer(customerId, Pageable.unpaged()).getContent();
+    public List<ReviewQuestion> getAllByCustomer(@NonNull UserDetails currentUser) {
+        return getAllByCustomer(currentUser, Pageable.unpaged()).getContent();
     }
 
     @Override
-    public Page<ReviewQuestion> getAllByCustomer(@NonNull Long customerId, @NonNull Pageable pageable) {
-        return getAllByCustomer(customerId, null, pageable);
+    public Page<ReviewQuestion> getAllByCustomer(@NonNull UserDetails currentUser, @NonNull Pageable pageable) {
+        return getAllByCustomer(currentUser, null, pageable);
     }
 
     @Override
-    public List<ReviewQuestion> getAllByCustomer(@NonNull Long customerId, Predicate predicate) {
-        return getAllByCustomer(customerId, predicate, Pageable.unpaged()).getContent();
+    public List<ReviewQuestion> getAllByCustomer(@NonNull UserDetails currentUser, Predicate predicate) {
+        return getAllByCustomer(currentUser, predicate, Pageable.unpaged()).getContent();
     }
 
     @Override
-    public Page<ReviewQuestion> getAllByCustomer(@NonNull Long customerId, Predicate predicate, @NonNull Pageable pageable) {
-        return getAllByCustomer(customerId, "", predicate, pageable);
+    public Page<ReviewQuestion> getAllByCustomer(@NonNull UserDetails currentUser, Predicate predicate, @NonNull Pageable pageable) {
+        return getAllByCustomer(currentUser, "", predicate, pageable, false);
     }
 
     @Override
-    public Page<ReviewQuestion> getAllByCustomer(@NonNull Long customerId, String searchString, Predicate predicate, @NonNull Pageable pageable) {
-        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
+    public Page<ReviewQuestion> getAllByCustomer(@NonNull UserDetails currentUser, String searchString, Predicate predicate, @NonNull Pageable pageable, boolean isNew) {
+        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerService.getByUsername(currentUser.getUsername()).getId()));
         return reviewQuestionRepository.findAll(combinePredicate, pageable);
     }
 

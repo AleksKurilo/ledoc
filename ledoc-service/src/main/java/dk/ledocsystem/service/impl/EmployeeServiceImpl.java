@@ -1,23 +1,22 @@
 package dk.ledocsystem.service.impl;
 
-import com.querydsl.core.types.ExpressionUtils;
-import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.*;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.impl.JPAQuery;
 import dk.ledocsystem.data.model.Customer;
 import dk.ledocsystem.data.model.Location;
+import dk.ledocsystem.data.model.QLocation;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.employee.EmployeeDetails;
 import dk.ledocsystem.data.model.employee.FollowedEmployees;
 import dk.ledocsystem.data.model.employee.QEmployee;
-import dk.ledocsystem.data.model.review.EmployeeReview;
-import dk.ledocsystem.data.model.review.EmployeeReviewQuestionAnswer;
-import dk.ledocsystem.data.model.review.ReviewQuestion;
-import dk.ledocsystem.data.model.review.ReviewTemplate;
+import dk.ledocsystem.data.model.review.*;
 import dk.ledocsystem.data.model.security.UserAuthorities;
-import dk.ledocsystem.data.repository.*;
-import dk.ledocsystem.service.api.EmployeeService;
-import dk.ledocsystem.service.api.ExcelExportService;
-import dk.ledocsystem.service.api.ReviewQuestionService;
-import dk.ledocsystem.service.api.ReviewTemplateService;
+import dk.ledocsystem.data.repository.CustomerRepository;
+import dk.ledocsystem.data.repository.EmployeeRepository;
+import dk.ledocsystem.data.repository.EmployeeReviewRepository;
+import dk.ledocsystem.data.repository.LocationRepository;
+import dk.ledocsystem.service.api.*;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.ChangePasswordDTO;
 import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeCreateDTO;
@@ -33,17 +32,22 @@ import dk.ledocsystem.service.impl.events.producer.EmployeeProducer;
 import dk.ledocsystem.service.impl.excel.sheets.EntitySheet;
 import dk.ledocsystem.service.impl.excel.sheets.employees.EmployeesEntitySheet;
 import dk.ledocsystem.service.impl.property_maps.employee.*;
+import dk.ledocsystem.service.impl.utils.PredicateBuilderAndParser;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -52,10 +56,13 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceContext;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static dk.ledocsystem.service.impl.constant.ErrorMessageKey.*;
 
@@ -68,9 +75,13 @@ class EmployeeServiceImpl implements EmployeeService {
     private static final Function<Boolean, Predicate> EMPLOYEES_ARCHIVED =
             archived -> ExpressionUtils.eqConst(QEmployee.employee.archived, archived);
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     private final CustomerRepository customerRepository;
     private final EmployeeRepository employeeRepository;
     private final LocationRepository locationRepository;
+    private final CustomerService customerService;
     private final ReviewTemplateService reviewTemplateService;
     private final ReviewQuestionService reviewQuestionService;
     private final ExcelExportService excelExportService;
@@ -83,6 +94,7 @@ class EmployeeServiceImpl implements EmployeeService {
     private final BaseValidator<ReviewDTO> reviewDtoBaseValidator;
     private final BaseValidator<ChangePasswordDTO> changePasswordDtoValidator;
     private final EmployeeProducer employeeProducer;
+    private final PredicateBuilderAndParser predicateBuilderAndParser;
 
     @PostConstruct
     private void init() {
@@ -354,7 +366,7 @@ class EmployeeServiceImpl implements EmployeeService {
         Employee employee = employeeRepository.findByUsername(user.getUsername())
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, user.getUsername()));
 
-        Predicate newEmployeesPredicate = getNewEmployeesPredicate(employee);
+        Predicate newEmployeesPredicate = ExpressionUtils.allOf(CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId()), getNewEmployeesPredicate(employee));
         return employeeRepository.count(newEmployeesPredicate);
     }
 
@@ -364,14 +376,13 @@ class EmployeeServiceImpl implements EmployeeService {
         Employee employee = employeeRepository.findByUsername(user.getUsername())
                 .orElseThrow(() -> new NotFoundException(EMPLOYEE_USERNAME_NOT_FOUND, user.getUsername()));
 
-        Predicate combinePredicate = ExpressionUtils.and(predicate, getNewEmployeesPredicate(employee));
+        Predicate combinePredicate = ExpressionUtils.allOf(predicate, CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId()), getNewEmployeesPredicate(employee));
         return getAll(combinePredicate, pageable);
     }
 
     private Predicate getNewEmployeesPredicate(Employee employee) {
         return ExpressionUtils.allOf(
                 EMPLOYEES_ARCHIVED.apply(Boolean.FALSE),
-                CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId()),
                 ExpressionUtils.neConst(QEmployee.employee.id, employee.getId()),
                 ExpressionUtils.eqConst(QEmployee.employee.visitedBy.any().employee, employee).not());
     }
@@ -389,13 +400,13 @@ class EmployeeServiceImpl implements EmployeeService {
 
     @Transactional(readOnly = true)
     @Override
-    public Workbook exportToExcel(UserDetails currentUserDetails, Predicate predicate, boolean isNew, boolean isArchived) {
+    public Workbook exportToExcel(UserDetails currentUserDetails, String searchString, Predicate predicate, boolean isNew) {
         List<EntitySheet> employeesSheets = new ArrayList<>();
         Predicate predicateForEmployees = ExpressionUtils.and(predicate, EMPLOYEES_ARCHIVED.apply(false));
-        employeesSheets.add(new EmployeesEntitySheet(this, currentUserDetails, predicateForEmployees, isNew, "Employees"));
-        if (isArchived) {
+        employeesSheets.add(new EmployeesEntitySheet(this, currentUserDetails, searchString, predicateForEmployees, isNew, "Employees"));
+        if (isPredicateArchived(predicate)) {
             Predicate predicateForArchived = ExpressionUtils.and(predicate, EMPLOYEES_ARCHIVED.apply(true));
-            employeesSheets.add(new EmployeesEntitySheet(this, currentUserDetails, predicateForArchived, isNew, "Archived"));
+            employeesSheets.add(new EmployeesEntitySheet(this, currentUserDetails, searchString, predicateForArchived, false, "Archived"));
         }
         return excelExportService.exportSheets(employeesSheets);
     }
@@ -454,33 +465,54 @@ class EmployeeServiceImpl implements EmployeeService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<GetEmployeeDTO> getAllByCustomer(@NonNull Long customerId) {
-        return getAllByCustomer(customerId, Pageable.unpaged()).getContent();
+    public List<GetEmployeeDTO> getAllByCustomer(@NonNull UserDetails currentUser) {
+        return getAllByCustomer(currentUser, Pageable.unpaged()).getContent();
     }
 
     @Transactional(readOnly = true)
     @Override
-    public Page<GetEmployeeDTO> getAllByCustomer(@NonNull Long customerId, @NonNull Pageable pageable) {
-        return getAllByCustomer(customerId, null, pageable);
+    public Page<GetEmployeeDTO> getAllByCustomer(@NonNull UserDetails currentUser, @NonNull Pageable pageable) {
+        return getAllByCustomer(currentUser, null, pageable);
     }
 
     @Transactional(readOnly = true)
     @Override
-    public List<GetEmployeeDTO> getAllByCustomer(@NonNull Long customerId, Predicate predicate) {
-        return getAllByCustomer(customerId, predicate, Pageable.unpaged()).getContent();
+    public List<GetEmployeeDTO> getAllByCustomer(@NonNull UserDetails currentUser, Predicate predicate) {
+        return getAllByCustomer(currentUser, predicate, Pageable.unpaged()).getContent();
     }
 
     @Transactional(readOnly = true)
     @Override
-    public Page<GetEmployeeDTO> getAllByCustomer(@NonNull Long customerId, Predicate predicate, @NonNull Pageable pageable) {
-        return getAllByCustomer(customerId, "", predicate, pageable);
+    public Page<GetEmployeeDTO> getAllByCustomer(@NonNull UserDetails currentUser, Predicate predicate, @NonNull Pageable pageable) {
+        return getAllByCustomer(currentUser, "", predicate, pageable, false);
     }
 
     @Transactional(readOnly = true)
     @Override
-    public Page<GetEmployeeDTO> getAllByCustomer(@NonNull Long customerId, String searchString, Predicate predicate, @NonNull Pageable pageable) {
-        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
-        return employeeRepository.findAll(combinePredicate, pageable).map(this::mapToDto);
+    public Page<GetEmployeeDTO> getAllByCustomer(@NonNull UserDetails currentUser, String searchString, Predicate predicate, @NonNull Pageable pageable, boolean isNew) {
+        QEmployee qEmployee = QEmployee.employee;
+
+        JPAQuery query = getAllByCustomerForPreviewAndExport(currentUser, searchString, predicate, isNew);
+
+        List<Sort.Order> sorts = pageable.getSort().get().collect(Collectors.toList());
+
+        List<OrderSpecifier> sortParams = new LinkedList<>();
+        if (sorts.size() > 0) {
+            sorts.forEach(order -> {
+                sortParams.add(new OrderSpecifier(Order.valueOf(order.getDirection().name()), Expressions.stringPath(qEmployee, order.getProperty())));
+            });
+
+            query.orderBy(sortParams.toArray(new OrderSpecifier[sortParams.size()]));
+        }
+
+        long count = query.fetchCount();
+
+        query.offset(pageable.getOffset());
+        query.limit(pageable.getPageSize());
+
+
+        Page<Employee> result = new PageImpl<>(query.fetch(), pageable, count);
+        return result.map(this::mapToDto);
     }
 
     @Transactional(readOnly = true)
@@ -492,15 +524,14 @@ class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<EmployeeExportDTO> getAllForExport(UserDetails creatorDetails, Predicate predicate, boolean isNew) {
-        Employee employee = employeeRepository.findByUsername(creatorDetails.getUsername()).orElseThrow(IllegalStateException::new);
-        Long customerId = employee.getCustomer().getId();
-        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerId));
-        if (isNew) {
-            combinePredicate = ExpressionUtils.allOf(combinePredicate,
-                    ExpressionUtils.eqConst(QEmployee.employee.visitedBy.any().employee, employee).not());
-        }
-        return employeeRepository.findAll(combinePredicate).stream().map(this::mapToExportDto).collect(Collectors.toList());
+    public List<EmployeeExportDTO> getAllForExport(UserDetails creatorDetails, String searchString, Predicate predicate, boolean isNew) {
+        QEmployee qEmployee = QEmployee.employee;
+
+        JPAQuery query = getAllByCustomerForPreviewAndExport(creatorDetails, searchString, predicate, isNew);
+        query.orderBy(qEmployee.lastName.asc());
+
+        List<Employee> resultList = query.fetch();
+        return resultList.stream().map(this::mapToExportDto).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -577,6 +608,78 @@ class EmployeeServiceImpl implements EmployeeService {
     @Transactional(readOnly = true)
     public Page<GetFollowedEmployeeDTO> getFollowedEmployees(Long employeeId, Pageable pageable) {
         return employeeRepository.findAllFollowedEmployeesByEmployeePaged(employeeId, pageable).map(this::mapToFollowDto);
+    }
+
+    JPAQuery getAllByCustomerForPreviewAndExport(UserDetails currentUser, String searchString, Predicate predicate, boolean isNew) {
+        QEmployee qEmployee = QEmployee.employee;
+
+        JPAQuery query = new JPAQuery<>(entityManager);
+        query.from(qEmployee);
+
+        List<Predicate> predicates = new ArrayList<>();
+        if (StringUtils.isNotEmpty(searchString)) {
+            predicates = Stream.of(
+                    Pair.of(qEmployee.firstName, searchString),
+                    Pair.of(qEmployee.lastName, searchString),
+                    Pair.of(qEmployee.username, searchString),
+                    Pair.of(qEmployee.authorities.any(), searchString),
+                    Pair.of(qEmployee.locations.any().name, searchString),
+                    Pair.of(qEmployee.responsible.firstName, searchString),
+                    Pair.of(qEmployee.responsible.lastName, searchString),
+                    Pair.of(qEmployee.title, searchString),
+                    Pair.of(qEmployee.initials, searchString),
+                    Pair.of(qEmployee.phoneNumber, searchString),
+                    Pair.of(qEmployee.cellPhone, searchString),
+                    Pair.of(qEmployee.idNumber, searchString),
+                    Pair.of(qEmployee.personalInfo.address, searchString),
+                    Pair.of(qEmployee.personalInfo.buildingNo, searchString),
+                    Pair.of(qEmployee.personalInfo.postalCode, searchString),
+                    Pair.of(qEmployee.personalInfo.city, searchString),
+                    Pair.of(qEmployee.personalInfo.personalMobile, searchString),
+                    Pair.of(qEmployee.personalInfo.privateEmail, searchString),
+                    Pair.of(qEmployee.personalInfo.comment, searchString),
+                    Pair.of(qEmployee.details.responsibleOfSkills.firstName, searchString),
+                    Pair.of(qEmployee.details.responsibleOfSkills.lastName, searchString),
+                    Pair.of(qEmployee.details.reviewTemplate.name, searchString),
+                    Pair.of(qEmployee.details.comment, searchString),
+                    Pair.of(qEmployee.nearestRelative.firstName, searchString),
+                    Pair.of(qEmployee.nearestRelative.lastName, searchString),
+                    Pair.of(qEmployee.nearestRelative.phoneNumber, searchString),
+                    Pair.of(qEmployee.nearestRelative.email, searchString),
+                    Pair.of(qEmployee.nearestRelative.comment, searchString)
+            ).map(predicateBuilderAndParser::toPredicate)
+                    .collect(Collectors.toList());
+
+            query.leftJoin(qEmployee.responsible, QEmployee.employee)
+                    .leftJoin(qEmployee.details.responsibleOfSkills, QEmployee.employee)
+                    .leftJoin(qEmployee.details.reviewTemplate, QReviewTemplate.reviewTemplate)
+                    .leftJoin(qEmployee.locations , QLocation.location)
+                    .leftJoin(qEmployee.responsible ,QEmployee.employee);
+        }
+
+        Employee employee = employeeRepository.findByUsername(currentUser.getUsername()).orElseThrow(IllegalStateException::new);
+
+        Predicate combinePredicate = ExpressionUtils.and(ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId())), ExpressionUtils.anyOf(predicates));
+
+
+        if (isPredicateArchived(predicate) && isNew) {
+            combinePredicate = ExpressionUtils.allOf(combinePredicate,
+                    getNewEmployeesPredicate(employee));
+        }
+
+        query.where(combinePredicate);
+
+        return query;
+    }
+
+    boolean isPredicateArchived(Predicate predicate) {
+
+        QEmployee employee = QEmployee.employee;
+        List<Expression<?>> argsList = predicateBuilderAndParser.getArgs(predicate);
+        if (argsList.size() > 0) {
+            return (argsList.get(argsList.indexOf(employee.archived) + 1).toString() != "true");
+        }
+        return false;
     }
     //endregion
 }

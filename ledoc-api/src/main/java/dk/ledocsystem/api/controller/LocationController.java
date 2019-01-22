@@ -37,8 +37,7 @@ public class LocationController {
     public Iterable<GetLocationDTO> getAllLocations(@CurrentUser UserDetails currentUser,
                                                     @QuerydslPredicate(root = Location.class) Predicate predicate,
                                                     @PageableDefault(sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
-        Long customerId = getCustomerId(currentUser);
-        return locationService.getAllByCustomer(customerId, predicate, pageable);
+        return locationService.getAllByCustomer(currentUser, predicate, pageable);
     }
 
     @GetMapping("/names")
