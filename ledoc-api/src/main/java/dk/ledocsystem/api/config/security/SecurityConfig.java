@@ -2,6 +2,7 @@ package dk.ledocsystem.api.config.security;
 
 import com.allanditzel.springframework.security.web.csrf.CsrfTokenResponseHeaderBindingFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,6 +41,9 @@ import java.util.Arrays;
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private static final String[] SWAGGER_RESOURCES = new String[] {"/swagger-ui.html", "/webjars/**",
             "/swagger-resources/**", "/v2/api-docs"};
+
+    @Value("${security.cors.url}")
+    private final String[] corsUrl;
 
     @Bean
     public static PasswordEncoder passwordEncoder() {
@@ -125,8 +129,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         CorsConfiguration configuration = new CorsConfiguration().applyPermitDefaultValues();
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setExposedHeaders(Arrays.asList(HttpHeaders.LOCATION, HttpHeaders.AUTHORIZATION));
-        configuration.setAllowedOrigins(Arrays.asList("http://testledocsystem.chisw.us",
-                "http://192.168.2.218", "http://localhost:3000", "http://127.0.0.1:3000", "http://10.93.91.143:3000", "http://dev-ledoc.chisw.us", "http://192.168.2.64", "http://localhost"));
+        configuration.setAllowedOrigins(Arrays.asList(corsUrl));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
