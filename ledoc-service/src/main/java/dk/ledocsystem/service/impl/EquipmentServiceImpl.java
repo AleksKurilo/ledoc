@@ -1,8 +1,9 @@
 package dk.ledocsystem.service.impl;
 
 import com.google.common.collect.ImmutableMap;
-import com.querydsl.core.types.*;
-import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.impl.JPAQuery;
 import dk.ledocsystem.data.model.Customer;
 import dk.ledocsystem.data.model.Location;
@@ -35,6 +36,7 @@ import dk.ledocsystem.service.impl.excel.sheets.EntitySheet;
 import dk.ledocsystem.service.impl.excel.sheets.equipment.EquipmentEntitySheet;
 import dk.ledocsystem.service.impl.property_maps.equipment.*;
 import dk.ledocsystem.service.impl.utils.PredicateBuilderAndParser;
+import dk.ledocsystem.service.impl.utils.QueryHandler;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +49,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,7 +59,6 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -92,6 +92,7 @@ class EquipmentServiceImpl implements EquipmentService {
     private final EquipmentProducer equipmentProducer;
     private final EntityManagerFactory entityManagerFactory;
     private final PredicateBuilderAndParser predicateBuilderAndParser;
+    private final QueryHandler queryHandler;
 
     private final BaseValidator<EquipmentDTO> equipmentDtoValidator;
     private final BaseValidator<EquipmentLoanDTO> equipmentLoanDtoValidator;
@@ -423,26 +424,11 @@ class EquipmentServiceImpl implements EquipmentService {
     @Override
     @Transactional(readOnly = true)
     public Page<GetEquipmentDTO> getAllByCustomer(@NonNull UserDetails currentUser, String searchString, Predicate predicate, @NonNull Pageable pageable, boolean isNew) {
-        QEquipment equipment = QEquipment.equipment;
-
         JPAQuery query = getAllByCustomerForPreviewAndExport(currentUser, searchString, predicate, isNew);
-
-        List<Sort.Order> sorts = pageable.getSort().get().collect(Collectors.toList());
-
-        List<OrderSpecifier> sortParams = new LinkedList<>();
-        if (sorts.size() > 0) {
-            sorts.forEach(order -> {
-                sortParams.add(new OrderSpecifier(Order.valueOf(order.getDirection().name()), Expressions.stringPath(equipment, order.getProperty())));
-            });
-
-            query.orderBy(sortParams.toArray(new OrderSpecifier[sortParams.size()]));
-        }
 
         long count = query.fetchCount();
 
-        query.offset(pageable.getOffset());
-        query.limit(pageable.getPageSize());
-
+        queryHandler.sortPageableQuery(query, pageable, QEquipment.equipment);
 
         Page<Equipment> result = new PageImpl<>(query.fetch(), pageable, count);
         return result.map(this::mapToDto);

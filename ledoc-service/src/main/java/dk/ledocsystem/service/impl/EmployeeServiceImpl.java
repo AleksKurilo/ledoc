@@ -1,7 +1,8 @@
 package dk.ledocsystem.service.impl;
 
-import com.querydsl.core.types.*;
-import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.impl.JPAQuery;
 import dk.ledocsystem.data.model.Customer;
 import dk.ledocsystem.data.model.Location;
@@ -16,7 +17,10 @@ import dk.ledocsystem.data.repository.CustomerRepository;
 import dk.ledocsystem.data.repository.EmployeeRepository;
 import dk.ledocsystem.data.repository.EmployeeReviewRepository;
 import dk.ledocsystem.data.repository.LocationRepository;
-import dk.ledocsystem.service.api.*;
+import dk.ledocsystem.service.api.EmployeeService;
+import dk.ledocsystem.service.api.ExcelExportService;
+import dk.ledocsystem.service.api.ReviewQuestionService;
+import dk.ledocsystem.service.api.ReviewTemplateService;
 import dk.ledocsystem.service.api.dto.inbound.ArchivedStatusDTO;
 import dk.ledocsystem.service.api.dto.inbound.ChangePasswordDTO;
 import dk.ledocsystem.service.api.dto.inbound.employee.EmployeeCreateDTO;
@@ -34,6 +38,7 @@ import dk.ledocsystem.service.impl.excel.sheets.EntitySheet;
 import dk.ledocsystem.service.impl.excel.sheets.employees.EmployeesEntitySheet;
 import dk.ledocsystem.service.impl.property_maps.employee.*;
 import dk.ledocsystem.service.impl.utils.PredicateBuilderAndParser;
+import dk.ledocsystem.service.impl.utils.QueryHandler;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +53,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -82,7 +86,6 @@ class EmployeeServiceImpl implements EmployeeService {
     private final CustomerRepository customerRepository;
     private final EmployeeRepository employeeRepository;
     private final LocationRepository locationRepository;
-    private final CustomerService customerService;
     private final ReviewTemplateService reviewTemplateService;
     private final ReviewQuestionService reviewQuestionService;
     private final ExcelExportService excelExportService;
@@ -91,6 +94,7 @@ class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeReviewRepository employeeReviewRepository;
     private final EmployeeProducer employeeProducer;
     private final ModelMapper modelMapper;
+    private final QueryHandler queryHandler;
 
     private final BaseValidator<EmployeeDTO> employeeDtoValidator;
     private final BaseValidator<EmployeeCreateDTO> employeeCreateDtoValidator;
@@ -526,26 +530,11 @@ class EmployeeServiceImpl implements EmployeeService {
     @Transactional(readOnly = true)
     @Override
     public Page<GetEmployeeDTO> getAllByCustomer(@NonNull UserDetails currentUser, String searchString, Predicate predicate, @NonNull Pageable pageable, boolean isNew) {
-        QEmployee qEmployee = QEmployee.employee;
-
         JPAQuery query = getAllByCustomerForPreviewAndExport(currentUser, searchString, predicate, isNew);
-
-        List<Sort.Order> sorts = pageable.getSort().get().collect(Collectors.toList());
-
-        List<OrderSpecifier> sortParams = new LinkedList<>();
-        if (sorts.size() > 0) {
-            sorts.forEach(order -> {
-                sortParams.add(new OrderSpecifier(Order.valueOf(order.getDirection().name()), Expressions.stringPath(qEmployee, order.getProperty())));
-            });
-
-            query.orderBy(sortParams.toArray(new OrderSpecifier[sortParams.size()]));
-        }
 
         long count = query.fetchCount();
 
-        query.offset(pageable.getOffset());
-        query.limit(pageable.getPageSize());
-
+        queryHandler.sortPageableQuery(query, pageable, QEmployee.employee);
 
         Page<Employee> result = new PageImpl<>(query.fetch(), pageable, count);
         return result.map(this::mapToDto);

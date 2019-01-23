@@ -1,10 +1,9 @@
 package dk.ledocsystem.service.impl;
 
 import com.google.common.collect.ImmutableMap;
-import com.querydsl.core.types.*;
-import com.querydsl.core.types.dsl.BooleanOperation;
-import com.querydsl.core.types.dsl.EnumPath;
-import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.impl.JPAQuery;
 import dk.ledocsystem.data.model.*;
 import dk.ledocsystem.data.model.document.*;
@@ -29,6 +28,7 @@ import dk.ledocsystem.service.impl.excel.sheets.EntitySheet;
 import dk.ledocsystem.service.impl.excel.sheets.documents.DocumentsEntitySheet;
 import dk.ledocsystem.service.impl.property_maps.document.*;
 import dk.ledocsystem.service.impl.utils.PredicateBuilderAndParser;
+import dk.ledocsystem.service.impl.utils.QueryHandler;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -41,15 +41,14 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceContext;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -86,6 +85,7 @@ class DocumentServiceImpl implements DocumentService {
     private final BaseValidator<DocumentDTO> documentDtoValidator;
     private final BaseValidator<DocumentCategoryDTO> categoryDtoValidator;
     private final PredicateBuilderAndParser predicateBuilderAndParser;
+    private final QueryHandler queryHandler;
 
     @PostConstruct
     private void init() {
@@ -409,26 +409,12 @@ class DocumentServiceImpl implements DocumentService {
     @Override
     @Transactional(readOnly = true)
     public Page<GetDocumentDTO> getAllByCustomer(@NonNull UserDetails currentUser, String searchString, Predicate predicate, @NonNull Pageable pageable, boolean isNew) {
-        QDocument qDocument = QDocument.document;
         Employee employee = employeeRepository.findByUsername(currentUser.getUsername()).orElseThrow(IllegalStateException::new);
         JPAQuery query = getAllByCustomerForPreviewAndExport(currentUser, searchString, predicate, isNew);
 
-        List<Sort.Order> sorts = pageable.getSort().get().collect(Collectors.toList());
-
-        List<OrderSpecifier> sortParams = new LinkedList<>();
-        if (sorts.size() > 0) {
-            sorts.forEach(order -> {
-                sortParams.add(new OrderSpecifier(Order.valueOf(order.getDirection().name()), Expressions.stringPath(qDocument, order.getProperty())));
-            });
-
-            query.orderBy(sortParams.toArray(new OrderSpecifier[sortParams.size()]));
-        }
-
         long count = query.fetchCount();
 
-        query.offset(pageable.getOffset());
-        query.limit(pageable.getPageSize());
-
+        queryHandler.sortPageableQuery(query, pageable, QDocument.document);
 
         Page<Document> result = new PageImpl<>(query.fetch(), pageable, count);
         return result.map(document -> {
@@ -500,9 +486,9 @@ class DocumentServiceImpl implements DocumentService {
                     Pair.of(document.responsible.lastName, searchString),
                     Pair.of(document.trades.any().nameEn, searchString),
                     Pair.of(document.locations.any().name, searchString),
-                    Pair.of((EnumPath) document.type.getRoot(), searchString),
-                    Pair.of((EnumPath) document.source.getRoot(), searchString),
-                    Pair.of((EnumPath) document.status.getRoot(), searchString)
+                    Pair.of(document.type, searchString),
+                    Pair.of(document.source, searchString),
+                    Pair.of(document.status, searchString)
             ).map(predicateBuilderAndParser::toPredicate)
                     .collect(Collectors.toList());
 
