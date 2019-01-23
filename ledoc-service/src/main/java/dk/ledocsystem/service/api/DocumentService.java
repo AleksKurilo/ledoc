@@ -49,7 +49,7 @@ public interface DocumentService extends CustomerBasedDomainService<GetDocumentD
 
     void deleteCategory(Long id);
 
-    List<DocumentExportDTO> getAllForExport(UserDetails creatorDetails, String searchString, Predicate predicate, boolean isNew);
+    List<DocumentExportDTO> getAllForExport(UserDetails creatorDetails, String searchString, Predicate predicate, boolean isNew, boolean isArchived);
 
-    Workbook exportToExcel(UserDetails currentUserDetails, String searchString, Predicate predicate, boolean isNew);
+    Workbook exportToExcel(UserDetails currentUserDetails, String searchString, Predicate predicate, boolean isNew, boolean isArchived);
 }

@@ -49,8 +49,9 @@ public class EmployeeController {
                                                     @RequestParam(value = "search", required = false, defaultValue = "") String searchString,
                                                     @QuerydslPredicate(root = Employee.class) Predicate predicate,
                                                     @PageableDefault(sort = "lastName", direction = Sort.Direction.ASC) Pageable pageable,
-                                                    @RequestParam(value = "new", required = false, defaultValue = "false") boolean isNew) {
-        return employeeService.getAllByCustomer(currentUser, searchString, predicate, pageable, isNew);
+                                                    @RequestParam(value = "new", required = false, defaultValue = "false") boolean isNew,
+                                                    @RequestParam(value = "archived", required = false, defaultValue = "false") boolean isArchived) {
+        return employeeService.getAllByCustomer(currentUser, searchString, predicate, pageable, isNew, isArchived);
     }
 
     @GetMapping("/names")
@@ -154,11 +155,12 @@ public class EmployeeController {
     public ResponseEntity<StreamingResponseBody> exportEmployees(@CurrentUser UserDetails currentUser,
                                                                  @RequestParam(value = "search", required = false, defaultValue = "") String searchString,
                                                                  @QuerydslPredicate(root = Employee.class) Predicate predicate,
-                                                                 @RequestParam(value = "new", required = false, defaultValue = "false") boolean isNew) {
+                                                                 @RequestParam(value = "new", required = false, defaultValue = "false") boolean isNew,
+                                                                 @RequestParam(value = "archived", required = false, defaultValue = "false") boolean isArchived) {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, "application/ms-excel")
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"All employees.xlsx\"")
-                .body(outputStream -> employeeService.exportToExcel(currentUser, searchString, predicate, isNew).write(outputStream));
+                .body(outputStream -> employeeService.exportToExcel(currentUser, searchString, predicate, isNew, isArchived).write(outputStream));
     }
 
     private Long getCustomerId(UserDetails user) {

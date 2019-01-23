@@ -68,11 +68,11 @@ class QuestionGroupServiceImpl implements QuestionGroupService {
 
     @Override
     public Page<QuestionGroup> getAllByCustomer(@NonNull UserDetails currentUser, Predicate predicate, @NonNull Pageable pageable) {
-        return getAllByCustomer(currentUser, "", predicate, pageable, false);
+        return getAllByCustomer(currentUser, "", predicate, pageable, false, false);
     }
 
     @Override
-    public Page<QuestionGroup> getAllByCustomer(@NonNull UserDetails currentUser, String searchString, Predicate predicate, @NonNull Pageable pageable, boolean isNew) {
+    public Page<QuestionGroup> getAllByCustomer(@NonNull UserDetails currentUser, String searchString, Predicate predicate, @NonNull Pageable pageable, boolean isNew, boolean isArchived) {
         Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerService.getByUsername(currentUser.getUsername()).getId()));
         return questionGroupRepository.findAll(combinePredicate, pageable);
     }

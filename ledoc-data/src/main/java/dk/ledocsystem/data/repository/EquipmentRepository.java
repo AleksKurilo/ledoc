@@ -61,7 +61,7 @@ public interface EquipmentRepository extends JpaRepository<Equipment, Long>, Que
     default void customize(QuerydslBindings bindings, QEquipment root) {
         bindings.including(root.name, root.localId, root.location.id, root.location.name, root.status, root.readyToLoan,
                 root.idNumber, root.serialNumber, root.manufacturer, root.purchaseDate, root.warrantyDate,
-                root.price, root.comment, root.responsible.id, root.creator.id, root.archived, root.category.id,
+                root.price, root.comment, root.responsible.id, root.creator.id, root.category.id,
                 root.category.nameEn, root.authenticationType.id, root.authenticationType.nameEn, root.loan.borrower.id,
                 ExpressionUtils.path(String.class, root, "responsible.name"),
                 ExpressionUtils.path(Boolean.class, root, "loaned"));

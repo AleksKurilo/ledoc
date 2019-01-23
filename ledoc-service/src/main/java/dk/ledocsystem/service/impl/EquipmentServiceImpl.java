@@ -1,7 +1,6 @@
 package dk.ledocsystem.service.impl;
 
 import com.google.common.collect.ImmutableMap;
-import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -302,13 +301,13 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public Workbook exportToExcel(@NonNull UserDetails currentUserDetails, String searchString, Predicate predicate, boolean isNew) {
+    public Workbook exportToExcel(@NonNull UserDetails currentUserDetails, String searchString, Predicate predicate, boolean isNew, boolean isArchived) {
         List<EntitySheet> equipmentSheets = new ArrayList<>();
         Predicate predicateForEquipment = ExpressionUtils.and(predicate, EQUIPMENT_ARCHIVED.apply(false));
-        equipmentSheets.add(new EquipmentEntitySheet(this, currentUserDetails, searchString, predicateForEquipment, isNew, "Equipment"));
-        if (isPredicateArchived(predicate)) {
+        equipmentSheets.add(new EquipmentEntitySheet(this, currentUserDetails, searchString, predicateForEquipment, isNew, false, "Equipment"));
+        if (isArchived) {
             Predicate predicateForArchived = ExpressionUtils.and(predicate, EQUIPMENT_ARCHIVED.apply(true));
-            equipmentSheets.add(new EquipmentEntitySheet(this, currentUserDetails, searchString, predicateForArchived, false, "Archived"));
+            equipmentSheets.add(new EquipmentEntitySheet(this, currentUserDetails, searchString, predicateForArchived, false, true, "Archived"));
         }
         return excelExportService.exportSheets(equipmentSheets);
     }
@@ -418,13 +417,14 @@ class EquipmentServiceImpl implements EquipmentService {
     @Override
     @Transactional(readOnly = true)
     public Page<GetEquipmentDTO> getAllByCustomer(@NonNull UserDetails currentUser, Predicate predicate, @NonNull Pageable pageable) {
-        return getAllByCustomer(currentUser, "", predicate, pageable, false);
+        return getAllByCustomer(currentUser, "", predicate, pageable, false, false);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<GetEquipmentDTO> getAllByCustomer(@NonNull UserDetails currentUser, String searchString, Predicate predicate, @NonNull Pageable pageable, boolean isNew) {
-        JPAQuery query = getAllByCustomerForPreviewAndExport(currentUser, searchString, predicate, isNew);
+    public Page<GetEquipmentDTO> getAllByCustomer(@NonNull UserDetails currentUser, String searchString, Predicate predicate, @NonNull Pageable pageable, boolean isNew, boolean isArchived) {
+        predicate = ExpressionUtils.allOf(predicate, EQUIPMENT_ARCHIVED.apply(isArchived));
+        JPAQuery query = getAllByCustomerForPreviewAndExport(currentUser, searchString, predicate, isNew, isArchived);
 
         long count = query.fetchCount();
 
@@ -436,10 +436,10 @@ class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<EquipmentExportDTO> getAllForExport(UserDetails creatorDetails, String searchString, Predicate predicate, boolean isNew) {
+    public List<EquipmentExportDTO> getAllForExport(UserDetails creatorDetails, String searchString, Predicate predicate, boolean isNew, boolean isArchived) {
         QEquipment equipment = QEquipment.equipment;
 
-        JPAQuery query = getAllByCustomerForPreviewAndExport(creatorDetails, searchString, predicate, isNew);
+        JPAQuery query = getAllByCustomerForPreviewAndExport(creatorDetails, searchString, predicate, isNew, isArchived);
         query.orderBy(equipment.name.asc());
 
         List<Equipment> resultList = query.fetch();
@@ -535,11 +535,11 @@ class EquipmentServiceImpl implements EquipmentService {
         equipmentProducer.follow(equipment, follower, forced, equipmentFollowDTO.isFollowed());
     }
 
-    JPAQuery getAllByCustomerForPreviewAndExport(UserDetails currentUser, String searchString, Predicate predicate, boolean isNew) {
+    JPAQuery getAllByCustomerForPreviewAndExport(UserDetails currentUser, String searchString, Predicate predicate, boolean isNew, boolean isArchived) {
         QEquipment equipment = QEquipment.equipment;
 
         JPAQuery query = new JPAQuery<>(entityManager);
-        query.from(equipment);
+        query.from(equipment).distinct();
 
         List<Predicate> predicates = new ArrayList<>();
         if (StringUtils.isNotEmpty(searchString)) {
@@ -569,28 +569,18 @@ class EquipmentServiceImpl implements EquipmentService {
 
         Employee employee = employeeRepository.findByUsername(currentUser.getUsername()).orElseThrow(IllegalStateException::new);
 
-        Predicate combinePredicate = ExpressionUtils.and(ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId())), ExpressionUtils.anyOf(predicates));
+        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId()));
 
-
-        if (isPredicateArchived(predicate) && isNew) {
+        if (!isArchived && isNew) {
             combinePredicate = ExpressionUtils.allOf(combinePredicate,
                     getNewEquipmentPredicate(employee));
         }
+
+        combinePredicate = ExpressionUtils.and(combinePredicate, ExpressionUtils.anyOf(predicates));
 
         query.where(combinePredicate);
 
         return query;
     }
-
-    boolean isPredicateArchived(Predicate predicate) {
-
-        QEquipment equipment = QEquipment.equipment;
-        List<Expression<?>> argsList = predicateBuilderAndParser.getArgs(predicate);
-        if (argsList.size() > 0) {
-            return (argsList.get(argsList.indexOf(equipment.archived) + 1).toString() != "true");
-        }
-        return false;
-    }
-
     //endregion
 }

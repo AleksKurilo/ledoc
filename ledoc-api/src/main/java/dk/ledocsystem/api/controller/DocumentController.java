@@ -84,9 +84,10 @@ public class DocumentController {
                                                    @RequestParam(value = "search", required = false, defaultValue = "") String searchString,
                                                    @QuerydslPredicate(root = Document.class) Predicate predicate,
                                                    @RequestParam(value = "new", required = false, defaultValue = "false") boolean isNew,
+                                                   @RequestParam(value = "archived", required = false, defaultValue = "false") boolean isArchived,
                                                    @PageableDefault(sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
         Long customerId = getCustomerId(currentUser);
-        return documentService.getAllByCustomer(currentUser, searchString, predicate, pageable, isNew);
+        return documentService.getAllByCustomer(currentUser, searchString, predicate, pageable, isNew, isArchived);
     }
 
     @DeleteMapping(path = "/{id}")
@@ -176,11 +177,12 @@ public class DocumentController {
     public ResponseEntity<StreamingResponseBody> exportDocuments(@CurrentUser UserDetails currentUser,
                                                                  @RequestParam(value = "search", required = false, defaultValue = "") String searchString,
                                                                  @QuerydslPredicate(root = Document.class) Predicate predicate,
-                                                                 @RequestParam(value = "new", required = false, defaultValue = "false") boolean isNew) {
+                                                                 @RequestParam(value = "new", required = false, defaultValue = "false") boolean isNew,
+                                                                 @RequestParam(value = "archived", required = false, defaultValue = "false") boolean isArchived) {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, "application/ms-excel")
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"All documents.xlsx\"")
-                .body(outputStream -> documentService.exportToExcel(currentUser, searchString, predicate, isNew).write(outputStream));
+                .body(outputStream -> documentService.exportToExcel(currentUser, searchString, predicate, isNew, isArchived).write(outputStream));
     }
 
     private Long getCustomerId(UserDetails user) {

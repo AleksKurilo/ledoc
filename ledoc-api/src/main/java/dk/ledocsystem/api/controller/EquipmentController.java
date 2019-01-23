@@ -47,8 +47,9 @@ public class EquipmentController {
                                                       @RequestParam(value = "search", required = false, defaultValue = "") String searchString,
                                                       @QuerydslPredicate(root = Equipment.class) Predicate predicate,
                                                       @RequestParam(value = "new", required = false, defaultValue = "false") boolean isNew,
+                                                      @RequestParam(value = "archived", required = false, defaultValue = "false") boolean isArchived,
                                                       @PageableDefault(sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
-        return equipmentService.getAllByCustomer(currentUser, searchString, predicate, pageable, isNew);
+        return equipmentService.getAllByCustomer(currentUser, searchString, predicate, pageable, isNew, isArchived);
     }
 
     @GetMapping("/{equipmentId}")
@@ -152,10 +153,11 @@ public class EquipmentController {
     public ResponseEntity<StreamingResponseBody> exportEquipment(@CurrentUser UserDetails currentUser,
                                                                  @RequestParam(value = "search", required = false, defaultValue = "") String searchString,
                                                                  @QuerydslPredicate(root = Equipment.class) Predicate predicate,
-                                                                 @RequestParam(value = "new", required = false, defaultValue = "false") boolean isNew) {
+                                                                 @RequestParam(value = "new", required = false, defaultValue = "false") boolean isNew,
+                                                                 @RequestParam(value = "archived", required = false, defaultValue = "false") boolean isArchived) {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, "application/ms-excel")
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"All equipment.xlsx\"")
-                .body(outputStream -> equipmentService.exportToExcel(currentUser, searchString, predicate, isNew).write(outputStream));
+                .body(outputStream -> equipmentService.exportToExcel(currentUser, searchString, predicate, isNew, isArchived).write(outputStream));
     }
 }

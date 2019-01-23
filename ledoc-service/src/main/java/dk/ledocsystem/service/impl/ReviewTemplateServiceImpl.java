@@ -80,11 +80,11 @@ class ReviewTemplateServiceImpl implements ReviewTemplateService {
 
     @Override
     public Page<ReviewTemplate> getAllByCustomer(@NonNull UserDetails currentUser, Predicate predicate, @NonNull Pageable pageable) {
-        return getAllByCustomer(currentUser, "", predicate, pageable, false);
+        return getAllByCustomer(currentUser, "", predicate, pageable, false, false);
     }
 
     @Override
-    public Page<ReviewTemplate> getAllByCustomer(@NonNull UserDetails currentUser, String searchString, Predicate predicate, @NonNull Pageable pageable, boolean isNew) {
+    public Page<ReviewTemplate> getAllByCustomer(@NonNull UserDetails currentUser, String searchString, Predicate predicate, @NonNull Pageable pageable, boolean isNew, boolean isArchived) {
         Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(customerService.getByUsername(currentUser.getUsername()).getId()));
         return reviewTemplateRepository.findAll(combinePredicate, pageable);
     }

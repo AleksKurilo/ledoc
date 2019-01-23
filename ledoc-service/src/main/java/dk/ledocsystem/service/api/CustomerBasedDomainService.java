@@ -23,5 +23,5 @@ public interface CustomerBasedDomainService<T> extends DomainService<T> {
 
     Page<T> getAllByCustomer(UserDetails currentUser, Predicate predicate, Pageable pageable);
 
-    Page<T> getAllByCustomer(UserDetails currentUser, String searchString, Predicate predicate, Pageable pageable, boolean isNew);
+    Page<T> getAllByCustomer(UserDetails currentUser, String searchString, Predicate predicate, Pageable pageable, boolean isNew, boolean isArchived);
 }

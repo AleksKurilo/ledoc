@@ -39,7 +39,7 @@ public interface DocumentRepository extends JpaRepository<Document, Long>, Query
     @Override
     default void customize(QuerydslBindings bindings, QDocument root) {
         bindings.including(root.name, root.status,
-                root.responsible.id, root.creator.id, root.archived,
+                root.responsible.id, root.creator.id,
                 root.category.id, root.subcategory.id,
                 ExpressionUtils.path(Document.class, root, "locations.id"),
                 ExpressionUtils.path(Document.class, root, "trades.id"));

@@ -1,7 +1,6 @@
 package dk.ledocsystem.service.impl;
 
 import com.google.common.collect.ImmutableMap;
-import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -296,13 +295,13 @@ class DocumentServiceImpl implements DocumentService {
 
     @Override
     @Transactional(readOnly = true)
-    public Workbook exportToExcel(UserDetails currentUserDetails, String searchString, Predicate predicate, boolean isNew) {
+    public Workbook exportToExcel(UserDetails currentUserDetails, String searchString, Predicate predicate, boolean isNew, boolean isArchived) {
         List<EntitySheet> documentSheets = new ArrayList<>();
         Predicate predicateForDocuments = ExpressionUtils.and(predicate, DOCUMENTS_ARCHIVED.apply(false));
-        documentSheets.add(new DocumentsEntitySheet(this, currentUserDetails, searchString, predicateForDocuments, isNew, "Documents"));
-        if (isPredicateArchived(predicate)) {
+        documentSheets.add(new DocumentsEntitySheet(this, currentUserDetails, searchString, predicateForDocuments, isNew, false,"Documents"));
+        if (isArchived) {
             Predicate predicateForArchived = ExpressionUtils.and(predicate, DOCUMENTS_ARCHIVED.apply(true));
-            documentSheets.add(new DocumentsEntitySheet(this, currentUserDetails, searchString, predicateForArchived, false, "Archived"));
+            documentSheets.add(new DocumentsEntitySheet(this, currentUserDetails, searchString, predicateForArchived, false, true, "Archived"));
         }
         return excelExportService.exportSheets(documentSheets);
     }
@@ -403,14 +402,16 @@ class DocumentServiceImpl implements DocumentService {
     @Override
     @Transactional(readOnly = true)
     public Page<GetDocumentDTO> getAllByCustomer(@NonNull UserDetails currentUser, Predicate predicate, @NonNull Pageable pageable) {
-        return getAllByCustomer(currentUser, "", predicate, pageable, false);
+        return getAllByCustomer(currentUser, "", predicate, pageable, false, false);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<GetDocumentDTO> getAllByCustomer(@NonNull UserDetails currentUser, String searchString, Predicate predicate, @NonNull Pageable pageable, boolean isNew) {
+    public Page<GetDocumentDTO> getAllByCustomer(@NonNull UserDetails currentUser, String searchString, Predicate predicate, @NonNull Pageable pageable, boolean isNew, boolean isArchived) {
         Employee employee = employeeRepository.findByUsername(currentUser.getUsername()).orElseThrow(IllegalStateException::new);
-        JPAQuery query = getAllByCustomerForPreviewAndExport(currentUser, searchString, predicate, isNew);
+
+        predicate = ExpressionUtils.allOf(predicate, DOCUMENTS_ARCHIVED.apply(isArchived));
+        JPAQuery query = getAllByCustomerForPreviewAndExport(currentUser, searchString, predicate, isNew, isArchived);
 
         long count = query.fetchCount();
 
@@ -426,10 +427,10 @@ class DocumentServiceImpl implements DocumentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<DocumentExportDTO> getAllForExport(UserDetails creatorDetails, String searchString, Predicate predicate, boolean isNew) {
+    public List<DocumentExportDTO> getAllForExport(UserDetails creatorDetails, String searchString, Predicate predicate, boolean isNew, boolean isArchived) {
         QDocument document = QDocument.document;
 
-        JPAQuery query = getAllByCustomerForPreviewAndExport(creatorDetails, searchString, predicate, isNew);
+        JPAQuery query = getAllByCustomerForPreviewAndExport(creatorDetails, searchString, predicate, isNew, isArchived);
         query.orderBy(document.name.asc());
 
         List<Document> resultList = query.fetch();
@@ -469,11 +470,11 @@ class DocumentServiceImpl implements DocumentService {
         return modelMapper.map(category, IdAndLocalizedName.class);
     }
 
-    JPAQuery getAllByCustomerForPreviewAndExport(UserDetails currentUser, String searchString, Predicate predicate, boolean isNew) {
+    JPAQuery getAllByCustomerForPreviewAndExport(UserDetails currentUser, String searchString, Predicate predicate, boolean isNew, boolean isArchived) {
         QDocument document = QDocument.document;
 
         JPAQuery query = new JPAQuery<>(entityManager);
-        query.from(document);
+        query.from(document).distinct();
 
         List<Predicate> predicates = new ArrayList<>();
         if (StringUtils.isNotEmpty(searchString)) {
@@ -501,26 +502,16 @@ class DocumentServiceImpl implements DocumentService {
 
         Employee employee = employeeRepository.findByUsername(currentUser.getUsername()).orElseThrow(IllegalStateException::new);
 
-        Predicate combinePredicate = ExpressionUtils.and(ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId())), ExpressionUtils.anyOf(predicates));
-
-
-        if (isPredicateArchived(predicate) && isNew) {
+        Predicate combinePredicate = ExpressionUtils.and(predicate, CUSTOMER_EQUALS_TO.apply(employee.getCustomer().getId()));
+        if (!isArchived && isNew) {
             combinePredicate = ExpressionUtils.allOf(combinePredicate,
                     getNewDocumentsPredicate(employee));
         }
 
+        combinePredicate = ExpressionUtils.and(combinePredicate, ExpressionUtils.anyOf(predicates));
+
         query.where(combinePredicate);
 
         return query;
-    }
-
-    boolean isPredicateArchived(Predicate predicate) {
-
-        QDocument document = QDocument.document;
-        List<Expression<?>> argsList = predicateBuilderAndParser.getArgs(predicate);
-        if (argsList.size() > 0) {
-            return (argsList.get(argsList.indexOf(document.archived) + 1).toString() != "true");
-        }
-        return false;
     }
 }

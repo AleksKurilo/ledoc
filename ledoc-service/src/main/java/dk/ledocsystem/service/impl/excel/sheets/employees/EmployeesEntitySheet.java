@@ -20,6 +20,7 @@ public class EmployeesEntitySheet implements EntitySheet {
     private String searchString;
     private Predicate predicate;
     private boolean isNew;
+    private boolean isArchived;
     private String name;
 
     @Override
@@ -29,7 +30,7 @@ public class EmployeesEntitySheet implements EntitySheet {
 
     @Override
     public List<Row> getRows() {
-        return employeeService.getAllForExport(currentUserDetails, searchString, predicate, isNew)
+        return employeeService.getAllForExport(currentUserDetails, searchString, predicate, isNew, isArchived)
                 .stream()
                 .map(EmployeeExportDTO::getFields)
                 .map(Row::new)
