@@ -1,16 +1,11 @@
 package dk.ledocsystem.service.impl.utils;
 
-import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.PredicateOperation;
 import com.querydsl.core.types.dsl.*;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 @AllArgsConstructor
@@ -29,15 +24,5 @@ public class PredicateBuilderAndParser {
         return Expressions.anyOf(
                 targetValue.containsIgnoreCase(pair.getRight())
         );
-    }
-
-    public List<Expression<?>> getArgs(Predicate predicate) {
-        List<Expression<?>> argsList = new ArrayList<>();
-        if (predicate instanceof PredicateOperation) {
-            argsList = ((PredicateOperation) predicate).getArgs();
-        } else if (predicate instanceof BooleanOperation) {
-            argsList = ((BooleanOperation) predicate).getArgs();
-        }
-        return argsList;
     }
 }

@@ -45,7 +45,7 @@ public interface CustomerService extends DomainService<GetCustomerDTO> {
 
     List<FullCustomerExportDTO> getAllForExportFull(Predicate predicate);
 
-    Workbook exportToExcelShort(Predicate predicate);
+    Workbook exportToExcelShort(Predicate predicate, boolean isArchived);
 
-    Workbook exportToExcelFull(Predicate predicate);
+    Workbook exportToExcelFull(Predicate predicate, boolean isArchived);
 }

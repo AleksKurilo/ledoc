@@ -1,6 +1,5 @@
 package dk.ledocsystem.service.impl;
 
-import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.Predicate;
 import dk.ledocsystem.data.model.*;
@@ -25,7 +24,6 @@ import dk.ledocsystem.service.impl.excel.sheets.EntitySheet;
 import dk.ledocsystem.service.impl.excel.sheets.customers.FullCustomersEntitySheet;
 import dk.ledocsystem.service.impl.excel.sheets.customers.ShortCustomersEntitySheet;
 import dk.ledocsystem.service.impl.property_maps.customers.CustomerToFullExportDtoMap;
-import dk.ledocsystem.service.impl.utils.PredicateBuilderAndParser;
 import dk.ledocsystem.service.impl.validators.BaseValidator;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -67,7 +65,6 @@ class CustomerServiceImpl implements CustomerService {
     private final ModelMapper modelMapper;
     private final BaseValidator<CustomerCreateDTO> customerCreateDtoValidator;
     private final BaseValidator<CustomerEditDTO> customerEditDtoValidator;
-    private final PredicateBuilderAndParser predicateBuilderAndParser;
 
     @PostConstruct
     private void init() {
@@ -193,11 +190,11 @@ class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Workbook exportToExcelShort(Predicate predicate) {
+    public Workbook exportToExcelShort(Predicate predicate, boolean isArchived) {
         List<EntitySheet> customerSheets = new ArrayList<>();
         Predicate predicateForCustomers = ExpressionUtils.and(predicate, CUSTOMERS_ARCHIVED.apply(false));
         customerSheets.add(new ShortCustomersEntitySheet(this, predicateForCustomers,"Customers"));
-        if (isPredicateArchived(predicate)) {
+        if (isArchived) {
             Predicate predicateForArchived = ExpressionUtils.and(predicate, CUSTOMERS_ARCHIVED.apply(true));
             customerSheets.add(new ShortCustomersEntitySheet(this, predicateForArchived,"Archived"));
         }
@@ -206,11 +203,11 @@ class CustomerServiceImpl implements CustomerService {
 
     @Override
     @Transactional(readOnly = true)
-    public Workbook exportToExcelFull(Predicate predicate) {
+    public Workbook exportToExcelFull(Predicate predicate, boolean isArchived) {
         List<EntitySheet> customerSheets = new ArrayList<>();
         Predicate predicateForCustomers = ExpressionUtils.and(predicate, CUSTOMERS_ARCHIVED.apply(false));
         customerSheets.add(new FullCustomersEntitySheet(this, predicateForCustomers,"Customers"));
-        if (isPredicateArchived(predicate)) {
+        if (isArchived) {
             Predicate predicateForArchived = ExpressionUtils.and(predicate, CUSTOMERS_ARCHIVED.apply(true));
             customerSheets.add(new FullCustomersEntitySheet(this, predicateForArchived,"Archived"));
         }
@@ -286,16 +283,6 @@ class CustomerServiceImpl implements CustomerService {
 
     private FullCustomerExportDTO mapToFullExportDto(Customer customer) {
         return modelMapper.map(customer, FullCustomerExportDTO.class);
-    }
-
-    boolean isPredicateArchived(Predicate predicate) {
-
-        QCustomer customer = QCustomer.customer;
-        List<Expression<?>> argsList = predicateBuilderAndParser.getArgs(predicate);
-        if (argsList.size() > 0) {
-            return (argsList.get(argsList.indexOf(customer.archived) + 1).toString() != "true");
-        }
-        return false;
     }
 
     //endregion

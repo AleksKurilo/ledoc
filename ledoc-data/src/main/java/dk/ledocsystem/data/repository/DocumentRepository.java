@@ -38,11 +38,15 @@ public interface DocumentRepository extends JpaRepository<Document, Long>, Query
 
     @Override
     default void customize(QuerydslBindings bindings, QDocument root) {
-        bindings.including(root.name, root.status,
+        bindings.including(root.name, root.status, root.idNumber, root.type, root.source,
                 root.responsible.id, root.creator.id,
                 root.category.id, root.subcategory.id,
+                root.category.nameEn, root.subcategory.nameEn,
                 ExpressionUtils.path(Document.class, root, "locations.id"),
-                ExpressionUtils.path(Document.class, root, "trades.id"));
+                ExpressionUtils.path(Document.class, root, "trades.id"),
+                ExpressionUtils.path(String.class, root, "responsible.name"));
         bindings.bind(String.class).first((SingleValueBinding<StringPath, String>) StringExpression::containsIgnoreCase);
+        bindings.bind(ExpressionUtils.path(String.class, root.responsible, "name"))
+                .first((path, val) -> root.responsible.firstName.concat(" ").concat(root.responsible.lastName).containsIgnoreCase(val));
     }
 }

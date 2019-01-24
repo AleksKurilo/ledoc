@@ -9,7 +9,10 @@ import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.employee.EmployeeDetails;
 import dk.ledocsystem.data.model.employee.FollowedEmployees;
 import dk.ledocsystem.data.model.employee.QEmployee;
-import dk.ledocsystem.data.model.review.*;
+import dk.ledocsystem.data.model.review.EmployeeReview;
+import dk.ledocsystem.data.model.review.EmployeeReviewQuestionAnswer;
+import dk.ledocsystem.data.model.review.ReviewQuestion;
+import dk.ledocsystem.data.model.review.ReviewTemplate;
 import dk.ledocsystem.data.model.security.UserAuthorities;
 import dk.ledocsystem.data.repository.CustomerRepository;
 import dk.ledocsystem.data.repository.EmployeeRepository;
@@ -676,10 +679,6 @@ class EmployeeServiceImpl implements EmployeeService {
                     Pair.of(qEmployee.nearestRelative.comment, searchString)
             ).map(predicateBuilderAndParser::toPredicate)
                     .collect(Collectors.toList());
-
-            query.leftJoin(qEmployee.responsible, qResponsible)
-                    .leftJoin(qEmployee.details.responsibleOfSkills, qResponsibleOfSkills)
-                    .leftJoin(qEmployee.details.reviewTemplate, QReviewTemplate.reviewTemplate);
         }
 
         Employee employee = employeeRepository.findByUsername(currentUser.getUsername()).orElseThrow(IllegalStateException::new);
