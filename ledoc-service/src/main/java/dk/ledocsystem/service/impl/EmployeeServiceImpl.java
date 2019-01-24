@@ -5,7 +5,6 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.impl.JPAQuery;
 import dk.ledocsystem.data.model.Customer;
 import dk.ledocsystem.data.model.Location;
-import dk.ledocsystem.data.model.QLocation;
 import dk.ledocsystem.data.model.employee.Employee;
 import dk.ledocsystem.data.model.employee.EmployeeDetails;
 import dk.ledocsystem.data.model.employee.FollowedEmployees;
@@ -638,6 +637,9 @@ class EmployeeServiceImpl implements EmployeeService {
     JPAQuery getAllByCustomerForPreviewAndExport(UserDetails currentUser, String searchString, Predicate predicate, boolean isNew, boolean isArchived) {
         QEmployee qEmployee = QEmployee.employee;
 
+        QEmployee qResponsible = new QEmployee("responsible");
+        QEmployee qResponsibleOfSkills = new QEmployee("skills_responsible");
+
         JPAQuery query = new JPAQuery<>(entityManager);
         query.from(qEmployee).distinct();
 
@@ -675,11 +677,9 @@ class EmployeeServiceImpl implements EmployeeService {
             ).map(predicateBuilderAndParser::toPredicate)
                     .collect(Collectors.toList());
 
-            query.leftJoin(qEmployee.responsible, QEmployee.employee)
-                    .leftJoin(qEmployee.details.responsibleOfSkills, QEmployee.employee)
-                    .leftJoin(qEmployee.details.reviewTemplate, QReviewTemplate.reviewTemplate)
-                    .leftJoin(qEmployee.locations , QLocation.location)
-                    .leftJoin(qEmployee.responsible ,QEmployee.employee);
+            query.leftJoin(qEmployee.responsible, qResponsible)
+                    .leftJoin(qEmployee.details.responsibleOfSkills, qResponsibleOfSkills)
+                    .leftJoin(qEmployee.details.reviewTemplate, QReviewTemplate.reviewTemplate);
         }
 
         Employee employee = employeeRepository.findByUsername(currentUser.getUsername()).orElseThrow(IllegalStateException::new);
